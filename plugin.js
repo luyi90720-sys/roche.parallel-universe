@@ -1,5 +1,5 @@
 /**
- * 平行时空档案馆 v0.1.2
+ * 平行时空档案馆 v0.1.3
  * Parallel Universe Archive — 让Roche拥有平行时空
  *
  * Phase 1: 骨架 + 分支存档 + 记忆获取
@@ -12,10 +12,6 @@
  */
 ;(function () {
   'use strict'
-
-  /* ════════════════════════════════════════════════════════════
-     CSS — 金色琉璃美学 (Gold & Glass)
-     ════════════════════════════════════════════════════════════ */
 
   var CSS = [
     '/* ── 基础重置 ── */',
@@ -159,12 +155,20 @@
     '  border-radius:6px; padding:6px 10px; color:var(--pua-text); font-size:11.5px;',
     '  font-family:inherit; outline:none; transition:var(--pua-transition); }',
     '.pua-field-input:focus { border-color:var(--pua-accent); box-shadow:0 0 0 2px var(--pua-accent-glow); }',
+    '.pua-field-select { cursor:pointer; -webkit-appearance:none; appearance:none; padding-right:20px;',
+    '  background-image:url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'10\' height=\'10\' viewBox=\'0 0 10 10\'%3E%3Cpath d=\'M2 3.5L5 6.5L8 3.5\' stroke=\'%23999\' stroke-width=\'1.2\' fill=\'none\'/%3E%3C/svg%3E");',
+    '  background-repeat:no-repeat; background-position:right 7px center; }',
     '.pua-field-hint { font-size:9.5px; color:var(--pua-text-dim); margin-top:2px; }',
     '/* ── 空状态 ── */',
     '.pua-empty { display:flex; flex-direction:column; align-items:center; justify-content:center;',
     '  height:100%; color:var(--pua-text-dim); gap:10px; padding:40px; }',
     '.pua-empty-icon { font-size:36px; opacity:0.3; }',
     '.pua-empty-text { font-size:12px; }',
+    '/* ── 加载状态 ── */',
+    '.pua-loading { display:flex; align-items:center; justify-content:center; height:100%; }',
+    '.pua-spinner { width:28px; height:28px; border:3px solid var(--pua-border);',
+    '  border-top-color:var(--pua-accent); border-radius:50%; animation:pua-spin 0.8s linear infinite; }',
+    '@keyframes pua-spin { to { transform:rotate(360deg); } }',
     '/* ── Toast ── */',
     '.pua-toast { position:fixed; bottom:24px; left:50%; transform:translateX(-50%) translateY(20px);',
     '  background:var(--pua-bg-card); backdrop-filter:var(--pua-glass); -webkit-backdrop-filter:var(--pua-glass);',
@@ -180,10 +184,6 @@
     '.pua-placeholder-desc { font-size:11px; color:var(--pua-text-dim); text-align:center; max-width:300px; line-height:1.6; }',
   ].join('\n')
 
-  /* ════════════════════════════════════════════════════════════
-     ParallelUniverse 主类
-     ════════════════════════════════════════════════════════════ */
-
   function ParallelUniverse(roche) {
     this.roche = roche
     this.container = null
@@ -196,6 +196,11 @@
     this._pendingCharId = ''
     this._pendingCharName = ''
     this._pendingCharAvatar = ''
+    this._modalOverlay = null
+    this._toastEl = null
+    this._contentEl = null
+    this._titleEl = null
+    this._actionsEl = null
   }
 
   var P = ParallelUniverse.prototype
@@ -219,11 +224,21 @@
 
   P.unmountAppView = function() {
     if (this.container) { this.container.innerHTML = ''; this.container = null }
+    this._modalOverlay = null
+    this._toastEl = null
+    this._contentEl = null
+    this._titleEl = null
+    this._actionsEl = null
   }
 
   P.destroy = function() {
     if (this.styleEl) { this.styleEl.remove(); this.styleEl = null }
     if (this.container) { this.container.innerHTML = ''; this.container = null }
+    this._modalOverlay = null
+    this._toastEl = null
+    this._contentEl = null
+    this._titleEl = null
+    this._actionsEl = null
   }
 
   P._loadBranches = function() {
@@ -237,7 +252,9 @@
 
   P._saveBranches = function() {
     if (!this.roche || !this.roche.storage) return
-    this.roche.storage.set('pua_branches', { branches: this.branches }).catch(function(e) { console.error('[PUA] save failed', e) })
+    this.roche.storage.set('pua_branches', { branches: this.branches }).catch(function(e) {
+      console.error('[PUA] save failed', e)
+    })
   }
 
   P._render = function() {
@@ -256,22 +273,23 @@
     main.appendChild(this._renderTopbar())
     var content = document.createElement('div')
     content.className = 'pua-content'
-    content.id = 'pua-content'
     main.appendChild(content)
     layout.appendChild(main)
-    // Modal — 必须包含内部结构
     var overlay = document.createElement('div')
     overlay.className = 'pua-modal-overlay'
-    overlay.id = 'pua-modal'
     overlay.innerHTML = '<div class="pua-modal"><div class="pua-modal-header"><div class="pua-modal-title"></div><button class="pua-modal-close">&times;</button></div><div class="pua-modal-body"></div></div>'
     overlay.querySelector('.pua-modal-close').addEventListener('click', function() { self._closeModal() })
     overlay.addEventListener('click', function(e) { if (e.target === overlay) self._closeModal() })
     root.appendChild(overlay)
     var toast = document.createElement('div')
     toast.className = 'pua-toast'
-    toast.id = 'pua-toast'
     root.appendChild(toast)
     c.appendChild(root)
+    this._modalOverlay = overlay
+    this._toastEl = toast
+    this._contentEl = content
+    this._titleEl = root.querySelector('.pua-topbar-title')
+    this._actionsEl = root.querySelector('.pua-topbar-actions')
     this._renderPage()
   }
 
@@ -296,6 +314,7 @@
     pages.forEach(function(pg) {
       var item = document.createElement('div')
       item.className = 'pua-nav-item' + (pg.id === self.currentPage ? ' active' : '')
+      item.setAttribute('data-page', pg.id)
       item.innerHTML = '<span class="pua-nav-icon">' + pg.icon + '</span>' + pg.label
       if (pg.badge) item.innerHTML += '<span class="pua-nav-badge">' + pg.badge + '</span>'
       item.addEventListener('click', function() { self.currentPage = pg.id; self._render() })
@@ -317,36 +336,36 @@
     var self = this
     var topbar = document.createElement('div')
     topbar.className = 'pua-topbar'
-    var left = document.createElement('div')
-    left.style.cssText = 'display:flex;align-items:center;gap:8px'
+    var leftArea = document.createElement('div')
+    leftArea.style.cssText = 'display:flex;align-items:center;gap:8px'
     var backBtn = document.createElement('button')
     backBtn.className = 'pua-back-btn'
     backBtn.textContent = '\u2190'
     backBtn.title = '\u8FD4\u56DE'
     backBtn.addEventListener('click', function() { if (self.roche && self.roche.ui) self.roche.ui.closeApp() })
-    left.appendChild(backBtn)
+    leftArea.appendChild(backBtn)
     var title = document.createElement('div')
     title.className = 'pua-topbar-title'
-    title.id = 'pua-topbar-title'
-    left.appendChild(title)
-    topbar.appendChild(left)
+    leftArea.appendChild(title)
+    topbar.appendChild(leftArea)
     var actions = document.createElement('div')
     actions.className = 'pua-topbar-actions'
-    actions.id = 'pua-topbar-actions'
     topbar.appendChild(actions)
     return topbar
   }
 
   P._renderPage = function() {
-    var t = document.getElementById('pua-topbar-title'), a = document.getElementById('pua-topbar-actions'), c = document.getElementById('pua-content')
-    if (!t || !c) return
+    var titleEl = this._titleEl
+    var actionsEl = this._actionsEl
+    var contentEl = this._contentEl
+    if (!titleEl || !contentEl) return
     switch (this.currentPage) {
-      case 'branches': this._renderBranches(t, a, c); break
-      case 'presets': this._renderPlaceholder(t, a, c, '\u270E', '\u9884\u8BBE\u7F16\u8F91\u5668', '\u9884\u8BBE\u6761\u76EE\u7BA1\u7406\u3001\u89D2\u8272\u9009\u62E9\u3001\u62D6\u62FD\u6392\u5E8F\u3001Roche\u683C\u5F0F\u5BFC\u5165\u5BFC\u51FA'); break
-      case 'regex': this._renderPlaceholder(t, a, c, '\u2733', '\u6B63\u5219\u7BA1\u7406', '\u63D0\u793A\u8BCD\u66FF\u6362 / \u524D\u7AEF\u6E32\u67D3\u3001\u6DF1\u5EA6\u914D\u7F6E\u3001Roche\u683C\u5F0F\u5BFC\u5165\u5BFC\u51FA'); break
-      case 'assembly': this._renderPlaceholder(t, a, c, '\u2699', '\u4E0A\u4E0B\u6587\u7EC4\u88C5', '\u53EF\u89C6\u5316\u62D6\u62FD\u7EC4\u88C5\u3001\u6DF1\u5EA6\u8FC7\u6EE4\u3001\u89D2\u8272\u5361/\u4E16\u754C\u4E66/\u8BB0\u5FC6\u6CE8\u5165'); break
-      case 'memory': this._renderPlaceholder(t, a, c, '\u263D', '\u8BB0\u5FC6\u7CFB\u7EDF', '\u526FAPI\u603B\u7ED3\u3001\u6838\u5FC3\u8BB0\u5FC6\u8986\u5199\u3001\u4E8B\u5B9E\u8BB0\u5FC6\u538B\u7F29\u3001\u5411\u91CF\u8BB0\u5FC6\u9884\u7559'); break
-      case 'settings': this._renderPlaceholder(t, a, c, '\u2691', '\u8BBE\u7F6E', '\u526FAPI\u914D\u7F6E\u3001\u4E3B\u9898\u7F8E\u5316\u3001\u5BFC\u5165\u5BFC\u51FA\u3001\u517C\u5BB9\u6027'); break
+      case 'branches': this._renderBranches(titleEl, actionsEl, contentEl); break
+      case 'presets': this._renderPlaceholder(titleEl, actionsEl, contentEl, '\u270E', '\u9884\u8BBE\u7F16\u8F91\u5668', '\u9884\u8BBE\u6761\u76EE\u7BA1\u7406\u3001\u89D2\u8272\u9009\u62E9\u3001\u62D6\u63FD\u6392\u5E8F\u3001Roche\u683C\u5F0F\u5BFC\u5165\u5BFC\u51FA'); break
+      case 'regex': this._renderPlaceholder(titleEl, actionsEl, contentEl, '\u2733', '\u6B63\u5219\u7BA1\u7406', '\u63D0\u793A\u8BCD\u66FF\u6362 / \u524D\u7AEF\u6E32\u67D3\u3001\u6DF1\u5EA6\u914D\u7F6E\u3001Roche\u683C\u5F0F\u5BFC\u5165\u5BFC\u51FA'); break
+      case 'assembly': this._renderPlaceholder(titleEl, actionsEl, contentEl, '\u2699', '\u4E0A\u4E0B\u6587\u7EC4\u88C5', '\u53EF\u89C6\u5316\u62D6\u63FD\u7EC4\u88C5\u3001\u6DF1\u5EA6\u8FC7\u6EE4\u3001\u89D2\u8272\u5361/\u4E16\u754C\u4E66/\u8BB0\u5FC6\u6CE8\u5165'); break
+      case 'memory': this._renderPlaceholder(titleEl, actionsEl, contentEl, '\u263D', '\u8BB0\u5FC6\u7CFB\u7EDF', '\u526FAPI\u603B\u7ED3\u3001\u6838\u5FC3\u8BB0\u5FC6\u8986\u5199\u3001\u4E8B\u5B9E\u8BB0\u5FC6\u538B\u7F29\u3001\u5411\u91CF\u8BB0\u5FC6\u9884\u7559'); break
+      case 'settings': this._renderPlaceholder(titleEl, actionsEl, contentEl, '\u2691', '\u8BBE\u7F6E', '\u526FAPI\u914D\u7F6E\u3001\u4E3B\u9898\u7F8E\u5316\u3001\u5BFC\u5165\u5BFC\u51FA\u3001\u517C\u5BB9\u6027'); break
     }
   }
 
@@ -370,7 +389,8 @@
       return
     }
     contentEl.innerHTML = ''
-    Object.keys(groups).forEach(function(key) {
+    var groupKeys = Object.keys(groups)
+    groupKeys.forEach(function(key) {
       var g = groups[key]
       var group = document.createElement('div')
       group.className = 'pua-char-group'
@@ -378,8 +398,13 @@
       header.className = 'pua-char-group-header'
       var avatar = document.createElement('div')
       avatar.className = 'pua-char-avatar'
-      if (g.avatar) { var img = document.createElement('img'); img.src = g.avatar; avatar.appendChild(img) }
-      else { avatar.textContent = g.charName ? g.charName.charAt(0) : '?' }
+      if (g.avatar) {
+        var img = document.createElement('img')
+        img.src = g.avatar
+        avatar.appendChild(img)
+      } else {
+        avatar.textContent = g.charName ? g.charName.charAt(0) : '?'
+      }
       header.appendChild(avatar)
       var name = document.createElement('div')
       name.className = 'pua-char-group-name'
@@ -427,25 +452,19 @@
 
   P._showCreateBranchModal = function() {
     var self = this
-    var modal = document.getElementById('pua-modal')
-    if (!modal) return
-    var body = '<div class="pua-field"><div class="pua-field-label">\u5206\u652F\u540D\u79F0</div>'
-      + '<input class="pua-field-input" id="pua-branch-name" placeholder="\u7ED9\u8FD9\u4E2A\u5206\u652F\u8D77\u4E2A\u540D\u5B57..." value=""></div>'
-      + '<div class="pua-field"><div class="pua-field-label">\u6765\u6E90\u89D2\u8272</div>'
-      + '<input class="pua-field-input" id="pua-branch-char" value="\u68C0\u6D4B\u4E2D..." readonly>'
-      + '<div class="pua-field-hint">\u81EA\u52A8\u68C0\u6D4B\u5F53\u524D\u5BF9\u8BDD\u89D2\u8272</div></div>'
-      + '<div class="pua-field"><div class="pua-field-label">\u83B7\u53D6\u4E0A\u4E0B\u6587\u6DF1\u5EA6</div>'
-      + '<input class="pua-field-input" type="number" id="pua-branch-depth" value="50" min="1" max="200">'
-      + '<div class="pua-field-hint">\u4ECE\u5F53\u524D\u5BF9\u8BDD\u83B7\u53D6\u6700\u8FD1N\u6761\u6D88\u606F\uFF08\u6700\u5927200\uFF09</div></div>'
-      + '<div class="pua-field"><div class="pua-field-label">\u6807\u7B7E\uFF08\u9017\u53F7\u5206\u9694\uFF09</div>'
-      + '<input class="pua-field-input" id="pua-branch-tags" placeholder="\u5173\u952E\u6296\u62E9, \u756A\u5916, ..."></div>'
-      + '<div class="pua-field"><div class="pua-field-label">\u8BB0\u5FC6\u83B7\u53D6</div>'
-      + '<label style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--pua-text-sub);margin-bottom:4px">'
-      + '<input type="checkbox" id="pua-branch-mem-short" checked> \u4E0A\u4E0B\u6587\u8BB0\u5FC6\uFF08\u77ED\u671F\uFF09</label>'
-      + '<label style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--pua-text-sub);margin-bottom:4px">'
-      + '<input type="checkbox" id="pua-branch-mem-long" checked> \u4E8B\u5B9E\u8BB0\u5FC6 + \u6838\u5FC3\u8BB0\u5FC6\uFF08\u957F\u671F\uFF09</label></div>'
-    modal.querySelector('.pua-modal-body').innerHTML = body
-    modal.querySelector('.pua-modal-title').textContent = '\u521B\u5EFA\u5206\u652F\u5B58\u6863'
+    var modal = this._modalOverlay
+    if (!modal) { console.warn('[PUA] modal overlay not found'); return }
+    var body = ''
+    body += '<div class="pua-field"><div class="pua-field-label">\u5206\u652F\u540D\u79F0</div><input class="pua-field-input" id="pua-branch-name" placeholder="\u7ED9\u8FD9\u4E2A\u5206\u652F\u8D77\u4E2A\u540D\u5B57..." value=""></div>'
+    body += '<div class="pua-field"><div class="pua-field-label">\u6765\u6E90\u89D2\u8272</div><input class="pua-field-input" id="pua-branch-char" value="\u68C0\u6D4B\u4E2D..." readonly><div class="pua-field-hint">\u81EA\u52A8\u68C0\u6D4B\u5F53\u524D\u5BF9\u8BDD\u89D2\u8272</div></div>'
+    body += '<div class="pua-field"><div class="pua-field-label">\u83B7\u53D6\u4E0A\u4E0B\u6587\u6DF1\u5EA6</div><input class="pua-field-input" type="number" id="pua-branch-depth" value="50" min="1" max="200"><div class="pua-field-hint">\u4ECE\u5F53\u524D\u5BF9\u8BDD\u83B7\u53D6\u6700\u8FD1N\u6761\u6D88\u606F\uFF08\u6700\u5927200\uFF09</div></div>'
+    body += '<div class="pua-field"><div class="pua-field-label">\u6807\u7B7E\uFF08\u9017\u53F7\u5206\u9694\uFF09</div><input class="pua-field-input" id="pua-branch-tags" placeholder="\u5173\u952E\u6296\u62E9, \u756A\u5916, ..."></div>'
+    body += '<div class="pua-field"><div class="pua-field-label">\u8BB0\u5FC6\u83B7\u53D6</div><label style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--pua-text-sub);margin-bottom:4px"><input type="checkbox" id="pua-branch-mem-short" checked> \u4E0A\u4E0B\u6587\u8BB0\u5FC6\uFF08\u77ED\u671F\uFF09</label><label style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--pua-text-sub);margin-bottom:4px"><input type="checkbox" id="pua-branch-mem-long" checked> \u4E8B\u5B9E\u8BB0\u5FC6 + \u6838\u5FC3\u8BB0\u5FC6\uFF08\u957F\u671F\uFF09</label></div>'
+    var modalBody = modal.querySelector('.pua-modal-body')
+    if (!modalBody) { console.warn('[PUA] modal body not found'); return }
+    modalBody.innerHTML = body
+    var modalTitle = modal.querySelector('.pua-modal-title')
+    if (modalTitle) modalTitle.textContent = '\u521B\u5EFA\u5206\u652F\u5B58\u6863'
     var footer = modal.querySelector('.pua-modal-footer')
     if (footer) footer.remove()
     footer = document.createElement('div')
@@ -460,9 +479,9 @@
     createBtn.addEventListener('click', function() { self._doCreateBranch() })
     footer.appendChild(cancelBtn)
     footer.appendChild(createBtn)
-    modal.querySelector('.pua-modal').appendChild(footer)
+    var modalInner = modal.querySelector('.pua-modal')
+    if (modalInner) modalInner.appendChild(footer)
     modal.classList.add('show')
-    // 异步获取角色信息
     if (this.roche) {
       if (this.roche.character && this.roche.character.list) {
         this.roche.character.list().then(function(chars) {
@@ -473,6 +492,7 @@
             self._pendingCharId = char.id || ''
             self._pendingCharAvatar = char.avatar || ''
             var charInput = document.getElementById('pua-branch-char')
+            if (!charInput) charInput = modal.querySelector('#pua-branch-char')
             if (charInput) charInput.value = self._pendingCharName || '\u672A\u68C0\u6D4B\u5230'
           }
         }).catch(function(e) { console.warn('[PUA] character.list failed', e); self._fallbackConversationList() })
@@ -480,6 +500,7 @@
         self._fallbackConversationList()
       } else {
         var charInput = document.getElementById('pua-branch-char')
+        if (!charInput) charInput = modal.querySelector('#pua-branch-char')
         if (charInput) charInput.value = '\u65E0API\u53EF\u7528'
       }
     }
@@ -487,7 +508,13 @@
 
   P._fallbackConversationList = function() {
     var self = this
-    if (!this.roche || !this.roche.conversation || !this.roche.conversation.list) return
+    var modal = this._modalOverlay
+    if (!this.roche || !this.roche.conversation || !this.roche.conversation.list) {
+      var charInput = document.getElementById('pua-branch-char')
+      if (!charInput && modal) charInput = modal.querySelector('#pua-branch-char')
+      if (charInput) charInput.value = '\u65E0API\u53EF\u7528'
+      return
+    }
     this.roche.conversation.list().then(function(convList) {
       if (convList && convList.length) {
         var latest = convList[0]
@@ -496,18 +523,33 @@
         self._pendingCharId = latest.contactId || ''
         self._pendingCharAvatar = latest.avatar || ''
         var charInput = document.getElementById('pua-branch-char')
+        if (!charInput && modal) charInput = modal.querySelector('#pua-branch-char')
         if (charInput) charInput.value = self._pendingCharName || '\u672A\u68C0\u6D4B\u5230'
       }
-    }).catch(function(e) { console.warn('[PUA] conversation.list failed', e) })
+    }).catch(function(e) {
+      console.warn('[PUA] conversation.list failed', e)
+      var charInput = document.getElementById('pua-branch-char')
+      if (!charInput && modal) charInput = modal.querySelector('#pua-branch-char')
+      if (charInput) charInput.value = '\u83B7\u53D6\u5931\u8D25'
+    })
   }
 
   P._doCreateBranch = function() {
     var self = this
-    var nameInput = document.getElementById('pua-branch-name')
-    var depthInput = document.getElementById('pua-branch-depth')
-    var tagsInput = document.getElementById('pua-branch-tags')
-    var memShortCheck = document.getElementById('pua-branch-mem-short')
-    var memLongCheck = document.getElementById('pua-branch-mem-long')
+    var modal = this._modalOverlay
+    var nameInput = null, depthInput = null, tagsInput = null, memShortCheck = null, memLongCheck = null
+    if (modal) {
+      nameInput = modal.querySelector('#pua-branch-name')
+      depthInput = modal.querySelector('#pua-branch-depth')
+      tagsInput = modal.querySelector('#pua-branch-tags')
+      memShortCheck = modal.querySelector('#pua-branch-mem-short')
+      memLongCheck = modal.querySelector('#pua-branch-mem-long')
+    }
+    if (!nameInput) nameInput = document.getElementById('pua-branch-name')
+    if (!depthInput) depthInput = document.getElementById('pua-branch-depth')
+    if (!tagsInput) tagsInput = document.getElementById('pua-branch-tags')
+    if (!memShortCheck) memShortCheck = document.getElementById('pua-branch-mem-short')
+    if (!memLongCheck) memLongCheck = document.getElementById('pua-branch-mem-long')
     var branchName = nameInput ? nameInput.value.trim() : ''
     var depth = depthInput ? parseInt(depthInput.value) || 50 : 50
     var tagsStr = tagsInput ? tagsInput.value.trim() : ''
@@ -518,27 +560,18 @@
     var charName = this._pendingCharName || ''
     var charAvatar = this._pendingCharAvatar || ''
     if (!branchName) branchName = '\u5206\u652F \u00B7 ' + new Date().toLocaleString('zh-CN', { month:'numeric', day:'numeric', hour:'2-digit', minute:'2-digit' })
-    var tags = tagsStr ? tagsStr.split(/[,，]/).map(function(t) { return t.trim() }).filter(function(t) { return t }) : []
+    var tags = tagsStr ? tagsStr.split(/[,\uFF0C]/).map(function(t) { return t.trim() }).filter(function(t) { return t }) : []
     var branch = { id: 'b' + Date.now(), name: branchName, charId: charId, charName: charName, charAvatar: charAvatar, sourceConvId: convId, msgCount: 0, createdAt: new Date().toLocaleString('zh-CN'), tags: tags, contextDepth: depth, longTermMemory: null, messages: [] }
     var promises = []
     if (getShort && this.roche && this.roche.memory && convId) {
-      promises.push(this.roche.memory.getShortTerm({ conversationId: convId, limit: depth }).then(function(data) {
-        if (data) { var msgs = data.messages || data; if (Array.isArray(msgs)) { branch.messages = msgs; branch.msgCount = msgs.length } }
-      }).catch(function(e) { console.warn('[PUA] getShortTerm failed', e) }))
+      promises.push(this.roche.memory.getShortTerm({ conversationId: convId, limit: depth }).then(function(data) { if (data) { var msgs = data.messages || data; if (Array.isArray(msgs)) { branch.messages = msgs; branch.msgCount = msgs.length } } return data }).catch(function(e) { console.warn('[PUA] getShortTerm failed', e) }))
     }
     if (getLong && this.roche && this.roche.memory && convId) {
-      promises.push(this.roche.memory.getLongTerm({ conversationId: convId }).then(function(data) { if (data) branch.longTermMemory = data }).catch(function(e) { console.warn('[PUA] getLongTerm failed', e) }))
+      promises.push(this.roche.memory.getLongTerm({ conversationId: convId }).then(function(data) { if (data) { branch.longTermMemory = data } return data }).catch(function(e) { console.warn('[PUA] getLongTerm failed', e) }))
     }
     if (promises.length === 0) { self.branches.push(branch); self._saveBranches(); self._closeModal(); self._toast('\u5206\u652F\u521B\u5EFA\u6210\u529F\uFF08\u672A\u83B7\u53D6\u8BB0\u5FC6\uFF09'); self._render(); return }
     this._toast('\u6B63\u5728\u83B7\u53D6\u8BB0\u5FC6...')
-    Promise.all(promises).then(function() {
-      self.branches.push(branch); self._saveBranches(); self._closeModal()
-      self._toast('\u5206\u652F\u521B\u5EFA\u6210\u529F\uFF01\u5DF2\u83B7\u53D6 ' + branch.msgCount + ' \u6761\u6D88\u606F'); self._render()
-    }).catch(function(e) {
-      console.error('[PUA] create branch failed', e)
-      self.branches.push(branch); self._saveBranches(); self._closeModal()
-      self._toast('\u5206\u652F\u5DF2\u521B\u5EFA\uFF0C\u4F46\u8BB0\u5FC6\u83B7\u53D6\u53EF\u80FD\u4E0D\u5B8C\u6574'); self._render()
-    })
+    Promise.all(promises).then(function() { self.branches.push(branch); self._saveBranches(); self._closeModal(); self._toast('\u5206\u652F\u521B\u5EFA\u6210\u529F\uFF01\u5DF2\u83B7\u53D6 ' + branch.msgCount + ' \u6761\u6D88\u606F'); self._render() }).catch(function(e) { console.error('[PUA] create branch failed', e); self.branches.push(branch); self._saveBranches(); self._closeModal(); self._toast('\u5206\u652F\u5DF2\u521B\u5EFA\uFF0C\u4F46\u8BB0\u5FC6\u83B7\u53D6\u53EF\u80FD\u4E0D\u5B8C\u6574'); self._render() })
   }
 
   P._openBranch = function(branchId) {
@@ -546,45 +579,28 @@
     var branch = null
     for (var i = 0; i < this.branches.length; i++) { if (this.branches[i].id === branchId) { branch = this.branches[i]; break } }
     if (!branch) return
-    var modal = document.getElementById('pua-modal')
-    if (!modal) return
-    var body = '<div style="margin-bottom:12px"><div style="font-size:14px;font-weight:700;color:var(--pua-accent-text);margin-bottom:8px">' + this._escHtml(branch.name) + '</div>'
-      + '<div style="font-size:11px;color:var(--pua-text-dim);display:flex;flex-direction:column;gap:2px">'
-      + '<span>\u89D2\u8272: ' + this._escHtml(branch.charName || '\u672A\u77E5') + '</span>'
-      + '<span>\u6D88\u606F: ' + branch.msgCount + ' \u6761</span>'
-      + '<span>\u521B\u5EFA: ' + this._escHtml(branch.createdAt || '-') + '</span>'
-      + '<span>\u4E0A\u4E0B\u6587\u6DF1\u5EA6: ' + (branch.contextDepth || 50) + '</span></div></div>'
+    var modal = this._modalOverlay
+    if (!modal) { console.warn('[PUA] modal overlay not found in _openBranch'); return }
+    var body = '<div style="margin-bottom:12px"><div style="font-size:14px;font-weight:700;color:var(--pua-accent-text);margin-bottom:8px">' + this._escHtml(branch.name) + '</div><div style="font-size:11px;color:var(--pua-text-dim);display:flex;flex-direction:column;gap:2px"><span>\u89D2\u8272: ' + this._escHtml(branch.charName || '\u672A\u77E5') + '</span><span>\u6D88\u606F: ' + branch.msgCount + ' \u6761</span><span>\u521B\u5EFA: ' + this._escHtml(branch.createdAt || '-') + '</span><span>\u4E0A\u4E0B\u6587\u6DF1\u5EA6: ' + (branch.contextDepth || 50) + '</span></div></div>'
     if (branch.longTermMemory) {
       body += '<div style="margin-bottom:12px"><div style="font-size:11px;font-weight:600;color:var(--pua-accent);margin-bottom:4px">\u957F\u671F\u8BB0\u5FC6</div>'
-      if (branch.longTermMemory.core) {
-        var coreText = branch.longTermMemory.core.summary || branch.longTermMemory.core.text || String(branch.longTermMemory.core)
-        body += '<div style="font-size:10.5px;color:var(--pua-text-sub);background:var(--pua-bg-input);border-radius:6px;padding:8px;margin-bottom:4px;max-height:80px;overflow-y:auto">'
-        body += '<b>\u6838\u5FC3:</b> ' + this._escHtml(coreText.substring(0, 200))
-        if (coreText.length > 200) body += '...'
-        body += '</div>'
-      }
-      if (branch.longTermMemory.facts) { var fc = Array.isArray(branch.longTermMemory.facts) ? branch.longTermMemory.facts.length : 0; body += '<div style="font-size:10px;color:var(--pua-text-dim)">\u4E8B\u5B9E\u8BB0\u5FC6: ' + fc + ' \u6761</div>' }
+      if (branch.longTermMemory.core) { var coreText = branch.longTermMemory.core.summary || branch.longTermMemory.core.text || String(branch.longTermMemory.core); body += '<div style="font-size:10.5px;color:var(--pua-text-sub);background:var(--pua-bg-input);border-radius:6px;padding:8px;margin-bottom:4px;max-height:80px;overflow-y:auto"><b>\u6838\u5FC3:</b> ' + this._escHtml(coreText.substring(0, 200)); if (coreText.length > 200) body += '...'; body += '</div>' }
+      if (branch.longTermMemory.facts) { var factCount = Array.isArray(branch.longTermMemory.facts) ? branch.longTermMemory.facts.length : 0; body += '<div style="font-size:10px;color:var(--pua-text-dim)">\u4E8B\u5B9E\u8BB0\u5FC6: ' + factCount + ' \u6761</div>' }
+      if (branch.longTermMemory.vectors) { var vecCount = Array.isArray(branch.longTermMemory.vectors) ? branch.longTermMemory.vectors.length : 0; if (vecCount > 0) body += '<div style="font-size:10px;color:var(--pua-text-dim)">\u5411\u91CF\u8BB0\u5FC6: ' + vecCount + ' \u6761</div>' }
       body += '</div>'
     }
     if (branch.messages && branch.messages.length) {
-      body += '<div style="margin-bottom:12px"><div style="font-size:11px;font-weight:600;color:var(--pua-accent);margin-bottom:4px">\u804A\u5929\u8BB0\u5F55 (' + branch.messages.length + ' \u6761)</div>'
-      body += '<div style="max-height:200px;overflow-y:auto;font-size:10.5px;line-height:1.6">'
-      var pc = Math.min(branch.messages.length, 10)
-      for (var j = branch.messages.length - pc; j < branch.messages.length; j++) {
-        var msg = branch.messages[j]
-        var isUser = msg.type === 'user' || msg.senderId === 'user'
-        var rl = isUser ? 'USR' : 'AST'
-        var rc = isUser ? 'var(--pua-user)' : 'var(--pua-mem)'
-        var ct = (msg.text || msg.content || '').substring(0, 100)
-        body += '<div style="margin-bottom:4px;padding:4px 6px;border-radius:4px;background:rgba(255,255,255,0.02)">'
-        body += '<span style="color:' + rc + ';font-weight:600;font-size:9px">[' + rl + ']</span> '
-        body += '<span style="color:var(--pua-text-sub)">' + this._escHtml(ct) + '</span></div>'
-      }
+      body += '<div style="margin-bottom:12px"><div style="font-size:11px;font-weight:600;color:var(--pua-accent);margin-bottom:4px">\u804A\u5929\u8BB0\u5F55 (' + branch.messages.length + ' \u6761)</div><div style="max-height:200px;overflow-y:auto;font-size:10.5px;line-height:1.6">'
+      var previewCount = Math.min(branch.messages.length, 10)
+      for (var j = branch.messages.length - previewCount; j < branch.messages.length; j++) { var msg = branch.messages[j]; var isUser = msg.type === 'user' || msg.senderId === 'user'; var roleLabel = isUser ? 'USR' : 'AST'; var roleColor = isUser ? 'var(--pua-user)' : 'var(--pua-mem)'; var content = (msg.text || msg.content || '').substring(0, 100); body += '<div style="margin-bottom:4px;padding:4px 6px;border-radius:4px;background:rgba(255,255,255,0.02)"><span style="color:' + roleColor + ';font-weight:600;font-size:9px">[' + roleLabel + ']</span> <span style="color:var(--pua-text-sub)">' + this._escHtml(content) + '</span></div>' }
       if (branch.messages.length > 10) body += '<div style="font-size:9px;color:var(--pua-text-dim);text-align:center">\u4EC5\u663E\u793A\u6700\u8FD1 10 \u6761</div>'
       body += '</div></div>'
     }
-    modal.querySelector('.pua-modal-body').innerHTML = body
-    modal.querySelector('.pua-modal-title').textContent = '\u5206\u652F\u8BE6\u60C5'
+    var modalBody = modal.querySelector('.pua-modal-body')
+    if (!modalBody) { console.warn('[PUA] modal body not found in _openBranch'); return }
+    modalBody.innerHTML = body
+    var modalTitle = modal.querySelector('.pua-modal-title')
+    if (modalTitle) modalTitle.textContent = '\u5206\u652F\u8BE6\u60C5'
     var footer = modal.querySelector('.pua-modal-footer')
     if (footer) footer.remove()
     footer = document.createElement('div')
@@ -596,13 +612,11 @@
     var deleteBtn = document.createElement('button')
     deleteBtn.className = 'pua-btn pua-btn-danger'
     deleteBtn.textContent = '\u5220\u9664\u5206\u652F'
-    deleteBtn.addEventListener('click', function() {
-      self.branches = self.branches.filter(function(b) { return b.id !== branchId })
-      self._saveBranches(); self._closeModal(); self._toast('\u5206\u652F\u5DF2\u5220\u9664'); self._render()
-    })
+    deleteBtn.addEventListener('click', function() { self.branches = self.branches.filter(function(b) { return b.id !== branchId }); self._saveBranches(); self._closeModal(); self._toast('\u5206\u652F\u5DF2\u5220\u9664'); self._render() })
     footer.appendChild(deleteBtn)
     footer.appendChild(closeBtn)
-    modal.querySelector('.pua-modal').appendChild(footer)
+    var modalInner = modal.querySelector('.pua-modal')
+    if (modalInner) modalInner.appendChild(footer)
     modal.classList.add('show')
   }
 
@@ -613,15 +627,14 @@
   }
 
   P._escHtml = function(s) { if (!s) return ''; return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;') }
-  P._closeModal = function() { var m = document.getElementById('pua-modal'); if (m) m.classList.remove('show') }
-  P._toast = function(msg) { var self = this; var t = document.getElementById('pua-toast'); if (!t) return; t.textContent = msg; t.classList.add('show'); if (this.toastTimer) clearTimeout(this.toastTimer); this.toastTimer = setTimeout(function() { t.classList.remove('show') }, 2500) }
+  P._closeModal = function() { if (this._modalOverlay) this._modalOverlay.classList.remove('show') }
+  P._toast = function(msg) { var self = this; var toast = this._toastEl; if (!toast) return; toast.textContent = msg; toast.classList.add('show'); if (this.toastTimer) clearTimeout(this.toastTimer); this.toastTimer = setTimeout(function() { toast.classList.remove('show') }, 2500) }
 
   var _instance = null
-
   window.RochePlugin.register({
     id: 'parallel-universe',
     name: '\u5E73\u884C\u65F6\u7A7A\u6863\u6848\u9986',
-    version: '0.1.2',
+    version: '0.1.3',
     icon: '\u2606',
     apps: [{
       id: 'parallel-universe-home',
@@ -635,32 +648,16 @@
         } else {
           _instance.roche = roche
           _instance.container = container
-          if (!_instance.styleEl) {
-            _instance.styleEl = document.createElement('style')
-            _instance.styleEl.textContent = CSS
-            document.head.appendChild(_instance.styleEl)
-          }
-          if (!document.getElementById('pua-font-link')) {
-            var link = document.createElement('link')
-            link.id = 'pua-font-link'
-            link.rel = 'stylesheet'
-            link.href = 'https://cdn.jsdelivr.net/npm/lxgw-wenkai-lite-webfont@1.1.0/style.css'
-            document.head.appendChild(link)
-          }
-          _instance._render()
+          if (!_instance.styleEl) { _instance.styleEl = document.createElement('style'); _instance.styleEl.textContent = CSS; document.head.appendChild(_instance.styleEl) }
+          if (!document.getElementById('pua-font-link')) { var link = document.createElement('link'); link.id = 'pua-font-link'; link.rel = 'stylesheet'; link.href = 'https://cdn.jsdelivr.net/npm/lxgw-wenkai-lite-webfont@1.1.0/style.css'; document.head.appendChild(link) }
+          _instance._loadBranches()
         }
       },
-      unmount: function(container, roche) {
-        if (_instance) _instance.unmountAppView()
-      },
+      unmount: function(container, roche) { if (_instance) _instance.unmountAppView() },
     }],
   })
 
   if (!window.ParallelUniverseAPI) {
-    window.ParallelUniverseAPI = {
-      getInstance: function() { return _instance },
-      createBranch: function() { if (_instance) _instance._showCreateBranchModal() },
-    }
+    window.ParallelUniverseAPI = { getInstance: function() { return _instance }, createBranch: function() { if (_instance) _instance._showCreateBranchModal() } }
   }
-
 })()
