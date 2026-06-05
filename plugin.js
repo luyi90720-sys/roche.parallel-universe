@@ -309,6 +309,25 @@
     '.pua-modal { width:90vw; max-height:85vh; }',
     '.pua-content { padding:12px; }',
     '.pua-topbar { padding:0 12px; }',
+    '.pua-btn { min-height:36px; padding:6px 14px; font-size:12px; }',
+    '.pua-btn-gold { min-height:40px; }',
+    '.pua-nav-item { padding:12px 16px; font-size:13px; }',
+    '.pua-branch-card { padding:14px; }',
+    '.pua-branch-card:active { transform:scale(0.98); opacity:0.9; }',
+    '.pua-branch-name { font-size:14px; }',
+    '.pua-topbar { height:52px; min-height:52px; }',
+    '.pua-back-btn { width:34px; height:34px; font-size:16px; }',
+    '.pua-sidebar-open-btn { width:34px; height:34px; font-size:18px; }',
+    '.pua-field-input { font-size:13px; padding:8px 12px; }',
+    '.pua-field-label { font-size:11px; }',
+    '.pua-modal-body { padding:14px; }',
+    '.pua-entry-item { padding:10px 12px; }',
+    '.pua-entry-title { font-size:12px; }',
+    '.pua-detail-textarea { font-size:12px; min-height:200px; }',
+    '.pua-panel-header { padding:12px 14px; font-size:12px; }',
+    '.pua-char-group-header { padding:10px 0; }',
+    '.pua-char-avatar { width:36px; height:36px; font-size:16px; }',
+    '.pua-char-group-name { font-size:14px; }',
     '}',
     '@media (min-width:768px) {',
     '.pua-sidebar-open-btn { display:none; }',
@@ -743,6 +762,7 @@
 
   P._renderBranches = function(titleEl, actionsEl, contentEl) {
     var self = this
+    var savedScrollTop = contentEl.scrollTop
     titleEl.textContent = '\u5206\u652F\u5B58\u6863'
     actionsEl.innerHTML = ''
 
@@ -856,6 +876,7 @@
       group.appendChild(grid)
       contentEl.appendChild(group)
     })
+    contentEl.scrollTop = savedScrollTop
   }
 
   /* ── 创建分支对话框 ── */
@@ -1984,7 +2005,8 @@
     h += '</div></div>'
 
     // === Right: Detail editor ===
-    h += '<div class="pua-glass pua-panel-detail">'
+    var mobileShowClass = (window.innerWidth < 768 && selPreset) ? ' show' : ''
+    h += '<div class="pua-glass pua-panel-detail' + mobileShowClass + '">'
     if (selPreset) {
       // Header: title + role + delete
       h += '<div class="pua-detail-header">'
@@ -1997,6 +2019,7 @@
       h += '<option value="assistant"' + (selPreset.role === 'assistant' ? ' selected' : '') + '>Assistant</option>'
       h += '</select></div>'
       h += '<div style="flex:1"></div>'
+      h += '<button class="pua-btn pua-btn-sm pua-mobile-back" style="display:none" data-id="' + selPreset.id + '">\u2190 \u8FD4\u56DE\u5217\u8868</button>'
       h += '<button class="pua-btn pua-btn-danger pua-btn-sm pua-preset-delete" data-id="' + selPreset.id + '">\u5220\u9664</button>'
       h += '</div>'
       // Content textarea
@@ -2035,6 +2058,17 @@
 
     contentEl.innerHTML = h
     this._bindPresetEvents()
+
+    // 恢复列表滚动位置到选中条目
+    if (this.selPreset) {
+      var listBody = document.getElementById('pua-preset-list')
+      if (listBody) {
+        var selItem = listBody.querySelector('.pua-entry-item.selected')
+        if (selItem) {
+          selItem.scrollIntoView({ block: 'nearest', behavior: 'instant' })
+        }
+      }
+    }
   }
 
   /* ── 绑定预设编辑器事件 ── */
@@ -2050,6 +2084,13 @@
         el.addEventListener('click', function(e) {
           if (e.target.classList.contains('pua-toggle-item') || e.target.classList.contains('pua-drag-handle')) return
           self.selPreset = this.getAttribute('data-id')
+          // 移动端：隐藏列表、显示详情
+          if (window.innerWidth < 768) {
+            var panelList = document.querySelector('.pua-panel-list')
+            var panelDetail = document.querySelector('.pua-panel-detail')
+            if (panelList) panelList.style.display = 'none'
+            if (panelDetail) panelDetail.classList.add('show')
+          }
           self._render()
         })
         // Drag start
@@ -2209,6 +2250,18 @@
       delBtn.addEventListener('click', function() {
         var id = this.getAttribute('data-id')
         self._delPreset(id)
+      })
+    }
+
+    // Mobile back button
+    var mobileBackBtn = document.querySelector('.pua-mobile-back')
+    if (mobileBackBtn) {
+      if (window.innerWidth < 768) mobileBackBtn.style.display = ''
+      mobileBackBtn.addEventListener('click', function() {
+        var panelList = document.querySelector('.pua-panel-list')
+        var panelDetail = document.querySelector('.pua-panel-detail')
+        if (panelList) panelList.style.display = ''
+        if (panelDetail) panelDetail.classList.remove('show')
       })
     }
   }
