@@ -1,10 +1,1 @@
-{
-  "id": "parallel-universe",
-  "name": "平行时空档案馆",
-  "version": "0.1.9",
-  "description": "分支存档、预设编辑、正则管理、上下文组装、记忆系统 — 让Roche拥有平行时空",
-  "author": "Roche Community",
-  "entry": "https://raw.githubusercontent.com/yechen1844/roche.parallel-universe/main/plugin.js",
-  "hash": "",
-  "permissions": ["storage", "ui", "persona:read", "character:read", "memory:read", "memory:write", "worldbook:read", "conversation:read", "ai:chat"]
-}
+ewogICJpZCI6ICJwYXJhbGxlbC11bml2ZXJzZSIsCiAgIm5hbWUiOiAi5bmz6Ieo5pe26Ze06ZqG56u6IiwKICAidmVyc2lvbiI6ICIwLjIuMCIsCiAgImRlc2NyaXB0aW9uIjogIuWIhuaCsuWtl+WPlivppITorr7nvJbovpHlmagv5q2j5YiZ566h55CGL+S4i+S4jearj+e7h+e7gy/orrblvZXns7vnu58gLeiHpUtvY2hl5o6l5pyJ5bmz6Ieo5pe26Ze0IiwKICAiYXV0aG9yIjogIlJvY2hlIENvbW11bml0eSIsCiAgImVudHJ5IjogImh0dHBzOi8vcmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbS95ZWNoZW4xODQ0L3JvY2hlLnBhcmFsbGVsLXVuaXZlcnNlL21haW4vcGx1Z2luLmpzIiwKICAiaGFzaCI6ICIiLAogICJwZXJtaXNzaW9ucyI6IFsic3RvcmFnZSIsICJ1aSIsICJwZXJzb25hOnJlYWQiLCAiY2hhcmFjdGVyOnJlYWQiLCAibWVtb3J5OnJlYWQiLCAibWVtb3J5OndyaXRlIiwgIndvcmxkYm9vazpyZWFkIiwgImNvbnZlcnNhdGlvbjpyZWFkIiwgImFpOmNoYXQiXQp9Cg==
