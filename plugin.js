@@ -528,6 +528,12 @@
     '.pua-sidebar-open-btn { display:none; }',
     '.pua-sidebar-mask { display:none; }',
     '}',
+
+    '/* ── 对话页面动画 ── */',
+    '@keyframes pua-chat-pulse {',
+    '  0%, 100% { transform:scale(1); box-shadow:0 0 40px var(--pua-accent-glow); }',
+    '  50% { transform:scale(1.08); box-shadow:0 0 60px var(--pua-accent-glow); }',
+    '}',
   ].join('\n')
 
   /* ════════════════════════════════════════════════════════════
@@ -608,6 +614,9 @@
       this.styleEl.textContent = CSS
       document.head.appendChild(this.styleEl)
     }
+
+    // 注入自定义主题CSS
+    this._applyThemeCSS()
 
     // 加载LXGW字体
     if (!document.getElementById('pua-font-link')) {
@@ -1037,6 +1046,8 @@
       { id: 'regex', icon: '\u2733', label: '\u6B63\u5219\u7BA1\u7406', badge: this.regexes.length },
       { id: 'assembly', icon: '\u2699', label: '\u4E0A\u4E0B\u6587\u7EC4\u88C5', badge: this.asmBranchId ? 1 : 0 },
       { id: 'memory', icon: '\u263D', label: '\u8BB0\u5FC6\u7CFB\u7EDF' },
+      { id: 'chat', icon: '\uD83D\uDCAC', label: '\u5BF9\u8BDD', badge: 0 },
+      { id: 'theme', icon: '\uD83C\uDFA8', label: '\u7F8E\u5316', badge: 0 },
       { id: 'settings', icon: '\u2691', label: '\u8BBE\u7F6E' },
     ]
 
@@ -1126,6 +1137,8 @@
       case 'regex': this._renderRegexes(titleEl, actionsEl, contentEl); break
       case 'assembly': this._renderAssembly(titleEl, actionsEl, contentEl); break
       case 'memory': this._renderMemory(titleEl, actionsEl, contentEl); break
+      case 'chat': this._renderChat(titleEl, actionsEl, contentEl); break
+      case 'theme': this._renderTheme(titleEl, actionsEl, contentEl); break
       case 'settings': this._renderSettings(titleEl, actionsEl, contentEl); break
     }
   }
@@ -5280,6 +5293,323 @@
   }
 
   /* ════════════════════════════════════════════════════════════
+     对话页面（Coming Soon）
+     ════════════════════════════════════════════════════════════ */
+
+  P._renderChat = function(titleEl, actionsEl, contentEl) {
+    titleEl.textContent = '\u5BF9\u8BDD'
+    actionsEl.innerHTML = ''
+
+    var h = ''
+    h += '<div style="display:flex;align-items:center;justify-content:center;height:100%;min-height:400px">'
+    h += '<div style="text-align:center;padding:40px;max-width:480px">'
+    h += '<div style="width:80px;height:80px;margin:0 auto 24px;border-radius:50%;background:linear-gradient(135deg,var(--pua-accent-dim),var(--pua-accent));display:flex;align-items:center;justify-content:center;font-size:36px;box-shadow:0 0 40px var(--pua-accent-glow);animation:pua-chat-pulse 2s ease-in-out infinite">\uD83D\uDCAC</div>'
+    h += '<h2 style="font-size:20px;font-weight:700;color:var(--pua-accent-text);margin-bottom:8px">\u65F6\u7A7A\u5BF9\u8BDD\u7CFB\u7EDF</h2>'
+    h += '<p style="font-size:12px;color:var(--pua-accent);margin-bottom:16px">\u6838\u5FC3\u529F\u80FD\u5F00\u53D1\u4E2D...</p>'
+    h += '<p style="font-size:11px;color:var(--pua-text-sub);line-height:1.8">\u8FDE\u63A5\u4E3B API\uFF0C\u4F7F\u7528\u7EC4\u88C5\u4E0A\u4E0B\u6587 + \u8BB0\u5FC6\u7CFB\u7EDF\uFF0C<br>\u5B9E\u73B0\u771F\u6B63\u7684\u89D2\u8272\u626E\u6F14\u5BF9\u8BDD\u3002<br>\u652F\u6301\u591A\u5206\u652F\u8BB0\u5FC6\u8054\u52A8\u3001\u5411\u91CF\u53EC\u56DE\u3001\u81EA\u52A8\u603B\u7ED3\u3002</p>'
+    h += '<div style="margin-top:24px;font-size:10px;color:var(--pua-text-dim)">\u8BF7\u671F\u5F85\u4E0B\u4E00\u7248\u672C \u2728</div>'
+    h += '</div></div>'
+
+    contentEl.innerHTML = h
+  }
+
+  /* ════════════════════════════════════════════════════════════
+     美化/主题系统
+     ════════════════════════════════════════════════════════════ */
+
+  P._loadThemes = function() {
+    var data = this._themeDataCache
+    if (data) return data
+    try {
+      var raw = localStorage.getItem('pua_themes')
+      if (raw) {
+        data = JSON.parse(raw)
+      }
+    } catch(e) {}
+    if (!data || !data.themes) {
+      data = { themes: [], activeThemeId: '' }
+    }
+    this._themeDataCache = data
+    return data
+  }
+
+  P._saveThemes = function(data) {
+    this._themeDataCache = data
+    try { localStorage.setItem('pua_themes', JSON.stringify(data)) } catch(e) {}
+  }
+
+  P._applyThemeCSS = function() {
+    var existing = document.getElementById('pua-custom-theme')
+    var themeData = this._loadThemes()
+    var activeId = themeData.activeThemeId
+    var css = ''
+    if (activeId) {
+      for (var i = 0; i < themeData.themes.length; i++) {
+        if (themeData.themes[i].id === activeId) {
+          css = themeData.themes[i].css || ''
+          break
+        }
+      }
+    }
+    if (existing) {
+      existing.textContent = css
+    } else if (css) {
+      var styleTag = document.createElement('style')
+      styleTag.id = 'pua-custom-theme'
+      styleTag.textContent = css
+      document.head.appendChild(styleTag)
+    }
+  }
+
+  P._renderTheme = function(titleEl, actionsEl, contentEl) {
+    var self = this
+    titleEl.textContent = '\u7F8E\u5316'
+    actionsEl.innerHTML = ''
+
+    var themeData = this._loadThemes()
+    var themes = themeData.themes || []
+    var activeId = themeData.activeThemeId || ''
+
+    var h = ''
+
+    // 主题选择器
+    h += '<div class="pua-settings-group">'
+    h += '<div class="pua-settings-title">\uD83C\uDFA8 \u4E3B\u9898\u9009\u62E9</div>'
+    h += '<div class="pua-settings-row"><span class="pua-settings-label">\u5F53\u524D\u4E3B\u9898</span>'
+    h += '<select class="pua-settings-select" id="theme-select">'
+    h += '<option value="">-- \u65E0\u81EA\u5B9A\u4E49\u4E3B\u9898 --</option>'
+    for (var ti = 0; ti < themes.length; ti++) {
+      h += '<option value="' + themes[ti].id + '"' + (themes[ti].id === activeId ? ' selected' : '') + '>' + self._escHtml(themes[ti].name) + '</option>'
+    }
+    h += '</select></div>'
+    h += '<div style="display:flex;gap:6px;margin-top:6px;flex-wrap:wrap">'
+    h += '<button class="pua-btn pua-btn-sm" id="theme-new">+ \u65B0\u5EFA\u4E3B\u9898</button>'
+    h += '<button class="pua-btn pua-btn-sm" id="theme-rename">\u91CD\u547D\u540D</button>'
+    h += '<button class="pua-btn pua-btn-sm pua-btn-danger" id="theme-delete">\u5220\u9664</button>'
+    h += '<button class="pua-btn pua-btn-sm" id="theme-apply">\u5E94\u7528</button>'
+    h += '<button class="pua-btn pua-btn-sm" id="theme-reset">\u6062\u590D\u9ED8\u8BA4</button>'
+    h += '</div>'
+    h += '</div>'
+
+    // CSS 编辑器
+    h += '<div class="pua-settings-group">'
+    h += '<div class="pua-settings-title">\u270F CSS \u7F16\u8F91\u5668</div>'
+    var currentCss = ''
+    if (activeId) {
+      for (var ci = 0; ci < themes.length; ci++) {
+        if (themes[ci].id === activeId) { currentCss = themes[ci].css || ''; break }
+      }
+    }
+    h += '<textarea id="theme-css-editor" style="width:100%;min-height:400px;background:#1a1a2e;border:1px solid var(--pua-border);border-radius:8px;padding:14px 16px;color:#e0e0e0;font-size:12px;font-family:Consolas,Monaco,monospace;line-height:1.7;outline:none;resize:vertical;tab-size:2">' + self._escHtml(currentCss) + '</textarea>'
+    h += '<div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap">'
+    h += '<button class="pua-btn pua-btn-sm pua-btn-gold" id="theme-save">\u4FDD\u5B58</button>'
+    h += '<button class="pua-btn pua-btn-sm" id="theme-preview">\u9884\u89C8</button>'
+    h += '<button class="pua-btn pua-btn-sm" id="theme-export">\u5BFC\u51FA</button>'
+    h += '<button class="pua-btn pua-btn-sm" id="theme-import">\u5BFC\u5165</button>'
+    h += '</div>'
+    h += '<input type="file" id="theme-import-file" accept=".json" style="display:none">'
+    h += '</div>'
+
+    contentEl.innerHTML = h
+
+    // 主题选择器事件
+    var themeSelect = contentEl.querySelector('#theme-select')
+    if (themeSelect) {
+      themeSelect.addEventListener('change', function() {
+        var selId = this.value
+        var editorEl = contentEl.querySelector('#theme-css-editor')
+        if (!selId || !editorEl) { if (editorEl) editorEl.value = ''; return }
+        var td = self._loadThemes()
+        for (var i = 0; i < td.themes.length; i++) {
+          if (td.themes[i].id === selId) { editorEl.value = td.themes[i].css || ''; break }
+        }
+      })
+    }
+
+    // 新建主题
+    var newBtn = contentEl.querySelector('#theme-new')
+    if (newBtn) {
+      newBtn.addEventListener('click', function() {
+        var name = prompt('\u8F93\u5165\u4E3B\u9898\u540D\u79F0:', '\u65B0\u4E3B\u9898')
+        if (!name) return
+        var td = self._loadThemes()
+        var newId = 'theme_' + Date.now()
+        td.themes.push({ id: newId, name: name, css: '' })
+        td.activeThemeId = newId
+        self._saveThemes(td)
+        self._applyThemeCSS()
+        self._render()
+      })
+    }
+
+    // 重命名
+    var renameBtn = contentEl.querySelector('#theme-rename')
+    if (renameBtn) {
+      renameBtn.addEventListener('click', function() {
+        var selId = themeSelect ? themeSelect.value : ''
+        if (!selId) { self._toast('\u8BF7\u5148\u9009\u62E9\u4E3B\u9898'); return }
+        var td = self._loadThemes()
+        for (var i = 0; i < td.themes.length; i++) {
+          if (td.themes[i].id === selId) {
+            var newName = prompt('\u65B0\u540D\u79F0:', td.themes[i].name)
+            if (newName) { td.themes[i].name = newName; self._saveThemes(td); self._render() }
+            break
+          }
+        }
+      })
+    }
+
+    // 删除
+    var deleteBtn = contentEl.querySelector('#theme-delete')
+    if (deleteBtn) {
+      deleteBtn.addEventListener('click', function() {
+        var selId = themeSelect ? themeSelect.value : ''
+        if (!selId) { self._toast('\u8BF7\u5148\u9009\u62E9\u4E3B\u9898'); return }
+        if (!confirm('\u786E\u5B9A\u5220\u9664\u8BE5\u4E3B\u9898\uFF1F')) return
+        var td = self._loadThemes()
+        var newThemes = []
+        for (var i = 0; i < td.themes.length; i++) {
+          if (td.themes[i].id !== selId) newThemes.push(td.themes[i])
+        }
+        td.themes = newThemes
+        if (td.activeThemeId === selId) td.activeThemeId = ''
+        self._saveThemes(td)
+        self._applyThemeCSS()
+        self._render()
+      })
+    }
+
+    // 应用主题
+    var applyBtn = contentEl.querySelector('#theme-apply')
+    if (applyBtn) {
+      applyBtn.addEventListener('click', function() {
+        var selId = themeSelect ? themeSelect.value : ''
+        if (!selId) { self._toast('\u8BF7\u5148\u9009\u62E9\u4E3B\u9898'); return }
+        var td = self._loadThemes()
+        td.activeThemeId = selId
+        // 保存编辑器内容到主题
+        var editorEl = contentEl.querySelector('#theme-css-editor')
+        for (var i = 0; i < td.themes.length; i++) {
+          if (td.themes[i].id === selId) {
+            td.themes[i].css = editorEl ? editorEl.value : td.themes[i].css
+            break
+          }
+        }
+        self._saveThemes(td)
+        self._applyThemeCSS()
+        self._toast('\u4E3B\u9898\u5DF2\u5E94\u7528')
+      })
+    }
+
+    // 恢复默认
+    var resetBtn = contentEl.querySelector('#theme-reset')
+    if (resetBtn) {
+      resetBtn.addEventListener('click', function() {
+        var td = self._loadThemes()
+        td.activeThemeId = ''
+        self._saveThemes(td)
+        self._applyThemeCSS()
+        self._toast('\u5DF2\u6062\u590D\u9ED8\u8BA4\u4E3B\u9898')
+        self._render()
+      })
+    }
+
+    // 保存
+    var saveBtn = contentEl.querySelector('#theme-save')
+    if (saveBtn) {
+      saveBtn.addEventListener('click', function() {
+        var selId = themeSelect ? themeSelect.value : ''
+        if (!selId) { self._toast('\u8BF7\u5148\u9009\u62E9\u6216\u65B0\u5EFA\u4E3B\u9898'); return }
+        var editorEl = contentEl.querySelector('#theme-css-editor')
+        var td = self._loadThemes()
+        for (var i = 0; i < td.themes.length; i++) {
+          if (td.themes[i].id === selId) {
+            td.themes[i].css = editorEl ? editorEl.value : ''
+            break
+          }
+        }
+        self._saveThemes(td)
+        self._toast('CSS \u5DF2\u4FDD\u5B58')
+      })
+    }
+
+    // 预览
+    var previewBtn = contentEl.querySelector('#theme-preview')
+    if (previewBtn) {
+      previewBtn.addEventListener('click', function() {
+        var editorEl = contentEl.querySelector('#theme-css-editor')
+        if (!editorEl) return
+        var existing = document.getElementById('pua-custom-theme')
+        if (existing) {
+          existing.textContent = editorEl.value
+        } else {
+          var styleTag = document.createElement('style')
+          styleTag.id = 'pua-custom-theme'
+          styleTag.textContent = editorEl.value
+          document.head.appendChild(styleTag)
+        }
+        self._toast('\u9884\u89C8\u5DF2\u5E94\u7528\uFF0C\u5237\u65B0\u9875\u9762\u53EF\u6062\u590D')
+      })
+    }
+
+    // 导出
+    var exportBtn = contentEl.querySelector('#theme-export')
+    if (exportBtn) {
+      exportBtn.addEventListener('click', function() {
+        var selId = themeSelect ? themeSelect.value : ''
+        if (!selId) { self._toast('\u8BF7\u5148\u9009\u62E9\u4E3B\u9898'); return }
+        var td = self._loadThemes()
+        var themeObj = null
+        for (var i = 0; i < td.themes.length; i++) {
+          if (td.themes[i].id === selId) { themeObj = td.themes[i]; break }
+        }
+        if (!themeObj) return
+        var json = JSON.stringify(themeObj, null, 2)
+        var blob = new Blob([json], { type: 'application/json' })
+        var url = URL.createObjectURL(blob)
+        var a = document.createElement('a')
+        a.href = url
+        a.download = (themeObj.name || 'theme') + '.json'
+        a.click()
+        URL.revokeObjectURL(url)
+        self._toast('\u4E3B\u9898\u5DF2\u5BFC\u51FA')
+      })
+    }
+
+    // 导入
+    var importBtn = contentEl.querySelector('#theme-import')
+    var importFile = contentEl.querySelector('#theme-import-file')
+    if (importBtn && importFile) {
+      importBtn.addEventListener('click', function() {
+        importFile.click()
+      })
+      importFile.addEventListener('change', function() {
+        var file = this.files && this.files[0]
+        if (!file) return
+        var reader = new FileReader()
+        reader.onload = function(e) {
+          try {
+            var obj = JSON.parse(e.target.result)
+            if (!obj.id || !obj.name) { self._toast('\u65E0\u6548\u7684\u4E3B\u9898\u6587\u4EF6'); return }
+            var td = self._loadThemes()
+            // 避免ID冲突
+            var existIds = {}
+            for (var i = 0; i < td.themes.length; i++) { existIds[td.themes[i].id] = true }
+            if (existIds[obj.id]) { obj.id = 'theme_' + Date.now() }
+            td.themes.push({ id: obj.id, name: obj.name, css: obj.css || '' })
+            self._saveThemes(td)
+            self._toast('\u4E3B\u9898\u5DF2\u5BFC\u5165: ' + obj.name)
+            self._render()
+          } catch(err) {
+            self._toast('\u5BFC\u5165\u5931\u8D25: ' + (err.message || err))
+          }
+        }
+        reader.readAsText(file)
+      })
+    }
+  }
+
+  /* ════════════════════════════════════════════════════════════
      设置页面
      ════════════════════════════════════════════════════════════ */
 
@@ -5759,10 +6089,12 @@
     } else {
       h += '<div style="font-size:11px;color:var(--pua-text-dim);text-align:center;padding:20px">\u6682\u65E0\u4E8B\u5B9E\u8BB0\u5FC6\uFF0C\u901A\u8FC7\u5206\u652F\u5B58\u6863\u83B7\u53D6\u6216\u624B\u52A8\u6DFB\u52A0</div>'
     }
-    h += '<div style="display:flex;gap:6px;margin-top:8px">'
+    h += '<div style="display:flex;gap:6px;margin-top:8px;align-items:center;flex-wrap:wrap">'
     h += '<button class="pua-btn pua-btn-sm" id="mem-fact-add">+ \u6DFB\u52A0\u4E8B\u5B9E\u8BB0\u5FC6</button>'
     h += '<button class="pua-btn pua-btn-sm" id="mem-fact-embed">\u751F\u6210\u5411\u91CF</button>'
     h += '<button class="pua-btn pua-btn-sm" id="mem-fact-summarize">\u2726 \u603B\u7ED3\u8BB0\u5FC6</button>'
+    h += '<input type="number" id="mem-batch-size" value="10" min="1" max="50" style="width:48px;background:var(--pua-bg-input);border:1px solid var(--pua-border);border-radius:4px;padding:3px 5px;color:var(--pua-text);font-size:10px;text-align:center;outline:none" title="\u6BCF\u6279\u603B\u7ED3\u6570\u91CF">'
+    h += '<button class="pua-btn pua-btn-sm pua-btn-gold" id="mem-fact-summarize-all">\u5168\u90E8\u603B\u7ED3</button>'
     h += '<button class="pua-btn pua-btn-sm pua-btn-danger" id="mem-fact-clear">\u6E05\u7A7A\u5168\u90E8</button>'
     h += '</div>'
     h += '</div>'
@@ -5826,7 +6158,23 @@
     var summarizeBtn = contentEl.querySelector('#mem-fact-summarize')
     if (summarizeBtn) {
       summarizeBtn.addEventListener('click', function() {
-        self._summarizeFacts(memData, currentBranchId)
+        var batchInput = contentEl.querySelector('#mem-batch-size')
+        var batchSize = batchInput ? parseInt(batchInput.value) || 10 : 10
+        if (batchSize < 1) batchSize = 1
+        if (batchSize > 50) batchSize = 50
+        self._summarizeFacts(memData, currentBranchId, batchSize, false)
+      })
+    }
+
+    // 全部总结
+    var summarizeAllBtn = contentEl.querySelector('#mem-fact-summarize-all')
+    if (summarizeAllBtn) {
+      summarizeAllBtn.addEventListener('click', function() {
+        var batchInput = contentEl.querySelector('#mem-batch-size')
+        var batchSize = batchInput ? parseInt(batchInput.value) || 10 : 10
+        if (batchSize < 1) batchSize = 1
+        if (batchSize > 50) batchSize = 50
+        self._summarizeFacts(memData, currentBranchId, batchSize, true)
       })
     }
 
@@ -6110,7 +6458,7 @@
     }
   }
 
-  P._summarizeFacts = function(memData, branchId) {
+  P._summarizeFacts = function(memData, branchId, batchSize, summarizeAll) {
     var self = this
     var preset = this._getActivePreset()
     if (!preset || !preset.subEndpoint || !preset.subApiKey || !preset.subModel) {
@@ -6135,10 +6483,22 @@
       return
     }
 
-    this._toast('\u5F00\u59CB\u603B\u7ED3 ' + toSummarize.length + ' \u6761\u8BB0\u5FC6...')
+    // 如果不是全部总结，只取前N条
+    if (!summarizeAll) {
+      var limit = batchSize || 10
+      if (limit < 1) limit = 1
+      if (limit > 50) limit = 50
+      toSummarize = toSummarize.slice(0, limit)
+    }
 
-    var batchSize = 10
+    var total = toSummarize.length
+    this._toast('\u5F00\u59CB\u603B\u7ED3 ' + total + ' \u6761\u8BB0\u5FC6...')
+
+    var actualBatchSize = batchSize || 10
+    if (actualBatchSize < 1) actualBatchSize = 1
+    if (actualBatchSize > 50) actualBatchSize = 50
     var batchIdx = 0
+    var processed = 0
 
     function processBatch() {
       if (batchIdx >= toSummarize.length) {
@@ -6148,18 +6508,16 @@
         return
       }
 
-      var batchIndices = toSummarize.slice(batchIdx, batchIdx + batchSize)
+      var batchIndices = toSummarize.slice(batchIdx, batchIdx + actualBatchSize)
       var factsText = ''
       for (var bi = 0; bi < batchIndices.length; bi++) {
         var fi = batchIndices[bi]
         factsText += (bi + 1) + '. ' + memData.facts[fi].text + '\n'
       }
 
-      var prompt = '\u4F60\u662F\u4E00\u4E2A\u8BB0\u5FC6\u603B\u7ED3\u52A9\u624B\u3002\u8BF7\u4E3A\u4EE5\u4E0B\u6BCF\u6761\u4E8B\u5B9E\u8BB0\u5FC6\u751F\u6210\u4E00\u53E5\u8BDD\u6458\u8981\u548C\u5173\u952E\u8BCD\u3002\n\n'
-      prompt += '\u8F93\u51FA\u683C\u5F0F\uFF08\u6BCF\u6761\u4E00\u884C\uFF09\uFF1A\n'
-      prompt += '\u7F16\u53F7| \u6458\u8981 | \u5173\u952E\u8BCD\n'
-      prompt += '\u4F8B\u5982\uFF1A\n1| \u7528\u6237\u559C\u6B22\u591C\u665A\u6563\u6B65 | \u591C\u665A,\u6563\u6B65,\u559C\u6B22\n\n'
-      prompt += '\u4E8B\u5B9E\u8BB0\u5FC6\u5217\u8868:\n' + factsText
+      var prompt = '\u8BF7\u4E3A\u4EE5\u4E0B\u4E8B\u5B9E\u8BB0\u5FC6\u751F\u6210\u4E00\u53E5\u8BDD\u6458\u8981\u548C\u5173\u952E\u8BCD\u3002\u6BCF\u6761\u8BB0\u5FC6\u9700\u8981\u8F93\u51FA\uFF1A\u7F16\u53F7|\u6458\u8981|\u5173\u952E\u8BCD\uFF08\u9017\u53F7\u5206\u9694\uFF09\n\n' + factsText
+
+      self._toast('\u6B63\u5728\u603B\u7ED3 ' + (processed + 1) + '/' + total + '...')
 
       var url = preset.subEndpoint.replace(/\/+$/, '') + '/chat/completions'
       fetch(url, {
@@ -6172,7 +6530,7 @@
           max_tokens: 2000
         })
       }).then(function(r) { return r.json() }).then(function(data) {
-        if (!data.choices || !data.choices[0]) { batchIdx += batchSize; processBatch(); return }
+        if (!data.choices || !data.choices[0]) { batchIdx += actualBatchSize; processed += batchIndices.length; processBatch(); return }
         var content = (data.choices[0].message || {}).content || ''
 
         // 解析结果
@@ -6180,7 +6538,7 @@
         for (var li = 0; li < lines.length; li++) {
           var line = lines[li].trim()
           if (!line) continue
-          // 尝试匹配 "编号| 摘要 | 关键词" 格式
+          // 尝试匹配 "编号|摘要|关键词" 格式
           var match = line.match(/^(\d+)\s*[|｜]\s*(.+?)\s*[|｜]\s*(.+)$/)
           if (match) {
             var num = parseInt(match[1])
@@ -6203,7 +6561,8 @@
           }
         }
 
-        batchIdx += batchSize
+        batchIdx += actualBatchSize
+        processed += batchIndices.length
         processBatch()
       }).catch(function(e) {
         self._toast('\u603B\u7ED3\u5931\u8D25: ' + (e.message || e))
