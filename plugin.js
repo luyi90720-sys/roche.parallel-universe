@@ -549,30 +549,77 @@
     '.pua-assistant-msg-user { align-self:flex-end; background:var(--pua-accent-glow); border:1px solid var(--pua-border-active); color:var(--pua-accent-text); border-bottom-right-radius:4px; }',
     '.pua-assistant-msg-assistant { align-self:flex-start; background:var(--pua-bg-card); border:1px solid var(--pua-border); color:var(--pua-text); border-bottom-left-radius:4px; }',
     '.pua-assistant-msg-role { font-size:9px; font-weight:600; margin-bottom:4px; opacity:0.6; }',
+    '.pua-assistant-attached-badges { display:flex; gap:4px; flex-wrap:wrap; margin-top:6px; }',
+    '.pua-assistant-badge { font-size:8px; padding:2px 6px; border-radius:4px; background:rgba(255,183,77,0.15); border:1px solid rgba(255,183,77,0.3); color:var(--pua-accent-text); cursor:pointer; }',
+    '.pua-assistant-badge:hover { background:rgba(255,183,77,0.25); }',
+    '.pua-assistant-badge .badge-remove { margin-left:3px; opacity:0.6; }',
+    '.pua-assistant-badge .badge-remove:hover { opacity:1; }',
     '.pua-assistant-action-card { margin-top:8px; padding:8px 10px; border-radius:8px; background:rgba(78,201,160,0.08); border:1px solid rgba(78,201,160,0.2); display:flex; align-items:center; gap:8px; flex-wrap:wrap; }',
     '.pua-assistant-action-label { font-size:10px; color:var(--pua-success); font-weight:600; }',
     '.pua-assistant-undo-btn { font-size:9px; padding:2px 8px; border-radius:4px; border:1px solid var(--pua-border); background:var(--pua-bg-card); color:var(--pua-text-sub); cursor:pointer; transition:var(--pua-transition); }',
     '.pua-assistant-undo-btn:hover { border-color:var(--pua-accent); color:var(--pua-text); }',
     '.pua-assistant-undo-btn.done { opacity:0.4; cursor:default; text-decoration:line-through; }',
     '.pua-assistant-input-area { padding:10px 14px; border-top:1px solid var(--pua-border); }',
-    '.pua-assistant-attach-row { display:flex; gap:6px; margin-bottom:6px; flex-wrap:wrap; }',
+    '.pua-assistant-attach-row { display:flex; gap:6px; margin-bottom:6px; flex-wrap:wrap; align-items:center; }',
     '.pua-assistant-attach-btn { font-size:9px; padding:3px 8px; border-radius:4px; border:1px solid var(--pua-border); background:var(--pua-bg-card); color:var(--pua-text-sub); cursor:pointer; transition:var(--pua-transition); }',
     '.pua-assistant-attach-btn:hover { border-color:var(--pua-accent); color:var(--pua-text); }',
+    '.pua-assistant-attach-btn.active { border-color:var(--pua-accent); color:var(--pua-accent-text); background:rgba(255,183,77,0.1); }',
     '.pua-assistant-attach-dropdown { position:relative; display:inline-block; }',
     '.pua-assistant-attach-list { position:absolute; bottom:100%; left:0; margin-bottom:4px; min-width:220px; max-height:200px; overflow-y:auto; background:var(--pua-bg-solid); border:1px solid var(--pua-border); border-radius:8px; box-shadow:var(--pua-shadow); z-index:100; padding:6px; display:none; }',
     '.pua-assistant-attach-list.open { display:block; }',
     '.pua-assistant-attach-item { display:flex; align-items:center; gap:6px; padding:5px 6px; border-radius:4px; cursor:pointer; font-size:10px; color:var(--pua-text-sub); transition:var(--pua-transition); }',
     '.pua-assistant-attach-item:hover { background:var(--pua-bg-card-hover); color:var(--pua-text); }',
+    '.pua-assistant-attach-item.selected { background:rgba(255,183,77,0.1); color:var(--pua-accent-text); }',
     '.pua-assistant-input-row { display:flex; gap:8px; }',
-    '.pua-assistant-input { flex:1; background:var(--pua-bg-input); border:1px solid var(--pua-border); border-radius:8px; padding:8px 12px; color:var(--pua-text); font-size:11px; font-family:inherit; outline:none; resize:none; min-height:36px; max-height:120px; }',
+    '.pua-assistant-input { flex:1; background:var(--pua-bg-input); border:1px solid var(--pua-border); border-radius:8px; padding:8px 12px; color:var(--pua-text); font-size:11px; font-family:inherit; outline:none; resize:none; height:60px; min-height:60px; max-height:150px; transition:height 0.25s ease, min-height 0.25s ease; }',
+    '.pua-assistant-input.expanded { height:150px; min-height:150px; }',
     '.pua-assistant-input:focus { border-color:var(--pua-accent); }',
-    '.pua-assistant-send { padding:8px 16px; border-radius:8px; border:none; background:linear-gradient(135deg,var(--pua-accent-dim),var(--pua-accent)); color:#121216; font-size:11px; font-weight:600; cursor:pointer; transition:var(--pua-transition); }',
+    '.pua-assistant-send { padding:8px 16px; border-radius:8px; border:none; background:linear-gradient(135deg,var(--pua-accent-dim),var(--pua-accent)); color:#121216; font-size:11px; font-weight:600; cursor:pointer; transition:var(--pua-transition); align-self:flex-end; }',
     '.pua-assistant-send:hover { opacity:0.9; }',
     '.pua-assistant-send:disabled { opacity:0.4; cursor:default; }',
     '.pua-assistant-empty { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; color:var(--pua-text-dim); }',
     '.pua-assistant-empty-icon { font-size:32px; margin-bottom:10px; opacity:0.3; }',
     '.pua-assistant-empty-text { font-size:11px; }',
-    '.pua-assistant-typing { font-size:10px; color:var(--pua-accent); opacity:0.7; padding:4px 0; }',
+    '.pua-assistant-typing { font-size:10px; color:var(--pua-accent); opacity:0.7; padding:4px 0; display:flex; align-items:center; gap:6px; }',
+    '.pua-assistant-typing::before { content:""; display:inline-block; width:12px; height:12px; border:2px solid var(--pua-accent); border-top-color:transparent; border-radius:50%; animation:pua-spin 0.8s linear infinite; }',
+    '@keyframes pua-spin { to { transform:rotate(360deg); } }',
+    // Code block styles
+    '.pua-code-block { position:relative; margin:6px 0; border-radius:6px; overflow:hidden; background:#1a1a2e; border:1px solid var(--pua-border); }',
+    '.pua-code-block-header { display:flex; align-items:center; justify-content:space-between; padding:4px 10px; background:rgba(255,255,255,0.04); font-size:9px; color:var(--pua-text-sub); }',
+    '.pua-code-block-lang { font-weight:600; text-transform:uppercase; }',
+    '.pua-code-block-actions { display:flex; gap:4px; }',
+    '.pua-code-block-btn { font-size:8px; padding:2px 6px; border-radius:3px; border:1px solid var(--pua-border); background:var(--pua-bg-card); color:var(--pua-text-sub); cursor:pointer; transition:var(--pua-transition); }',
+    '.pua-code-block-btn:hover { border-color:var(--pua-accent); color:var(--pua-text); }',
+    '.pua-code-block pre { margin:0; padding:10px; overflow-x:auto; font-size:10px; line-height:1.5; font-family:"Cascadia Code","Fira Code",monospace; color:#e0e0e0; }',
+    '.pua-code-block pre::-webkit-scrollbar { height:3px; }',
+    '.pua-code-block pre::-webkit-scrollbar-thumb { background:rgba(255,255,255,0.1); border-radius:2px; }',
+    '.pua-inline-code { background:rgba(255,183,77,0.1); border:1px solid rgba(255,183,77,0.2); border-radius:3px; padding:1px 4px; font-size:10px; font-family:"Cascadia Code","Fira Code",monospace; color:var(--pua-accent-text); }',
+    '.pua-bold-text { font-weight:700; color:var(--pua-text); }',
+    // Preview iframe
+    '.pua-preview-frame { width:100%; min-height:120px; border:1px solid var(--pua-border); border-radius:6px; background:#fff; margin-top:6px; }',
+    // Regex preview
+    '.pua-regex-preview { margin-top:6px; padding:8px; border:1px solid var(--pua-border); border-radius:6px; background:var(--pua-bg-card); }',
+    '.pua-regex-preview-input { width:100%; background:var(--pua-bg-input); border:1px solid var(--pua-border); border-radius:4px; padding:4px 8px; color:var(--pua-text); font-size:10px; font-family:inherit; outline:none; margin-bottom:6px; }',
+    '.pua-regex-preview-input:focus { border-color:var(--pua-accent); }',
+    '.pua-regex-preview-output { padding:6px; border-radius:4px; background:rgba(0,0,0,0.2); min-height:30px; font-size:11px; }',
+    // Element selection mode
+    '.pua-elem-select-active .pua-regex-preview-output *:hover { outline:2px solid #4a9eff !important; outline-offset:1px; cursor:crosshair; }',
+    '.pua-elem-info { margin-top:6px; padding:6px; border-radius:4px; background:rgba(74,158,255,0.08); border:1px solid rgba(74,158,255,0.2); font-size:9px; color:var(--pua-text-sub); max-height:120px; overflow-y:auto; }',
+    '.pua-elem-info-label { font-weight:600; color:#4a9eff; margin-bottom:2px; }',
+    // Prompt modal
+    '.pua-prompt-modal-overlay { position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.6); z-index:10000; display:flex; align-items:center; justify-content:center; }',
+    '.pua-prompt-modal { width:90%; max-width:600px; max-height:80vh; background:var(--pua-bg-solid); border:1px solid var(--pua-border); border-radius:12px; box-shadow:var(--pua-shadow); display:flex; flex-direction:column; overflow:hidden; }',
+    '.pua-prompt-modal-header { padding:12px 16px; border-bottom:1px solid var(--pua-border); display:flex; align-items:center; justify-content:space-between; }',
+    '.pua-prompt-modal-title { font-size:13px; font-weight:600; color:var(--pua-accent-text); }',
+    '.pua-prompt-modal-close { font-size:16px; background:none; border:none; color:var(--pua-text-sub); cursor:pointer; padding:4px; }',
+    '.pua-prompt-modal-close:hover { color:var(--pua-text); }',
+    '.pua-prompt-modal-body { flex:1; overflow-y:auto; padding:12px 16px; }',
+    '.pua-prompt-modal-textarea { width:100%; min-height:200px; background:var(--pua-bg-input); border:1px solid var(--pua-border); border-radius:6px; padding:8px 10px; color:var(--pua-text); font-size:10px; font-family:"Cascadia Code","Fira Code",monospace; line-height:1.5; outline:none; resize:vertical; }',
+    '.pua-prompt-modal-textarea:focus { border-color:var(--pua-accent); }',
+    '.pua-prompt-modal-presets { margin-top:8px; display:flex; gap:4px; flex-wrap:wrap; }',
+    '.pua-prompt-preset-tag { font-size:8px; padding:2px 6px; border-radius:3px; border:1px solid var(--pua-border); background:var(--pua-bg-card); color:var(--pua-text-sub); cursor:pointer; transition:var(--pua-transition); }',
+    '.pua-prompt-preset-tag:hover { border-color:var(--pua-accent); color:var(--pua-text); }',
+    '.pua-prompt-modal-footer { padding:10px 16px; border-top:1px solid var(--pua-border); display:flex; gap:6px; justify-content:flex-end; }',
   ].join('\n')
 
   /* ════════════════════════════════════════════════════════════
@@ -635,6 +682,7 @@
     // 助手数据
     this._assistantData = null
     this._assistantSending = false
+    this._assistantAttached = { presets: [], regexes: [] }
     // 移动端状态
     this._sidebarOpen = false
     this._mobileDetailOpen = false
@@ -5704,23 +5752,30 @@
       if (data) {
         self._assistantData = data
       } else {
-        self._assistantData = { apiChoice: 'sub', history: [], undoStack: [] }
+        self._assistantData = { apiChoice: 'sub', history: [], undoStack: [], systemPrompt: '', promptPresets: [] }
       }
     }).catch(function() {
-      self._assistantData = { apiChoice: 'sub', history: [], undoStack: [] }
+      self._assistantData = { apiChoice: 'sub', history: [], undoStack: [], systemPrompt: '', promptPresets: [] }
     })
   }
 
   P._saveAssistantData = function() {
     if (!this.roche || !this.roche.storage) return
-    if (!this._assistantData) this._assistantData = { apiChoice: 'sub', history: [], undoStack: [] }
+    if (!this._assistantData) this._assistantData = { apiChoice: 'sub', history: [], undoStack: [], systemPrompt: '', promptPresets: [] }
     this.roche.storage.set('pua_assistant', this._assistantData).catch(function(e) {
       console.error('[PUA] save assistant data failed', e)
     })
   }
 
   P._getAssistantSystemPrompt = function() {
-    return '\u4F60\u662F\u201C\u5E73\u884C\u65F6\u7A7A\u6863\u6848\u9986\u201D\u7684\u9884\u8BBE\u4E0E\u7F8E\u5316\u52A9\u624B\u3002\u4F60\u53EF\u4EE5\u5E2E\u52A9\u7528\u6237\uFF1A\n1. \u521B\u5EFA\u65B0\u7684\u9884\u8BBE\u6761\u76EE\uFF08system prompt\uFF09\n2. \u521B\u5EFA\u65B0\u7684\u6B63\u5219\u89C4\u5219\uFF08render/filter/replace\uFF09\n3. \u7F16\u8F91\u73B0\u6709\u7684\u9884\u8BBE\u548C\u6B63\u5219\n4. \u63D0\u4F9B\u7F8E\u5316\u5EFA\u8BAE\n\n\u5F53\u4F60\u9700\u8981\u6DFB\u52A0\u6216\u4FEE\u6539\u9884\u8BBE/\u6B63\u5219\u65F6\uFF0C\u8BF7\u7528\u4EE5\u4E0BJSON\u683C\u5F0F\u8F93\u51FA\uFF1A\n\u3010ADD_PRESET\u3011{"title":"...","content":"...","role":"system","outRegex":"","outRegexOn":false,"inRegex":"","inRegexOn":false}\u3010/ADD_PRESET\u3011\n\u3010ADD_REGEX\u3011{"name":"...","regex":"...","html":"...","type":"render"}\u3010/ADD_REGEX\u3011\n\u3010EDIT_PRESET\u3011{"id":"...","title":"...","content":"..."}\u3010/EDIT_PRESET\u3011\n\u3010EDIT_REGEX\u3011{"id":"...","name":"...","regex":"...","html":"..."}\u3010/EDIT_REGEX\u3011\n\n\u6BCF\u6B21\u53EA\u6267\u884C\u4E00\u4E2A\u64CD\u4F5C\u3002\u7528\u81EA\u7136\u8BED\u8A00\u89E3\u91CA\u4F60\u5728\u505A\u4EC0\u4E48\u3002\n\u7EDD\u4E0D\u5220\u9664\u4EFB\u4F55\u6761\u76EE\uFF0C\u53EA\u6DFB\u52A0\u6216\u4FEE\u6539\u3002'
+    if (this._assistantData && this._assistantData.systemPrompt) {
+      return this._assistantData.systemPrompt
+    }
+    return this._getDefaultSystemPrompt()
+  }
+
+  P._getDefaultSystemPrompt = function() {
+    return '\u4F60\u662F\u201C\u5E73\u884C\u65F6\u7A7A\u6863\u6848\u9986\u201D\u7684\u9884\u8BBE\u4E0E\u7F8E\u5316\u52A9\u624B\u3002\u4F60\u53EF\u4EE5\u5E2E\u52A9\u7528\u6237\uFF1A\n1. \u521B\u5EFA\u65B0\u7684\u9884\u8BBE\u6761\u76EE\uFF08system prompt\uFF09\n2. \u521B\u5EFA\u65B0\u7684\u6B63\u5219\u89C4\u5219\uFF08render/filter/replace\uFF09\n3. \u7F16\u8F91\u73B0\u6709\u7684\u9884\u8BBE\u548C\u6B63\u5219\n4. \u63D0\u4F9B\u7F8E\u5316\u5EFA\u8BAE\n5. \u7F16\u5199CSS\u7F8E\u5316\u4EE3\u7801\n\n\u5F53\u4F60\u9700\u8981\u6DFB\u52A0\u6216\u4FEE\u6539\u9884\u8BBE/\u6B63\u5219\u65F6\uFF0C\u8BF7\u7528\u4EE5\u4E0BJSON\u683C\u5F0F\u8F93\u51FA\uFF1A\n\u3010ADD_PRESET\u3011{"title":"...","content":"...","role":"system","outRegex":"","outRegexOn":false,"inRegex":"","inRegexOn":false}\u3010/ADD_PRESET\u3011\n\u3010ADD_REGEX\u3011{"name":"...","regex":"...","html":"...","type":"render"}\u3010/ADD_REGEX\u3011\n\u3010EDIT_PRESET\u3011{"id":"...","title":"...","content":"..."}\u3010/EDIT_PRESET\u3011\n\u3010EDIT_REGEX\u3011{"id":"...","name":"...","regex":"...","html":"..."}\u3010/EDIT_REGEX\u3011\n\n\u6BCF\u6B21\u53EA\u6267\u884C\u4E00\u4E2A\u64CD\u4F5C\u3002\u7528\u81EA\u7136\u8BED\u8A00\u89E3\u91CA\u4F60\u5728\u505A\u4EC0\u4E48\u3002\n\u7EDD\u4E0D\u5220\u9664\u4EFB\u4F55\u6761\u76EE\uFF0C\u53EA\u6DFB\u52A0\u6216\u4FEE\u6539\u3002\n\u4F60\u53EF\u4EE5\u53D1\u9001\u4EE3\u7801\u5757\u8BA9\u7528\u6237\u9884\u89C8\u6548\u679C\u3002'
   }
 
   P._renderAssistant = function(titleEl, actionsEl, contentEl) {
@@ -5729,19 +5784,24 @@
     actionsEl.innerHTML = ''
 
     if (!this._assistantData) {
-      this._assistantData = { apiChoice: 'sub', history: [], undoStack: [] }
+      this._assistantData = { apiChoice: 'sub', history: [], undoStack: [], systemPrompt: '', promptPresets: [] }
     }
+    if (!this._assistantData.promptPresets) this._assistantData.promptPresets = []
+    if (!this._assistantAttached) this._assistantAttached = { presets: [], regexes: [] }
     var data = this._assistantData
+    var attached = this._assistantAttached
 
     var h = '<div class="pua-assistant-layout">'
 
-    // Header with API selector
+    // Header with API selector and prompt button
     h += '<div class="pua-assistant-header">'
     h += '<span style="font-size:10px;color:var(--pua-text-sub)">API:</span>'
     h += '<select class="pua-assistant-api-select" id="ast-api-select">'
+    h += '<option value="main"' + (data.apiChoice === 'main' ? ' selected' : '') + '>\u4E3B API</option>'
     h += '<option value="sub"' + (data.apiChoice === 'sub' ? ' selected' : '') + '>\u526F API</option>'
     h += '<option value="vec"' + (data.apiChoice === 'vec' ? ' selected' : '') + '>\u5411\u91CF API</option>'
     h += '</select>'
+    h += '<button class="pua-assistant-attach-btn" id="ast-prompt-btn" style="margin-left:4px">\uD83D\uDCDD \u63D0\u793A\u8BCD</button>'
     h += '<button class="pua-btn pua-btn-sm" id="ast-clear-history" style="margin-left:auto">\u6E05\u7A7A\u5BF9\u8BDD</button>'
     h += '</div>'
 
@@ -5760,11 +5820,21 @@
           h += '<div class="pua-assistant-msg pua-assistant-msg-user">'
           h += '<div class="pua-assistant-msg-role">\uD83D\uDC64 \u4F60</div>'
           h += '<div>' + self._escHtml(msg.content) + '</div>'
+          // Show attached badges
+          if (msg.attached && (msg.attached.presets.length > 0 || msg.attached.regexes.length > 0)) {
+            h += '<div class="pua-assistant-attached-badges">'
+            for (var api = 0; api < msg.attached.presets.length; api++) {
+              h += '<span class="pua-assistant-badge">\uD83D\uDCCB ' + self._escHtml(msg.attached.presets[api].title) + '</span>'
+            }
+            for (var ari = 0; ari < msg.attached.regexes.length; ari++) {
+              h += '<span class="pua-assistant-badge">\u2699\uFE0F ' + self._escHtml(msg.attached.regexes[ari].name) + '</span>'
+            }
+            h += '</div>'
+          }
           h += '</div>'
         } else if (msg.role === 'assistant') {
           h += '<div class="pua-assistant-msg pua-assistant-msg-assistant">'
           h += '<div class="pua-assistant-msg-role">\u2728 \u52A9\u624B</div>'
-          // Render content with action cards
           h += self._renderAssistantContent(msg)
           h += '</div>'
         }
@@ -5778,23 +5848,38 @@
     h += '<div class="pua-assistant-attach-row">'
     // Attach presets dropdown
     h += '<div class="pua-assistant-attach-dropdown" id="ast-attach-preset-dropdown">'
-    h += '<button class="pua-assistant-attach-btn" id="ast-attach-preset-btn">\uD83D\uDCCE \u9009\u62E9\u9884\u8BBE</button>'
+    h += '<button class="pua-assistant-attach-btn' + (attached.presets.length > 0 ? ' active' : '') + '" id="ast-attach-preset-btn">\uD83D\uDCCE \u9009\u62E9\u9884\u8BBE' + (attached.presets.length > 0 ? ' (' + attached.presets.length + ')' : '') + '</button>'
     h += '<div class="pua-assistant-attach-list" id="ast-attach-preset-list">'
     for (var pi = 0; pi < this.presets.length; pi++) {
-      h += '<div class="pua-assistant-attach-item" data-type="preset" data-id="' + this._escHtml(this.presets[pi].id) + '">' + this._escHtml(this.presets[pi].title) + '</div>'
+      var isSelPreset = false
+      for (var sp = 0; sp < attached.presets.length; sp++) { if (attached.presets[sp].id === this.presets[pi].id) { isSelPreset = true; break } }
+      h += '<div class="pua-assistant-attach-item' + (isSelPreset ? ' selected' : '') + '" data-type="preset" data-id="' + this._escHtml(this.presets[pi].id) + '">' + (isSelPreset ? '\u2713 ' : '') + self._escHtml(this.presets[pi].title) + '</div>'
     }
     h += '</div></div>'
     // Attach regexes dropdown
     h += '<div class="pua-assistant-attach-dropdown" id="ast-attach-regex-dropdown">'
-    h += '<button class="pua-assistant-attach-btn" id="ast-attach-regex-btn">\uD83D\uDCCE \u9009\u62E9\u6B63\u5219</button>'
+    h += '<button class="pua-assistant-attach-btn' + (attached.regexes.length > 0 ? ' active' : '') + '" id="ast-attach-regex-btn">\uD83D\uDCCE \u9009\u62E9\u6B63\u5219' + (attached.regexes.length > 0 ? ' (' + attached.regexes.length + ')' : '') + '</button>'
     h += '<div class="pua-assistant-attach-list" id="ast-attach-regex-list">'
     for (var ri = 0; ri < this.regexes.length; ri++) {
-      h += '<div class="pua-assistant-attach-item" data-type="regex" data-id="' + this._escHtml(this.regexes[ri].id) + '">' + this._escHtml(this.regexes[ri].name) + '</div>'
+      var isSelRegex = false
+      for (var sr = 0; sr < attached.regexes.length; sr++) { if (attached.regexes[sr].id === this.regexes[ri].id) { isSelRegex = true; break } }
+      h += '<div class="pua-assistant-attach-item' + (isSelRegex ? ' selected' : '') + '" data-type="regex" data-id="' + this._escHtml(this.regexes[ri].id) + '">' + (isSelRegex ? '\u2713 ' : '') + self._escHtml(this.regexes[ri].name) + '</div>'
     }
     h += '</div></div>'
+    // Attached items badges
+    if (attached.presets.length > 0 || attached.regexes.length > 0) {
+      h += '<div class="pua-assistant-attached-badges">'
+      for (var abp = 0; abp < attached.presets.length; abp++) {
+        h += '<span class="pua-assistant-badge" data-badge-type="preset" data-badge-id="' + self._escHtml(attached.presets[abp].id) + '">\uD83D\uDCCB ' + self._escHtml(attached.presets[abp].title) + '<span class="badge-remove">\u00D7</span></span>'
+      }
+      for (var abr = 0; abr < attached.regexes.length; abr++) {
+        h += '<span class="pua-assistant-badge" data-badge-type="regex" data-badge-id="' + self._escHtml(attached.regexes[abr].id) + '">\u2699\uFE0F ' + self._escHtml(attached.regexes[abr].name) + '<span class="badge-remove">\u00D7</span></span>'
+      }
+      h += '</div>'
+    }
     h += '</div>'
     h += '<div class="pua-assistant-input-row">'
-    h += '<textarea class="pua-assistant-input" id="ast-input" placeholder="\u8F93\u5165\u6D88\u606F..." rows="1"></textarea>'
+    h += '<textarea class="pua-assistant-input" id="ast-input" placeholder="\u8F93\u5165\u6D88\u606F..." rows="2"></textarea>'
     h += '<button class="pua-assistant-send" id="ast-send">\u53D1\u9001</button>'
     h += '</div>'
     h += '</div>'
@@ -5816,6 +5901,14 @@
       })
     }
 
+    // Bind prompt button
+    var promptBtn = contentEl.querySelector('#ast-prompt-btn')
+    if (promptBtn) {
+      promptBtn.addEventListener('click', function() {
+        self._showPromptModal()
+      })
+    }
+
     // Bind clear history
     var clearBtn = contentEl.querySelector('#ast-clear-history')
     if (clearBtn) {
@@ -5827,14 +5920,13 @@
       })
     }
 
-    // Bind attach preset dropdown
+    // Bind attach preset dropdown (toggle selection)
     var attachPresetBtn = contentEl.querySelector('#ast-attach-preset-btn')
     var attachPresetList = contentEl.querySelector('#ast-attach-preset-list')
     if (attachPresetBtn && attachPresetList) {
       attachPresetBtn.addEventListener('click', function(e) {
         e.stopPropagation()
         attachPresetList.classList.toggle('open')
-        // Close other dropdown
         var otherList = contentEl.querySelector('#ast-attach-regex-list')
         if (otherList) otherList.classList.remove('open')
       })
@@ -5843,24 +5935,27 @@
         (function(item) {
           item.addEventListener('click', function() {
             var id = this.getAttribute('data-id')
-            var preset = null
-            for (var fi = 0; fi < self.presets.length; fi++) {
-              if (self.presets[fi].id === id) { preset = self.presets[fi]; break }
+            // Toggle selection
+            var found = -1
+            for (var fi = 0; fi < self._assistantAttached.presets.length; fi++) {
+              if (self._assistantAttached.presets[fi].id === id) { found = fi; break }
             }
-            if (preset) {
-              var input = contentEl.querySelector('#ast-input')
-              if (input) {
-                var ctx = '\n\u4EE5\u4E0B\u662F\u5F53\u524D\u7684\u9884\u8BBE\u6761\u76EE\uFF1A\n[id: ' + preset.id + '] title: ' + preset.title + ' content: ' + (preset.content || '').substring(0, 500) + '\n'
-                input.value += ctx
+            if (found >= 0) {
+              self._assistantAttached.presets.splice(found, 1)
+            } else {
+              var preset = null
+              for (var fi2 = 0; fi2 < self.presets.length; fi2++) {
+                if (self.presets[fi2].id === id) { preset = self.presets[fi2]; break }
               }
+              if (preset) self._assistantAttached.presets.push({ id: preset.id, title: preset.title, content: preset.content })
             }
-            attachPresetList.classList.remove('open')
+            self._render()
           })
         })(presetItems[ppi])
       }
     }
 
-    // Bind attach regex dropdown
+    // Bind attach regex dropdown (toggle selection)
     var attachRegexBtn = contentEl.querySelector('#ast-attach-regex-btn')
     var attachRegexList = contentEl.querySelector('#ast-attach-regex-list')
     if (attachRegexBtn && attachRegexList) {
@@ -5875,21 +5970,46 @@
         (function(item) {
           item.addEventListener('click', function() {
             var id = this.getAttribute('data-id')
-            var regex = null
-            for (var fi2 = 0; fi2 < self.regexes.length; fi2++) {
-              if (self.regexes[fi2].id === id) { regex = self.regexes[fi2]; break }
+            var found = -1
+            for (var fi3 = 0; fi3 < self._assistantAttached.regexes.length; fi3++) {
+              if (self._assistantAttached.regexes[fi3].id === id) { found = fi3; break }
             }
-            if (regex) {
-              var input = contentEl.querySelector('#ast-input')
-              if (input) {
-                var ctx2 = '\n\u4EE5\u4E0B\u662F\u5F53\u524D\u7684\u6B63\u5219\u89C4\u5219\uFF1A\n[id: ' + regex.id + '] name: ' + regex.name + ' regex: ' + regex.regex + ' html: ' + (regex.html || '').substring(0, 300) + '\n'
-                input.value += ctx2
+            if (found >= 0) {
+              self._assistantAttached.regexes.splice(found, 1)
+            } else {
+              var regex = null
+              for (var fi4 = 0; fi4 < self.regexes.length; fi4++) {
+                if (self.regexes[fi4].id === id) { regex = self.regexes[fi4]; break }
               }
+              if (regex) self._assistantAttached.regexes.push({ id: regex.id, name: regex.name, regex: regex.regex, html: regex.html })
             }
-            attachRegexList.classList.remove('open')
+            self._render()
           })
         })(regexItems[rri])
       }
+    }
+
+    // Bind badge remove buttons
+    var badgeRemoveBtns = contentEl.querySelectorAll('.pua-assistant-badge .badge-remove')
+    for (var bri = 0; bri < badgeRemoveBtns.length; bri++) {
+      (function(btn) {
+        btn.addEventListener('click', function(e) {
+          e.stopPropagation()
+          var badge = this.parentElement
+          var type = badge.getAttribute('data-badge-type')
+          var id = badge.getAttribute('data-badge-id')
+          if (type === 'preset') {
+            for (var bi = 0; bi < self._assistantAttached.presets.length; bi++) {
+              if (self._assistantAttached.presets[bi].id === id) { self._assistantAttached.presets.splice(bi, 1); break }
+            }
+          } else if (type === 'regex') {
+            for (var bi2 = 0; bi2 < self._assistantAttached.regexes.length; bi2++) {
+              if (self._assistantAttached.regexes[bi2].id === id) { self._assistantAttached.regexes.splice(bi2, 1); break }
+            }
+          }
+          self._render()
+        })
+      })(badgeRemoveBtns[bri])
     }
 
     // Close dropdowns on outside click
@@ -5902,9 +6022,21 @@
       }
     })
 
+    // Bind input expand on focus
+    var inputEl = contentEl.querySelector('#ast-input')
+    if (inputEl) {
+      inputEl.addEventListener('focus', function() {
+        this.classList.add('expanded')
+      })
+      inputEl.addEventListener('blur', function() {
+        if (!this.value.trim()) {
+          this.classList.remove('expanded')
+        }
+      })
+    }
+
     // Bind send
     var sendBtn = contentEl.querySelector('#ast-send')
-    var inputEl = contentEl.querySelector('#ast-input')
     if (sendBtn && inputEl) {
       sendBtn.addEventListener('click', function() { self._sendAssistantMessage(contentEl) })
       inputEl.addEventListener('keydown', function(e) {
@@ -5925,6 +6057,147 @@
         })
       })(undoBtns[ui])
     }
+
+    // Bind code block copy buttons
+    var copyBtns = contentEl.querySelectorAll('.pua-code-block-copy')
+    for (var cbi = 0; cbi < copyBtns.length; cbi++) {
+      (function(btn) {
+        btn.addEventListener('click', function() {
+          var codeEl = this.closest('.pua-code-block').querySelector('pre')
+          if (codeEl) {
+            navigator.clipboard.writeText(codeEl.textContent).then(function() {
+              self._toast('\u5DF2\u590D\u5236')
+            }).catch(function() {})
+          }
+        })
+      })(copyBtns[cbi])
+    }
+
+    // Bind code block preview buttons
+    var previewBtns = contentEl.querySelectorAll('.pua-code-block-preview')
+    for (var pvi = 0; pvi < previewBtns.length; pvi++) {
+      (function(btn) {
+        btn.addEventListener('click', function() {
+          var codeBlock = this.closest('.pua-code-block')
+          var codeEl = codeBlock.querySelector('pre')
+          var lang = (codeBlock.querySelector('.pua-code-block-lang') || {}).textContent || ''
+          if (!codeEl) return
+          var existingFrame = codeBlock.querySelector('.pua-preview-frame')
+          if (existingFrame) { existingFrame.remove(); return }
+          var code = codeEl.textContent
+          if (lang.toLowerCase() === 'html' || lang.toLowerCase() === 'css') {
+            var iframe = document.createElement('iframe')
+            iframe.className = 'pua-preview-frame'
+            iframe.style.height = '200px'
+            codeBlock.appendChild(iframe)
+            var doc = iframe.contentDocument || iframe.contentWindow.document
+            doc.open()
+            if (lang.toLowerCase() === 'css') {
+              doc.write('<html><head><style>' + code + '</style></head><body><div class="preview-test">\u9884\u8BBE\u6D4B\u8BD5\u5185\u5BB9</div></body></html>')
+            } else {
+              doc.write(code)
+            }
+            doc.close()
+          }
+        })
+      })(previewBtns[pvi])
+    }
+
+    // Bind regex preview buttons
+    var regexPreviewBtns = contentEl.querySelectorAll('.pua-regex-preview-btn')
+    for (var rpbi = 0; rpbi < regexPreviewBtns.length; rpbi++) {
+      (function(btn) {
+        btn.addEventListener('click', function() {
+          var actionCard = this.closest('.pua-assistant-action-card')
+          var existingPreview = actionCard.querySelector('.pua-regex-preview')
+          if (existingPreview) { existingPreview.remove(); return }
+          var regexStr = this.getAttribute('data-regex') || ''
+          var htmlTpl = this.getAttribute('data-html') || ''
+          var previewDiv = document.createElement('div')
+          previewDiv.className = 'pua-regex-preview'
+          previewDiv.innerHTML = '<input class="pua-regex-preview-input" placeholder="\u8F93\u5165\u6D4B\u8BD5\u6587\u672C..." /><div class="pua-regex-preview-output"></div><div style="display:flex;gap:4px;margin-top:4px"><button class="pua-code-block-btn pua-elem-select-toggle">\uD83D\uDD0D \u9009\u4E2D\u5143\u7D20</button></div><div class="pua-elem-info" style="display:none"></div>'
+          actionCard.appendChild(previewDiv)
+          var testInput = previewDiv.querySelector('.pua-regex-preview-input')
+          var outputDiv = previewDiv.querySelector('.pua-regex-preview-output')
+          var elemSelectToggle = previewDiv.querySelector('.pua-elem-select-toggle')
+          var elemInfoDiv = previewDiv.querySelector('.pua-elem-info')
+          var elemSelectActive = false
+
+          function renderPreview() {
+            var testText = testInput.value || '\u6D4B\u8BD5\u6587\u672C'
+            try {
+              var re = new RegExp(regexStr, 'g')
+              var match = re.exec(testText)
+              if (match) {
+                var htmlResult = htmlTpl.replace(/\$&/g, match[0])
+                for (var gi = 1; gi < match.length; gi++) {
+                  htmlResult = htmlResult.replace(new RegExp('\\$' + gi, 'g'), match[gi] || '')
+                }
+                outputDiv.innerHTML = htmlResult
+              } else {
+                outputDiv.innerHTML = '<span style="opacity:0.5">\u65E0\u5339\u914D</span>'
+              }
+            } catch(e) {
+              outputDiv.innerHTML = '<span style="color:#ff6b6b">\u6B63\u5219\u9519\u8BEF: ' + self._escHtml(e.message) + '</span>'
+            }
+          }
+          testInput.addEventListener('input', renderPreview)
+          renderPreview()
+
+          // Element selection mode
+          elemSelectToggle.addEventListener('click', function() {
+            elemSelectActive = !elemSelectActive
+            if (elemSelectActive) {
+              previewDiv.classList.add('pua-elem-select-active')
+              this.textContent = '\uD83D\uDD0D \u53D6\u6D88\u9009\u4E2D'
+              this.style.borderColor = '#4a9eff'
+              this.style.color = '#4a9eff'
+              outputDiv.addEventListener('click', onElemClick)
+            } else {
+              previewDiv.classList.remove('pua-elem-select-active')
+              this.textContent = '\uD83D\uDD0D \u9009\u4E2D\u5143\u7D20'
+              this.style.borderColor = ''
+              this.style.color = ''
+              outputDiv.removeEventListener('click', onElemClick)
+              elemInfoDiv.style.display = 'none'
+            }
+          })
+
+          function onElemClick(e2) {
+            if (!elemSelectActive) return
+            e2.stopPropagation()
+            e2.preventDefault()
+            var el = e2.target
+            if (el === outputDiv) return
+            var computed = window.getComputedStyle(el)
+            var info = '<div class="pua-elem-info-label">\u5143\u7D20\u4FE1\u606F</div>'
+            info += '\u6807\u7B7E: ' + el.tagName.toLowerCase() + '<br>'
+            info += '\u7C7B\u540D: ' + (el.className || '\u65E0') + '<br>'
+            info += '\u5BBD: ' + computed.width + ' \u9AD8: ' + computed.height + '<br>'
+            info += '\u5B57\u53F7: ' + computed.fontSize + ' \u989C\u8272: ' + computed.color + '<br>'
+            info += '\u80CC\u666F: ' + computed.backgroundColor + '<br>'
+            info += '\u5185\u8FB9\u8DDD: ' + computed.padding + '<br>'
+            info += '\u5916\u8FB9\u8DDD: ' + computed.margin + '<br>'
+            elemInfoDiv.innerHTML = info
+            elemInfoDiv.style.display = 'block'
+            // Add send to assistant button
+            if (!elemInfoDiv.querySelector('.pua-elem-send-btn')) {
+              var sendElemBtn = document.createElement('button')
+              sendElemBtn.className = 'pua-code-block-btn pua-elem-send-btn'
+              sendElemBtn.textContent = '\u53D1\u9001\u7ED9\u52A9\u624B'
+              sendElemBtn.style.marginTop = '4px'
+              sendElemBtn.addEventListener('click', function() {
+                var msgText = '\u8BF7\u4FEE\u6B63\u4EE5\u4E0B\u5143\u7D20\uFF1A\u6807\u7B7E=' + el.tagName.toLowerCase() + ', \u7C7B\u540D=' + (el.className || '\u65E0') + ', \u5BBD=' + computed.width + ', \u9AD8=' + computed.height + ', \u5B57\u53F7=' + computed.fontSize + ', \u989C\u8272=' + computed.color + ', \u80CC\u666F=' + computed.backgroundColor
+                var input = contentEl.querySelector('#ast-input')
+                if (input) input.value = msgText
+                self._toast('\u5DF2\u586B\u5165\u8F93\u5165\u6846')
+              })
+              elemInfoDiv.appendChild(sendElemBtn)
+            }
+          }
+        })
+      })(regexPreviewBtns[rpbi])
+    }
   }
 
   P._renderAssistantContent = function(msg) {
@@ -5940,7 +6213,8 @@
     displayContent = displayContent.replace(/\u3010EDIT_REGEX\u3011[\s\S]*?\u3010\/EDIT_REGEX\u3011/g, '')
     displayContent = displayContent.trim()
 
-    var h = '<div>' + self._escHtml(displayContent) + '</div>'
+    // Render markdown-like content
+    var h = '<div>' + self._renderMarkdown(displayContent) + '</div>'
 
     // Render action cards
     for (var ai = 0; ai < actions.length; ai++) {
@@ -5964,11 +6238,106 @@
 
       h += '<div class="pua-assistant-action-card">'
       h += '<span class="pua-assistant-action-label">' + label + '</span>'
+      // Add regex preview button for addRegex and editRegex actions
+      if ((action.type === 'addRegex' || action.type === 'editRegex') && action.data.regex && action.data.html) {
+        h += '<button class="pua-code-block-btn pua-regex-preview-btn" data-regex="' + self._escHtml(action.data.regex) + '" data-html="' + self._escHtml(action.data.html) + '">\uD83D\uDC41\uFE0F \u9884\u89C8\u6E32\u67D3</button>'
+      }
       h += '<button class="pua-assistant-undo-btn' + (undone ? ' done' : '') + '" data-action-id="' + self._escHtml(action.id) + '">' + (undone ? '\u5DF2\u64A4\u9500' : '\u21A9\uFE0F \u64A4\u9500') + '</button>'
       h += '</div>'
     }
 
     return h
+  }
+
+  P._renderMarkdown = function(text) {
+    if (!text) return ''
+    var self = this
+    var result = ''
+    var i = 0
+    var len = text.length
+
+    while (i < len) {
+      // Code blocks: ```lang\ncode\n```
+      var codeBlockStart = text.indexOf('```', i)
+      if (codeBlockStart === i) {
+        var afterLang = text.indexOf('\n', codeBlockStart + 3)
+        if (afterLang === -1) { result += self._escHtml(text.substring(i)); break }
+        var lang = text.substring(codeBlockStart + 3, afterLang).trim()
+        var codeBlockEnd = text.indexOf('```', afterLang + 1)
+        if (codeBlockEnd === -1) { result += self._escHtml(text.substring(i)); break }
+        var code = text.substring(afterLang + 1, codeBlockEnd)
+        var isPreviewable = lang.toLowerCase() === 'html' || lang.toLowerCase() === 'css'
+        result += '<div class="pua-code-block">'
+        result += '<div class="pua-code-block-header">'
+        result += '<span class="pua-code-block-lang">' + self._escHtml(lang || 'code') + '</span>'
+        result += '<div class="pua-code-block-actions">'
+        result += '<button class="pua-code-block-btn pua-code-block-copy">\u590D\u5236</button>'
+        if (isPreviewable) {
+          result += '<button class="pua-code-block-btn pua-code-block-preview">\u9884\u89C8</button>'
+        }
+        result += '</div></div>'
+        result += '<pre>' + self._escHtml(code) + '</pre>'
+        result += '</div>'
+        i = codeBlockEnd + 3
+        continue
+      }
+
+      // If there's a code block later, process text before it
+      if (codeBlockStart > i) {
+        result += self._renderInlineMarkdown(text.substring(i, codeBlockStart))
+        i = codeBlockStart
+        continue
+      }
+
+      // No more code blocks, render rest as inline
+      result += self._renderInlineMarkdown(text.substring(i))
+      break
+    }
+
+    return result
+  }
+
+  P._renderInlineMarkdown = function(text) {
+    if (!text) return ''
+    var self = this
+    var result = ''
+    var i = 0
+    var len = text.length
+
+    while (i < len) {
+      // Inline code: `code`
+      if (text.charAt(i) === '`') {
+        var endTick = text.indexOf('`', i + 1)
+        if (endTick !== -1) {
+          result += '<span class="pua-inline-code">' + self._escHtml(text.substring(i + 1, endTick)) + '</span>'
+          i = endTick + 1
+          continue
+        }
+      }
+
+      // Bold: **text**
+      if (text.charAt(i) === '*' && i + 1 < len && text.charAt(i + 1) === '*') {
+        var endBold = text.indexOf('**', i + 2)
+        if (endBold !== -1) {
+          result += '<span class="pua-bold-text">' + self._escHtml(text.substring(i + 2, endBold)) + '</span>'
+          i = endBold + 2
+          continue
+        }
+      }
+
+      // Newline to <br>
+      if (text.charAt(i) === '\n') {
+        result += '<br>'
+        i++
+        continue
+      }
+
+      // Regular character - escape HTML
+      result += self._escHtml(text.charAt(i))
+      i++
+    }
+
+    return result
   }
 
   P._sendAssistantMessage = function(contentEl) {
@@ -5980,15 +6349,60 @@
     var text = input.value.trim()
     if (!text) return
 
-    if (!this._assistantData) this._assistantData = { apiChoice: 'sub', history: [], undoStack: [] }
+    if (!this._assistantData) this._assistantData = { apiChoice: 'sub', history: [], undoStack: [], systemPrompt: '', promptPresets: [] }
+
+    // Build full content with attached items
+    var attached = this._assistantAttached || { presets: [], regexes: [] }
+    var fullContent = text
+    var hasAttached = attached.presets.length > 0 || attached.regexes.length > 0
+    if (hasAttached) {
+      if (attached.presets.length > 0) {
+        fullContent += '\n\n---\u9644\u52A0\u7684\u9884\u8BBE\u6761\u76EE---'
+        for (var ap = 0; ap < attached.presets.length; ap++) {
+          fullContent += '\n[' + attached.presets[ap].title + ']\n' + (attached.presets[ap].content || '')
+        }
+      }
+      if (attached.regexes.length > 0) {
+        fullContent += '\n\n---\u9644\u52A0\u7684\u6B63\u5219\u89C4\u5219---'
+        for (var ar = 0; ar < attached.regexes.length; ar++) {
+          fullContent += '\n[' + attached.regexes[ar].name + ']\nregex: ' + (attached.regexes[ar].regex || '') + '\nhtml: ' + (attached.regexes[ar].html || '')
+        }
+      }
+    }
+
+    // Snapshot attached items for this message
+    var attachedSnapshot = { presets: attached.presets.map(function(p) { return { id: p.id, title: p.title } }), regexes: attached.regexes.map(function(r) { return { id: r.id, name: r.name } }) }
+
+    // Add user message immediately
+    var userMsg = {
+      id: 'msg_' + Date.now(),
+      role: 'user',
+      content: text,
+      attached: attachedSnapshot,
+      actions: [],
+      timestamp: new Date().toISOString()
+    }
+    this._assistantData.history.push(userMsg)
+    input.value = ''
+    input.classList.remove('expanded')
+
+    // Clear attached items after sending
+    this._assistantAttached = { presets: [], regexes: [] }
+    this._saveAssistantData()
+
+    // Immediately render to show user message
+    this._renderAssistantImmediate(contentEl, userMsg)
 
     // Get API config
-    var settings = this._loadSettings()
     var preset = this._getActivePreset()
     if (!preset) { this._toast('\u8BF7\u5148\u914D\u7F6E API'); return }
 
     var endpoint, apiKey, model
-    if (this._assistantData.apiChoice === 'vec') {
+    if (this._assistantData.apiChoice === 'main') {
+      endpoint = preset.mainEndpoint
+      apiKey = preset.mainApiKey
+      model = preset.mainModel
+    } else if (this._assistantData.apiChoice === 'vec') {
       endpoint = preset.vecEndpoint
       apiKey = preset.vecApiKey
       model = preset.vecModel
@@ -5999,21 +6413,10 @@
     }
 
     if (!endpoint || !apiKey || !model) {
-      this._toast('\u8BF7\u5148\u914D\u7F6E' + (this._assistantData.apiChoice === 'vec' ? '\u5411\u91CF' : '\u526F') + ' API')
+      var apiLabel = this._assistantData.apiChoice === 'main' ? '\u4E3B' : (this._assistantData.apiChoice === 'vec' ? '\u5411\u91CF' : '\u526F')
+      this._toast('\u8BF7\u5148\u914D\u7F6E' + apiLabel + ' API')
       return
     }
-
-    // Add user message
-    var userMsg = {
-      id: 'msg_' + Date.now(),
-      role: 'user',
-      content: text,
-      actions: [],
-      timestamp: new Date().toISOString()
-    }
-    this._assistantData.history.push(userMsg)
-    input.value = ''
-    this._saveAssistantData()
 
     // Show typing indicator
     this._assistantSending = true
@@ -6032,7 +6435,12 @@
     var history = this._assistantData.history
     var startIdx = Math.max(0, history.length - 20) // Last 20 messages
     for (var hi = startIdx; hi < history.length; hi++) {
-      messages.push({ role: history[hi].role, content: history[hi].content })
+      // Use full content (with attached items) for the most recent user message
+      if (hi === history.length - 1 && hasAttached) {
+        messages.push({ role: history[hi].role, content: fullContent })
+      } else {
+        messages.push({ role: history[hi].role, content: history[hi].content })
+      }
     }
 
     var url = endpoint.replace(/\/+$/, '') + '/chat/completions'
@@ -6102,7 +6510,7 @@
           }
           self.regexes.push(newRegex)
           self._saveRegexes()
-          actions.push({ type: 'addRegex', data: { id: newRegex.id, name: newRegex.name }, id: actionId2 })
+          actions.push({ type: 'addRegex', data: { id: newRegex.id, name: newRegex.name, regex: newRegex.regex, html: newRegex.html }, id: actionId2 })
           self._assistantData.undoStack.push({ actionId: actionId2, undone: false, type: 'addRegex', itemId: newRegex.id })
         } catch(e2) {}
       }
@@ -6112,7 +6520,6 @@
         try {
           var epd = JSON.parse(editPresetMatch[1].trim())
           var actionId3 = 'action_' + Date.now() + '_ep'
-          // Find and edit preset
           for (var epi = 0; epi < self.presets.length; epi++) {
             if (self.presets[epi].id === epd.id) {
               var beforeEdit = { title: self.presets[epi].title, content: self.presets[epi].content }
@@ -6139,7 +6546,7 @@
               if (erd.regex) self.regexes[eri].regex = erd.regex
               if (erd.html) self.regexes[eri].html = erd.html
               self._saveRegexes()
-              actions.push({ type: 'editRegex', data: { id: erd.id, name: self.regexes[eri].name }, id: actionId4 })
+              actions.push({ type: 'editRegex', data: { id: erd.id, name: self.regexes[eri].name, regex: self.regexes[eri].regex, html: self.regexes[eri].html }, id: actionId4 })
               self._assistantData.undoStack.push({ actionId: actionId4, undone: false, type: 'editRegex', itemId: erd.id, before: beforeEdit2 })
               break
             }
@@ -6166,6 +6573,35 @@
       self._assistantSending = false
       self._toast('API \u8C03\u7528\u5931\u8D25: ' + (err.message || err))
     })
+  }
+
+  // Immediately render user message without full re-render
+  P._renderAssistantImmediate = function(contentEl, userMsg) {
+    var self = this
+    var chatEl = contentEl.querySelector('#ast-chat')
+    if (!chatEl) return
+
+    // Remove empty state if present
+    var emptyEl = chatEl.querySelector('.pua-assistant-empty')
+    if (emptyEl) emptyEl.remove()
+
+    var msgDiv = document.createElement('div')
+    msgDiv.className = 'pua-assistant-msg pua-assistant-msg-user'
+    var h = '<div class="pua-assistant-msg-role">\uD83D\uDC64 \u4F60</div>'
+    h += '<div>' + self._escHtml(userMsg.content) + '</div>'
+    if (userMsg.attached && (userMsg.attached.presets.length > 0 || userMsg.attached.regexes.length > 0)) {
+      h += '<div class="pua-assistant-attached-badges">'
+      for (var api = 0; api < userMsg.attached.presets.length; api++) {
+        h += '<span class="pua-assistant-badge">\uD83D\uDCCB ' + self._escHtml(userMsg.attached.presets[api].title) + '</span>'
+      }
+      for (var ari = 0; ari < userMsg.attached.regexes.length; ari++) {
+        h += '<span class="pua-assistant-badge">\u2699\uFE0F ' + self._escHtml(userMsg.attached.regexes[ari].name) + '</span>'
+      }
+      h += '</div>'
+    }
+    msgDiv.innerHTML = h
+    chatEl.appendChild(msgDiv)
+    chatEl.scrollTop = chatEl.scrollHeight
   }
 
   P._undoAssistantAction = function(actionId) {
@@ -6225,6 +6661,98 @@
         this._render()
         return
       }
+    }
+  }
+
+  P._showPromptModal = function() {
+    var self = this
+    if (!this._assistantData) this._assistantData = { apiChoice: 'sub', history: [], undoStack: [], systemPrompt: '', promptPresets: [] }
+    if (!this._assistantData.promptPresets) this._assistantData.promptPresets = []
+
+    var currentPrompt = this._assistantData.systemPrompt || this._getDefaultSystemPrompt()
+
+    // Remove existing modal if any
+    var existingOverlay = document.querySelector('.pua-prompt-modal-overlay')
+    if (existingOverlay) existingOverlay.remove()
+
+    var overlay = document.createElement('div')
+    overlay.className = 'pua-prompt-modal-overlay'
+
+    var h = '<div class="pua-prompt-modal">'
+    h += '<div class="pua-prompt-modal-header">'
+    h += '<span class="pua-prompt-modal-title">\uD83D\uDCDD \u7CFB\u7EDF\u63D0\u793A\u8BCD</span>'
+    h += '<button class="pua-prompt-modal-close">\u00D7</button>'
+    h += '</div>'
+    h += '<div class="pua-prompt-modal-body">'
+    h += '<textarea class="pua-prompt-modal-textarea" id="ast-prompt-textarea">' + this._escHtml(currentPrompt) + '</textarea>'
+    // Preset tags
+    if (this._assistantData.promptPresets.length > 0) {
+      h += '<div class="pua-prompt-modal-presets">'
+      h += '<span style="font-size:9px;color:var(--pua-text-sub);margin-right:4px">\u9884\u8BBE:</span>'
+      for (var pi = 0; pi < this._assistantData.promptPresets.length; pi++) {
+        h += '<span class="pua-prompt-preset-tag" data-preset-idx="' + pi + '">' + this._escHtml(this._assistantData.promptPresets[pi].name) + '</span>'
+      }
+      h += '</div>'
+    }
+    h += '</div>'
+    h += '<div class="pua-prompt-modal-footer">'
+    h += '<button class="pua-btn pua-btn-sm" id="ast-preset-save-as">\u4FDD\u5B58\u4E3A\u9884\u8BBE</button>'
+    h += '<button class="pua-btn pua-btn-sm" id="ast-prompt-reset">\u91CD\u7F6E\u9ED8\u8BA4</button>'
+    h += '<button class="pua-btn pua-btn-sm pua-btn-gold" id="ast-prompt-save">\u4FDD\u5B58</button>'
+    h += '</div>'
+    h += '</div>'
+
+    overlay.innerHTML = h
+    document.body.appendChild(overlay)
+
+    var textarea = overlay.querySelector('#ast-prompt-textarea')
+    var closeBtn = overlay.querySelector('.pua-prompt-modal-close')
+    var saveBtn = overlay.querySelector('#ast-prompt-save')
+    var resetBtn = overlay.querySelector('#ast-prompt-reset')
+    var saveAsBtn = overlay.querySelector('#ast-preset-save-as')
+
+    // Close
+    closeBtn.addEventListener('click', function() { overlay.remove() })
+    overlay.addEventListener('click', function(e) { if (e.target === overlay) overlay.remove() })
+
+    // Save
+    saveBtn.addEventListener('click', function() {
+      self._assistantData.systemPrompt = textarea.value
+      self._saveAssistantData()
+      self._toast('\u63D0\u793A\u8BCD\u5DF2\u4FDD\u5B58')
+      overlay.remove()
+    })
+
+    // Reset to default
+    resetBtn.addEventListener('click', function() {
+      textarea.value = self._getDefaultSystemPrompt()
+      self._assistantData.systemPrompt = ''
+      self._saveAssistantData()
+      self._toast('\u5DF2\u91CD\u7F6E\u4E3A\u9ED8\u8BA4\u63D0\u793A\u8BCD')
+    })
+
+    // Save as preset
+    saveAsBtn.addEventListener('click', function() {
+      var name = prompt('\u8BF7\u8F93\u5165\u9884\u8BBE\u540D\u79F0', '\u81EA\u5B9A\u4E49\u63D0\u793A\u8BCD')
+      if (!name) return
+      self._assistantData.promptPresets.push({ name: name, prompt: textarea.value })
+      self._saveAssistantData()
+      self._toast('\u5DF2\u4FDD\u5B58\u4E3A\u9884\u8BBE: ' + name)
+      overlay.remove()
+      self._showPromptModal() // Re-render modal with new preset
+    })
+
+    // Preset tags click
+    var presetTags = overlay.querySelectorAll('.pua-prompt-preset-tag')
+    for (var ti = 0; ti < presetTags.length; ti++) {
+      (function(tag) {
+        tag.addEventListener('click', function() {
+          var idx = parseInt(this.getAttribute('data-preset-idx'))
+          if (self._assistantData.promptPresets[idx]) {
+            textarea.value = self._assistantData.promptPresets[idx].prompt
+          }
+        })
+      })(presetTags[ti])
     }
   }
 
@@ -6661,6 +7189,24 @@
     h += '</div>'
     h += '</div>'
 
+    // 主 API 配置
+    h += '<div class="pua-settings-group">'
+    h += '<div class="pua-settings-title">\u2726 \u4E3B API \u914D\u7F6E</div>'
+    h += '<div class="pua-settings-row"><span class="pua-settings-label">\u63A5\u53E3\u5730\u5740</span>'
+    h += '<input class="pua-settings-input" id="set-main-endpoint" placeholder="https://api.example.com/v1" value="' + self._escHtml(activePreset ? activePreset.mainEndpoint : '') + '"></div>'
+    h += '<div class="pua-settings-row"><span class="pua-settings-label">API Key</span>'
+    h += '<input class="pua-settings-input" id="set-main-key" type="password" placeholder="sk-..." value="' + self._escHtml(activePreset ? activePreset.mainApiKey : '') + '"></div>'
+    h += '<div class="pua-settings-row"><span class="pua-settings-label">\u6A21\u578B</span>'
+    h += '<select class="pua-settings-select" id="set-main-model-select"><option value="">\u8BF7\u5148\u5237\u65B0</option></select>'
+    h += '<input class="pua-settings-input" id="set-main-model" placeholder="\u6216\u624B\u52A8\u8F93\u5165\u6A21\u578B\u540D" value="' + self._escHtml(activePreset ? activePreset.mainModel : '') + '" style="margin-top:4px">'
+    h += '</div>'
+    h += '<div style="display:flex;gap:6px;margin-top:4px">'
+    h += '<button class="pua-btn pua-btn-sm" id="set-main-refresh">\u5237\u65B0\u6A21\u578B</button>'
+    h += '<button class="pua-btn pua-btn-sm" id="set-main-test">\u6D4B\u8BD5\u8C03\u7528</button>'
+    h += '</div>'
+    h += '<div id="set-main-status" style="font-size:9px;color:var(--pua-text-dim);margin-top:4px"></div>'
+    h += '</div>'
+
     // 副 API 配置
     h += '<div class="pua-settings-group">'
     h += '<div class="pua-settings-title">\u2726 \u526F API \u914D\u7F6E</div>'
@@ -6751,6 +7297,7 @@
         var newPreset = {
           id: 'preset-' + Date.now(),
           name: name,
+          mainEndpoint: '', mainApiKey: '', mainModel: '',
           subEndpoint: '', subApiKey: '', subModel: '',
           vecEndpoint: '', vecApiKey: '', vecModel: ''
         }
@@ -6794,6 +7341,70 @@
         settings.activePresetId = settings.presets[0] ? settings.presets[0].id : ''
         self._saveSettings(settings)
         self._render()
+      })
+    }
+
+    // 刷新主API模型
+    var mainRefreshBtn = document.getElementById('set-main-refresh')
+    if (mainRefreshBtn) {
+      mainRefreshBtn.addEventListener('click', function() {
+        var endpoint = (document.getElementById('set-main-endpoint') || {}).value || ''
+        var apiKey = (document.getElementById('set-main-key') || {}).value || ''
+        if (!endpoint || !apiKey) { self._toast('\u8BF7\u5148\u586B\u5199\u63A5\u53E3\u5730\u5740\u548C API Key'); return }
+        var statusEl = document.getElementById('set-main-status')
+        if (statusEl) statusEl.textContent = '\u5237\u65B0\u4E2D...'
+        var url = endpoint.replace(/\/+$/, '') + '/models'
+        fetch(url, { headers: { 'Authorization': 'Bearer ' + apiKey } }).then(function(r) { return r.json() }).then(function(data) {
+          var models = data.data || data.models || []
+          var select = document.getElementById('set-main-model-select')
+          if (!select) return
+          select.innerHTML = '<option value="">\u9009\u62E9\u6A21\u578B</option>'
+          for (var mi = 0; mi < models.length; mi++) {
+            var m = models[mi]
+            var mId = m.id || m.model || ''
+            if (!mId) continue
+            if (mId.indexOf('embed') !== -1 || mId.indexOf('davinci') !== -1) continue
+            var opt = document.createElement('option')
+            opt.value = mId
+            opt.textContent = mId
+            select.appendChild(opt)
+          }
+          if (statusEl) statusEl.textContent = '\u627E\u5230 ' + models.length + ' \u4E2A\u6A21\u578B'
+          select.addEventListener('change', function() {
+            var modelInput = document.getElementById('set-main-model')
+            if (modelInput) modelInput.value = this.value
+          })
+        }).catch(function(e) {
+          if (statusEl) statusEl.textContent = '\u5237\u65B0\u5931\u8D25: ' + (e.message || e)
+        })
+      })
+    }
+
+    // 测试主API调用
+    var mainTestBtn = document.getElementById('set-main-test')
+    if (mainTestBtn) {
+      mainTestBtn.addEventListener('click', function() {
+        var endpoint = (document.getElementById('set-main-endpoint') || {}).value || ''
+        var apiKey = (document.getElementById('set-main-key') || {}).value || ''
+        var model = (document.getElementById('set-main-model') || {}).value || ''
+        if (!endpoint || !apiKey || !model) { self._toast('\u8BF7\u5148\u586B\u5199\u5B8C\u6574\u914D\u7F6E'); return }
+        var statusEl = document.getElementById('set-main-status')
+        if (statusEl) statusEl.textContent = '\u6D4B\u8BD5\u4E2D...'
+        var url = endpoint.replace(/\/+$/, '') + '/chat/completions'
+        fetch(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + apiKey },
+          body: JSON.stringify({ model: model, messages: [{ role: 'user', content: 'Hi' }], max_tokens: 5 })
+        }).then(function(r) { return r.json() }).then(function(data) {
+          if (data.choices && data.choices[0]) {
+            if (statusEl) statusEl.textContent = '\u6D4B\u8BD5\u6210\u529F\uFF01\u56DE\u590D: ' + (data.choices[0].message || {}).content
+            self._toast('\u4E3B API \u6D4B\u8BD5\u6210\u529F')
+          } else {
+            if (statusEl) statusEl.textContent = '\u6D4B\u8BD5\u5931\u8D25: ' + (data.error || JSON.stringify(data)).substring(0, 100)
+          }
+        }).catch(function(e) {
+          if (statusEl) statusEl.textContent = '\u6D4B\u8BD5\u5931\u8D25: ' + (e.message || e)
+        })
       })
     }
 
@@ -6950,6 +7561,9 @@
           if (settings.presets[si2].id === cur) { p = settings.presets[si2]; break }
         }
         if (!p) return
+        p.mainEndpoint = (document.getElementById('set-main-endpoint') || {}).value || ''
+        p.mainApiKey = (document.getElementById('set-main-key') || {}).value || ''
+        p.mainModel = (document.getElementById('set-main-model') || {}).value || ''
         p.subEndpoint = (document.getElementById('set-sub-endpoint') || {}).value || ''
         p.subApiKey = (document.getElementById('set-sub-key') || {}).value || ''
         p.subModel = (document.getElementById('set-sub-model') || {}).value || ''
@@ -6977,7 +7591,7 @@
         this._settingsCache = JSON.parse(raw)
         // 确保预设列表存在
         if (!this._settingsCache.presets) {
-          this._settingsCache.presets = [{ id: 'preset-default', name: '\u9ED8\u8BA4\u9884\u8BBE', subEndpoint: '', subApiKey: '', subModel: '', vecEndpoint: '', vecApiKey: '', vecModel: '' }]
+          this._settingsCache.presets = [{ id: 'preset-default', name: '\u9ED8\u8BA4\u9884\u8BBE', mainEndpoint: '', mainApiKey: '', mainModel: '', subEndpoint: '', subApiKey: '', subModel: '', vecEndpoint: '', vecApiKey: '', vecModel: '' }]
         }
         if (!this._settingsCache.activePresetId) {
           this._settingsCache.activePresetId = this._settingsCache.presets[0].id
@@ -6989,7 +7603,7 @@
       }
     } catch(e) {}
     this._settingsCache = {
-      presets: [{ id: 'preset-default', name: '\u9ED8\u8BA4\u9884\u8BBE', subEndpoint: '', subApiKey: '', subModel: '', vecEndpoint: '', vecApiKey: '', vecModel: '' }],
+      presets: [{ id: 'preset-default', name: '\u9ED8\u8BA4\u9884\u8BBE', mainEndpoint: '', mainApiKey: '', mainModel: '', subEndpoint: '', subApiKey: '', subModel: '', vecEndpoint: '', vecApiKey: '', vecModel: '' }],
       activePresetId: 'preset-default',
       factSendCount: 10, summarizeInterval: 30,
       coreCharLimit: 2000, eventsCharLimit: 1000, recallMaxCount: 8, recallMode: 'vector'
