@@ -788,6 +788,18 @@
 
   P._render = function() {
     if (!this.container) return
+    // 防止重入
+    if (this._rendering) return
+    // 防抖：200ms内不重复渲染
+    var now = Date.now()
+    if (this._lastRenderTime && now - this._lastRenderTime < 200) {
+      var self = this
+      clearTimeout(this._renderTimer)
+      this._renderTimer = setTimeout(function() { self._render() }, 200)
+      return
+    }
+    this._rendering = true
+    this._lastRenderTime = now
     var self = this
     var c = this.container
 
@@ -905,6 +917,8 @@
       } catch(e2) {
         c.innerHTML = '<div style="padding:20px;color:#ff6b6b">\u4E25\u91CD\u9519\u8BEF: ' + (e2.message || '') + '</div>'
       }
+    } finally {
+      this._rendering = false
     }
   }
 
