@@ -1813,7 +1813,23 @@
       self._fetchAsmData()
     })
 
+    var toMemBtn = document.createElement('button')
+    toMemBtn.className = 'pua-btn pua-btn-gold'
+    toMemBtn.textContent = '\u53D1\u9001\u5230\u8BB0\u5FC6\u7CFB\u7EDF'
+    toMemBtn.setAttribute('data-id', branch.id)
+    toMemBtn.addEventListener('click', function() {
+      self._currentMemBranchId = branch.id
+      self.currentPage = 'memory'
+      // 如果分支有绑定记忆，自动加载
+      if (branch.memoryConvIds && branch.memoryConvIds.length > 0) {
+        self._loadMemFromBranches(branch.memoryConvIds, branch.id)
+      } else {
+        self._render()
+      }
+    })
+
     footer.appendChild(toAsmBtn)
+    footer.appendChild(toMemBtn)
     footer.appendChild(deleteBtn)
     footer.appendChild(closeBtn)
 
@@ -5219,7 +5235,7 @@
     var settings = this._loadSettings()
 
     // 分支选择器
-    var branches = (this._loadBranches && this._loadBranches()) || []
+    var branches = this.branches || []
     var currentBranchId = this._currentMemBranchId || ''
 
     // 加载当前分支的记忆数据
