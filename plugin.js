@@ -790,6 +790,8 @@
     if (!this.container) return
     var self = this
     var c = this.container
+
+    try {
     c.innerHTML = ''
 
     var root = document.createElement('div')
@@ -890,6 +892,20 @@
 
     // Render page content
     this._renderPage()
+
+    } catch(e) {
+      // 全局渲染错误保护
+      try {
+        c.innerHTML = '<div style="padding:20px;color:#ff6b6b;font-size:14px;max-width:600px;margin:40px auto">'
+          + '<h3 style="color:#ff6b6b">\u274C \u6E32\u67D3\u9519\u8BEF</h3>'
+          + '<p>' + (e.message || String(e)) + '</p>'
+          + '<p style="font-size:11px;color:#999;margin-top:10px">' + (e.stack || '').substring(0, 500) + '</p>'
+          + '<button onclick="localStorage.removeItem(\'pua-mem-data\');location.reload()" style="margin-top:10px;padding:8px 16px;background:#ff6b6b;color:#fff;border:none;border-radius:4px;cursor:pointer">\u6E05\u9664\u8BB0\u5FC6\u6570\u636E\u5E76\u91CD\u8BD5</button>'
+          + '</div>'
+      } catch(e2) {
+        c.innerHTML = '<div style="padding:20px;color:#ff6b6b">\u4E25\u91CD\u9519\u8BEF: ' + (e2.message || '') + '</div>'
+      }
+    }
   }
 
   P._renderSidebar = function() {
@@ -991,6 +1007,10 @@
     var actionsEl = this._actionsEl
     var contentEl = this._contentEl
     if (!titleEl || !contentEl) return
+
+    // 切换页面时清除记忆缓存，防止旧数据
+    this._memDataCache = null
+    this._memDataCacheKey = null
 
     switch (this.currentPage) {
       case 'branches': this._renderBranches(titleEl, actionsEl, contentEl); break
