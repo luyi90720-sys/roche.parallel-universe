@@ -720,11 +720,15 @@
 
   P._loadBranches = function() {
     var self = this
-    if (!this.roche || !this.roche.storage) { this._render(); return }
+    if (!this.roche || !this.roche.storage) return
     this.roche.storage.get('pua_branches').then(function(data) {
       if (data && data.branches) self.branches = data.branches
-      self._render()
-    }).catch(function() { self.branches = []; self._render() })
+      // 只在首次加载时渲染，后续不自动触发
+      if (!self._branchesLoaded) {
+        self._branchesLoaded = true
+        self._render()
+      }
+    }).catch(function() { self.branches = []; if (!self._branchesLoaded) { self._branchesLoaded = true; self._render() } })
   }
 
   P._saveBranches = function() {
@@ -790,18 +794,13 @@
     if (!this.container) return
     // 防止重入
     if (this._rendering) return
-    // 防抖：200ms内不重复渲染
-    var now = Date.now()
-    if (this._lastRenderTime && now - this._lastRenderTime < 200) {
-      var self = this
-      clearTimeout(this._renderTimer)
-      this._renderTimer = setTimeout(function() { self._render() }, 200)
-      return
-    }
     this._rendering = true
-    this._lastRenderTime = now
     var self = this
     var c = this.container
+
+    // 调试：渲染计数
+    this._renderCount = (this._renderCount || 0) + 1
+    var renderId = this._renderCount
 
     try {
     c.innerHTML = ''
@@ -904,6 +903,11 @@
 
     // Render page content
     this._renderPage()
+
+    // 调试日志
+    if (this._originalConsole && this._originalConsole.log) {
+      this._originalConsole.log('[PUA] render #' + renderId + ' page=' + this.currentPage)
+    }
 
     } catch(e) {
       // 全局渲染错误保护
