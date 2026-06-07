@@ -677,18 +677,18 @@
     '.pua-prompt-modal-footer #ast-prompt-reset:hover { background:rgba(200,168,78,0.15) !important; }',
 
     '/* ── 对话页面 ── */',
-    '.pua-conv-layout { display:flex; flex-direction:column; height:100%; }',
+    '.pua-conv-layout { display:flex; flex-direction:column; height:100%; overflow-x:hidden; }',
     '.pua-conv-topbar { padding:6px 14px; border-bottom:1px solid var(--pua-border); display:flex; align-items:center; gap:8px; flex-shrink:0; }',
     '.pua-conv-branch-name { font-size:12px; font-weight:600; color:var(--pua-accent-text); flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }',
     '.pua-conv-msg-count { font-size:9px; color:var(--pua-text-dim); background:var(--pua-bg-input); padding:2px 6px; border-radius:8px; }',
     '.pua-conv-topbar-btn { width:26px; height:26px; border-radius:6px; border:1px solid var(--pua-border); background:var(--pua-bg-card); color:var(--pua-text-sub); cursor:pointer; font-size:12px; display:flex; align-items:center; justify-content:center; transition:var(--pua-transition); }',
     '.pua-conv-topbar-btn:hover { border-color:var(--pua-border-active); color:var(--pua-text); }',
-    '.pua-conv-chat { flex:1; overflow-y:auto; padding:14px; display:flex; flex-direction:column; gap:10px; }',
+    '.pua-conv-chat { flex:1; overflow-y:auto; overflow-x:hidden; padding:14px; display:flex; flex-direction:column; gap:10px; }',
     '.pua-conv-chat::-webkit-scrollbar { width:4px; }',
     '.pua-conv-chat::-webkit-scrollbar-thumb { background:rgba(255,255,255,0.06); border-radius:2px; }',
     '.pua-conv-collapsed { text-align:center; padding:8px; font-size:10px; color:var(--pua-text-dim); cursor:pointer; }',
     '.pua-conv-collapsed:hover { color:var(--pua-accent); }',
-    '.pua-conv-msg { max-width:80%; padding:10px 14px; border-radius:12px; font-size:11px; line-height:1.6; word-break:break-word; position:relative; margin:0 auto; }',
+    '.pua-conv-msg { max-width:95%; padding:10px 14px; border-radius:12px; font-size:11px; line-height:1.6; word-break:break-word; position:relative; margin:0 auto; }',
     '.pua-conv-msg-user { align-self:flex-end; background:var(--pua-accent-glow); border:1px solid var(--pua-border-active); color:var(--pua-accent-text); border-bottom-right-radius:4px; text-align:left; }',
     '.pua-conv-msg-assistant { align-self:flex-start; background:var(--pua-bg-card); border:1px solid var(--pua-border); color:var(--pua-text); border-bottom-left-radius:4px; text-align:left; }',
     '.pua-conv-msg-system { align-self:center; background:rgba(91,141,239,0.08); border:1px solid rgba(91,141,239,0.2); color:var(--pua-text-sub); border-radius:8px; font-size:10px; max-width:90%; }',
@@ -698,7 +698,7 @@
     '.pua-conv-msg-floor { font-size:9px; color:var(--pua-text-dim); cursor:pointer; font-weight:600; }',
     '.pua-conv-msg-floor:hover { color:var(--pua-accent); }',
     '.pua-conv-msg-time { font-size:8px; color:var(--pua-text-dim); }',
-    '.pua-conv-msg-content { white-space:pre-wrap; min-height:1em; }',
+    '.pua-conv-msg-content { white-space:pre-wrap; min-height:1em; overflow-x:hidden; }',
     '.pua-conv-msg-actions { display:flex; gap:4px; margin-top:6px; opacity:0; transition:opacity 0.2s; flex-wrap:wrap; }',
     '.pua-conv-msg:hover .pua-conv-msg-actions { opacity:1; }',
     '.pua-conv-msg-action { font-size:10px; padding:3px 8px; border-radius:4px; border:1px solid var(--pua-border); background:var(--pua-bg-card); color:var(--pua-text-sub); cursor:pointer; transition:var(--pua-transition); white-space:nowrap; }',
@@ -843,6 +843,7 @@
     this._convSending = false
     this._convStreamingMsg = null
     this._editingMsgId = null
+    this._editToggleLock = false // Prevent rapid toggle from touch+click chain
     this._convRenderLimit = 10
     this._convContextDepth = 30
     this._convAutoScroll = false
@@ -7921,10 +7922,8 @@
         content = msg.alternatives[altIdx - 1]
       }
       if (isEditing) {
-        // Edit mode: show raw content with filter/replace regex applied, but no render regex
-        // Also show <> tags as-is (don't hide them)
-        var filteredContent = this._applyConvFilterRegex(content, 'assistant')
-        h += '<div class="pua-conv-msg-content pua-conv-edit-mode">' + this._escHtml(filteredContent) + '</div>'
+        // Edit mode: show completely raw content - no regex processing at all
+        h += '<div class="pua-conv-msg-content pua-conv-edit-mode">' + this._escHtml(content) + '</div>'
       } else if (msg.rendered) {
         h += '<div class="pua-conv-msg-content">' + msg.rendered + '</div>'
       } else {
@@ -8646,17 +8645,20 @@
   }
 
   P._toggleEditMode = function(msgId) {
+    if (this._editToggleLock) return
     if (this._editingMsgId === msgId) {
       this._editingMsgId = null
     } else {
       this._editingMsgId = msgId
     }
-    // Delay DOM rebuild to avoid interrupting touch event chain (e.g., long press)
+    // Lock to prevent rapid toggle from touch+click chain, then rebuild DOM
+    this._editToggleLock = true
     var self = this
     setTimeout(function() {
+      self._editToggleLock = false
       var contentEl = self._contentEl
       if (contentEl) self._renderConvMessages(contentEl)
-    }, 100)
+    }, 300)
   }
 
   /* ── Switch alternative version ── */
