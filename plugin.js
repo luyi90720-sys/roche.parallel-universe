@@ -163,6 +163,13 @@
     '.pua-entry-info { flex:1; min-width:0; }',
     '.pua-entry-title { font-size:11px; font-weight:500; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }',
     '.pua-entry-sub { font-size:9px; color:var(--pua-text-dim); }',
+    '.pua-panel-header { flex-wrap:wrap; gap:6px; }',
+    '.pua-select-all-cb { width:15px; height:15px; cursor:pointer; accent-color:var(--pua-accent); flex-shrink:0; }',
+    '.pua-item-cb { width:15px; height:15px; cursor:pointer; accent-color:var(--pua-accent); flex-shrink:0; margin-right:2px; }',
+    '.pua-entry-checked { background:rgba(78,201,160,0.08) !important; }',
+    '.pua-selected-count { font-size:10px; font-weight:700; color:var(--pua-accent-text); background:var(--pua-accent-glow); padding:1px 6px; border-radius:10px; }',
+    '.pua-batch-del-bar { display:flex; gap:6px; padding:6px 14px; border-bottom:1px solid var(--pua-border); background:rgba(220,53,69,0.05); align-items:center; }',
+    '.pua-group-header { padding:6px 14px 4px; font-size:10px; font-weight:700; color:var(--pua-accent-text); background:linear-gradient(90deg,var(--pua-accent-glow),transparent); border-left:3px solid var(--pua-accent); display:flex; align-items:center; justify-content:space-between; letter-spacing:0.5px; }',
     '.pua-panel-detail { flex:1; display:flex; flex-direction:column; overflow:hidden; }',
     '.pua-detail-header { padding:10px 14px; border-bottom:1px solid var(--pua-border); display:flex; align-items:center; gap:10px; flex-wrap:wrap; }',
     '.pua-detail-body { flex:1; overflow-y:auto; display:flex; flex-direction:column; }',
@@ -585,6 +592,16 @@
     '.pua-action-status { font-size:9px; color:var(--pua-text-dim); margin-left:auto; }',
     '.pua-action-confirmed { border-color:rgba(78,201,160,0.3); }',
     '.pua-action-ignored { opacity:0.5; border-color:var(--pua-border); }',
+    '.pua-assistant-action-card { flex-direction:column; align-items:flex-start; }',
+    '.pua-action-diff { width:100%; margin-top:6px; display:flex; flex-direction:column; gap:4px; }',
+    '.pua-diff-before, .pua-diff-after { font-size:9px; padding:4px 6px; border-radius:4px; line-height:1.4; }',
+    '.pua-diff-before { background:rgba(220,53,69,0.06); border:1px solid rgba(220,53,69,0.15); color:var(--pua-text-sub); }',
+    '.pua-diff-after { background:rgba(78,201,160,0.08); border:1px solid rgba(78,201,160,0.2); color:var(--pua-text); }',
+    '.pua-diff-before pre, .pua-diff-after pre { margin:2px 0 0 0; white-space:pre-wrap; word-break:break-all; font-size:8px; max-height:80px; overflow-y:auto; }',
+    '.pua-action-preview { width:100%; margin-top:6px; font-size:9px; padding:4px 6px; border-radius:4px; background:var(--pua-bg-card); border:1px solid var(--pua-border); }',
+    '.pua-action-preview pre { margin:2px 0 0 0; white-space:pre-wrap; word-break:break-all; font-size:8px; max-height:100px; overflow-y:auto; }',
+    '.pua-batch-actions-bar { display:flex; align-items:center; gap:8px; padding:8px 10px; margin-top:8px; border-radius:8px; background:rgba(255,183,77,0.08); border:1px solid rgba(255,183,77,0.25); }',
+    '.pua-batch-info { font-size:10px; color:var(--pua-accent-text); font-weight:600; margin-right:auto; }',
     '.pua-assistant-input-area { padding:10px 14px; border-top:1px solid var(--pua-border); }',
     '.pua-assistant-attach-row { display:flex; gap:6px; margin-bottom:6px; flex-wrap:wrap; align-items:center; }',
     '.pua-assistant-attach-btn { font-size:9px; padding:3px 8px; border-radius:4px; border:1px solid var(--pua-border); background:var(--pua-bg-card); color:var(--pua-text-sub); cursor:pointer; transition:var(--pua-transition); }',
@@ -688,7 +705,7 @@
     '.pua-conv-chat::-webkit-scrollbar-thumb { background:rgba(255,255,255,0.06); border-radius:2px; }',
     '.pua-conv-collapsed { text-align:center; padding:8px; font-size:10px; color:var(--pua-text-dim); cursor:pointer; }',
     '.pua-conv-collapsed:hover { color:var(--pua-accent); }',
-    '.pua-conv-msg { max-width:95%; padding:10px 14px; border-radius:12px; font-size:11px; line-height:1.6; word-break:break-word; position:relative; margin:0 auto; }',
+    '.pua-conv-msg { max-width:98%; padding:12px 16px; border-radius:12px; font-size:12px; line-height:1.7; word-break:break-word; position:relative; margin:0 auto; }',
     '.pua-conv-msg-user { align-self:flex-end; background:var(--pua-accent-glow); border:1px solid var(--pua-border-active); color:var(--pua-accent-text); border-bottom-right-radius:4px; text-align:left; }',
     '.pua-conv-msg-assistant { align-self:flex-start; background:var(--pua-bg-card); border:1px solid var(--pua-border); color:var(--pua-text); border-bottom-left-radius:4px; text-align:left; }',
     '.pua-conv-msg-system { align-self:center; background:rgba(91,141,239,0.08); border:1px solid rgba(91,141,239,0.2); color:var(--pua-text-sub); border-radius:8px; font-size:10px; max-width:90%; }',
@@ -1172,6 +1189,15 @@
     var self = this
     var c = this.container
 
+    // Save scroll positions before DOM rebuild
+    var savedScrolls = {}
+    var chatEl = this._contentEl ? this._contentEl.querySelector('#conv-chat') : null
+    if (chatEl) savedScrolls.convChat = chatEl.scrollTop
+    var presetList = this._contentEl ? this._contentEl.querySelector('#pua-preset-list') : null
+    if (presetList) savedScrolls.presetList = presetList.scrollTop
+    var regexList = this._contentEl ? this._contentEl.querySelector('#pua-regex-list') : null
+    if (regexList) savedScrolls.regexList = regexList.scrollTop
+
     // 调试：渲染计数
     this._renderCount = (this._renderCount || 0) + 1
     var renderId = this._renderCount
@@ -1280,6 +1306,20 @@
 
     // Render page content
     this._renderPage()
+
+    // Restore scroll positions after DOM rebuild
+    if (savedScrolls.convChat !== undefined) {
+      var newChatEl = this._contentEl ? this._contentEl.querySelector('#conv-chat') : null
+      if (newChatEl) newChatEl.scrollTop = savedScrolls.convChat
+    }
+    if (savedScrolls.presetList !== undefined) {
+      var newPresetList = this._contentEl ? this._contentEl.querySelector('#pua-preset-list') : null
+      if (newPresetList) newPresetList.scrollTop = savedScrolls.presetList
+    }
+    if (savedScrolls.regexList !== undefined) {
+      var newRegexList = this._contentEl ? this._contentEl.querySelector('#pua-regex-list') : null
+      if (newRegexList) newRegexList.scrollTop = savedScrolls.regexList
+    }
 
     // 调试日志
     if (this._originalConsole && this._originalConsole.log) {
@@ -3020,21 +3060,47 @@
 
     // === Left: Item list ===
     var mobileHideList = (window.innerWidth < 768 && selPreset) ? ' pua-mobile-hide' : ''
+    var selPresetIds = this._selPresetIds || []
+    var hasSelected = selPresetIds.length > 0
     h += '<div class="pua-glass pua-panel-list' + mobileHideList + '">'
-    h += '<div class="pua-panel-header"><span>\u6761\u76EE\u5217\u8868</span><span style="font-size:10px;color:var(--pua-text-dim)">' + this.presets.length + ' \u9879</span></div>'
+    h += '<div class="pua-panel-header">'
+    h += '<input type="checkbox" class="pua-select-all-cb" id="preset-select-all"' + (hasSelected && selPresetIds.length === this.presets.length ? ' checked' : '') + '>'
+    h += '<span>\u6761\u76EE\u5217\u8868</span><span style="font-size:10px;color:var(--pua-text-dim)">' + this.presets.length + ' \u9879</span>'
+    if (hasSelected) { h += '<span class="pua-selected-count">' + selPresetIds.length + '</span>' }
+    h += '</div>'
+    if (hasSelected) {
+      h += '<div class="pua-batch-del-bar"><button class="pua-btn pua-btn-danger pua-btn-sm" id="preset-batch-del">\u1F5D1 \u5220\u9664\u9009\u4E2D (' + selPresetIds.length + ')</button><button class="pua-btn pua-btn-sm" id="preset-clear-sel">\u53D6\u6D88\u9009\u4E2D</button></div>'
+    }
     h += '<div class="pua-panel-body" id="pua-preset-list">'
-    
-    for (var j = 0; j < this.presets.length; j++) {
-      var e = this.presets[j]
-      var rc = e.role === 'system' ? 'pua-role-system' : (e.role === 'user' ? 'pua-role-user' : 'pua-role-assistant')
-      var rl = e.role === 'system' ? 'SYS' : (e.role === 'user' ? 'USR' : 'AST')
-      h += '<div class="pua-entry-item' + (e.id === this.selPreset ? ' selected' : '') + '" data-id="' + e.id + '" draggable="true">'
-      h += '<span class="pua-drag-handle">\u2630</span>'
-      h += '<span class="pua-role-dot ' + rc + '"></span>'
-      h += '<div class="pua-entry-info"><div class="pua-entry-title">' + self._escHtml(e.title) + '</div>'
-      h += '<div class="pua-entry-sub">' + rl + (e.on ? '' : ' \u00B7 \u7981\u7528') + '</div></div>'
-      h += '<button class="pua-toggle-item' + (e.on ? ' on' : '') + '" data-id="' + e.id + '"></button>'
-      h += '</div>'
+
+    // Group presets by 'group' field, render group headers
+    var groups = {}
+    var groupOrder = []
+    for (var gi = 0; gi < this.presets.length; gi++) {
+      var gName = this.presets[gi].group || '\u9ED8\u8BA4'
+      if (!groups[gName]) { groups[gName] = []; groupOrder.push(gName) }
+      groups[gName].push(this.presets[gi])
+    }
+    for (var goi = 0; goi < groupOrder.length; goi++) {
+      var gk = groupOrder[goi]
+      var gItems = groups[gk]
+      if (groupOrder.length > 1 || gk !== '\u9ED8\u8BA4') {
+        h += '<div class="pua-group-header"><span>' + self._escHtml(gk) + '</span><span style="font-size:9px;color:var(--pua-text-dim)">' + gItems.length + ' \u9879</span></div>'
+      }
+      for (var j = 0; j < gItems.length; j++) {
+        var e = gItems[j]
+        var rc = e.role === 'system' ? 'pua-role-system' : (e.role === 'user' ? 'pua-role-user' : 'pua-role-assistant')
+        var rl = e.role === 'system' ? 'SYS' : (e.role === 'user' ? 'USR' : 'AST')
+        var isChecked = selPresetIds.indexOf(e.id) >= 0
+        h += '<div class="pua-entry-item' + (e.id === this.selPreset ? ' selected' : '') + (isChecked ? ' pua-entry-checked' : '') + '" data-id="' + e.id + '" draggable="true">'
+        h += '<input type="checkbox" class="pua-item-cb" data-id="' + e.id + '"' + (isChecked ? ' checked' : '') + '>'
+        h += '<span class="pua-drag-handle">\u2630</span>'
+        h += '<span class="pua-role-dot ' + rc + '"></span>'
+        h += '<div class="pua-entry-info"><div class="pua-entry-title">' + self._escHtml(e.title) + '</div>'
+        h += '<div class="pua-entry-sub">' + rl + (e.on ? '' : ' \u00B7 \u7981\u7528') + '</div></div>'
+        h += '<button class="pua-toggle-item' + (e.on ? ' on' : '') + '" data-id="' + e.id + '"></button>'
+        h += '</div>'
+      }
     }
     h += '</div></div>'
 
@@ -3214,7 +3280,7 @@
     for (var ei = 0; ei < entryItems.length; ei++) {
       (function(el) {
         el.addEventListener('click', function(e) {
-          if (e.target.classList.contains('pua-toggle-item') || e.target.classList.contains('pua-drag-handle')) return
+          if (e.target.classList.contains('pua-toggle-item') || e.target.classList.contains('pua-drag-handle') || e.target.classList.contains('pua-item-cb')) return
           self.selPreset = this.getAttribute('data-id')
           self._render()
         })
@@ -3367,6 +3433,62 @@
       })
     }
 
+    // Checkbox: individual item select
+    var itemCbs = listEl.querySelectorAll('.pua-item-cb')
+    for (var ci = 0; ci < itemCbs.length; ci++) {
+      (function(cb) {
+        cb.addEventListener('change', function(e) {
+          e.stopPropagation()
+          var itemId = this.getAttribute('data-id')
+          if (!self._selPresetIds) self._selPresetIds = []
+          if (this.checked) {
+            if (self._selPresetIds.indexOf(itemId) < 0) self._selPresetIds.push(itemId)
+          } else {
+            var ni = []
+            for (var si = 0; si < self._selPresetIds.length; si++) {
+              if (self._selPresetIds[si] !== itemId) ni.push(self._selPresetIds[si])
+            }
+            self._selPresetIds = ni
+          }
+          self._renderPresetsOnly()
+        })
+        cb.addEventListener('click', function(e) { e.stopPropagation() })
+      })(itemCbs[ci])
+    }
+
+    // Checkbox: select all
+    var selectAllCb = document.getElementById('preset-select-all')
+    if (selectAllCb) {
+      selectAllCb.addEventListener('change', function() {
+        if (this.checked) {
+          self._selPresetIds = []
+          for (var ai = 0; ai < self.presets.length; ai++) self._selPresetIds.push(self.presets[ai].id)
+        } else {
+          self._selPresetIds = []
+        }
+        self._renderPresetsOnly()
+      })
+    }
+
+    // Batch delete
+    var batchDelBtn = document.getElementById('preset-batch-del')
+    if (batchDelBtn) {
+      batchDelBtn.addEventListener('click', function() {
+        if (!self._selPresetIds || self._selPresetIds.length === 0) return
+        if (!confirm('\u786E\u5B9A\u5220\u9664 ' + self._selPresetIds.length + ' \u4E2A\u9009\u4E2D\u7684\u9884\u8BBE\uFF1F')) return
+        self._batchDelPresets()
+      })
+    }
+
+    // Clear selection
+    var clearSelBtn = document.getElementById('preset-clear-sel')
+    if (clearSelBtn) {
+      clearSelBtn.addEventListener('click', function() {
+        self._selPresetIds = []
+        self._renderPresetsOnly()
+      })
+    }
+
     // Save button
     var saveBtn = document.getElementById('preset-save-btn')
     if (saveBtn) {
@@ -3448,6 +3570,35 @@
     }
     this._savePresets()
     this._render()
+  }
+
+  P._batchDelPresets = function() {
+    if (!this._selPresetIds || this._selPresetIds.length === 0) return
+    var delMap = {}
+    for (var di = 0; di < this._selPresetIds.length; di++) delMap[this._selPresetIds[di]] = true
+    var newPresets = []
+    for (var i = 0; i < this.presets.length; i++) {
+      if (!delMap[this.presets[i].id]) newPresets.push(this.presets[i])
+    }
+    this.presets = newPresets
+    if (delMap[this.selPreset]) {
+      this.selPreset = this.presets.length > 0 ? this.presets[0].id : ''
+    }
+    this._selPresetIds = []
+    this._savePresets()
+    this._toast('\u5DF2\u5220\u9664 ' + Object.keys(delMap).length + ' \u4E2A\u9884\u8BBE')
+    this._render()
+  }
+
+  P._renderPresetsOnly = function() {
+    var titleEl = document.getElementById('pua-page-title')
+    var actionsEl = document.getElementById('pua-page-actions')
+    var contentEl = document.getElementById('pua-page-content')
+    if (titleEl && actionsEl && contentEl) {
+      this._renderPresets(titleEl, actionsEl, contentEl)
+    } else {
+      this._render()
+    }
   }
 
   /* ── 导入Roche预设对话框 ── */
@@ -3584,6 +3735,7 @@
     }
     var data = this._parsedPresetData
     var count = 0
+    var importGroup = data.groupName || ('\u5BFC\u5165-' + new Date().toLocaleString('zh-CN', {month:'2-digit',day:'2digit',hour:'2-digit',minute:'2-digit'}))
 
     if (data.type === 'pua_plugin_presets' && data.presets && Array.isArray(data.presets)) {
       // 插件格式：直接导入完整预设对象
@@ -3600,13 +3752,14 @@
           inRegex: src0.inRegex || '',
           inRegexOn: src0.inRegexOn || false,
           dMin: src0.dMin || 0,
-          dMax: src0.dMax || Infinity
+          dMax: src0.dMax || Infinity,
+          group: importGroup
         }
         this.presets.push(newP)
         count++
       }
     } else if (data.categories && Array.isArray(data.categories)) {
-      // Roche 格式：每个分类的预设作为一组导入，标题加 [分类名] 前缀
+      // Roche 格式：每个分类的预设作为一组导入
       for (var ci = 0; ci < data.categories.length; ci++) {
         var cat = data.categories[ci]
         var catName = cat.name || '\u672A\u547D\u540D\u5206\u7C7B'
@@ -3624,7 +3777,8 @@
             inRegex: src.inputRegex || '',
             inRegexOn: src.isInputRegexEnabled || false,
             dMin: 0,
-            dMax: Infinity
+            dMax: Infinity,
+            group: catName
           })
           count++
         }
@@ -3643,7 +3797,8 @@
           inRegex: src2.inputRegex || '',
           inRegexOn: src2.isInputRegexEnabled || false,
           dMin: 0,
-          dMax: Infinity
+          dMax: Infinity,
+          group: importGroup
         })
         count++
       }
@@ -3653,7 +3808,7 @@
     this._parsedPresetData = null
     this._savePresets()
     this._closeModal()
-    this._toast('\u5DF2\u5BFC\u5165 ' + count + ' \u4E2A\u9884\u8BBE\u6761\u76EE')
+    this._toast('\u5DF2\u5BFC\u5165 ' + count + ' \u4E2A\u9884\u8BBE\u6761\u76EE \u2192 [' + importGroup + ']')
     this._render()
   }
 
@@ -3798,12 +3953,35 @@
 
     // === Left: Item list ===
     var mobileHideList = (window.innerWidth < 768 && selRegex) ? ' pua-mobile-hide' : ''
+    var selRegexIds = this._selRegexIds || []
+    var hasSelRegex = selRegexIds.length > 0
     h += '<div class="pua-glass pua-panel-list' + mobileHideList + '">'
-    h += '<div class="pua-panel-header"><span>\u6B63\u5219\u6761\u76EE</span><span style="font-size:10px;color:var(--pua-text-dim)">' + this.regexes.length + ' \u9879</span></div>'
+    h += '<div class="pua-panel-header">'
+    h += '<input type="checkbox" class="pua-select-all-cb" id="regex-select-all"' + (hasSelRegex && selRegexIds.length === this.regexes.length ? ' checked' : '') + '>'
+    h += '<span>\u6B63\u5219\u6761\u76EE</span><span style="font-size:10px;color:var(--pua-text-dim)">' + this.regexes.length + ' \u9879</span>'
+    if (hasSelRegex) { h += '<span class="pua-selected-count">' + selRegexIds.length + '</span>' }
+    h += '</div>'
+    if (hasSelRegex) {
+      h += '<div class="pua-batch-del-bar"><button class="pua-btn pua-btn-danger pua-btn-sm" id="regex-batch-del">\u1F5D1 \u5220\u9664\u9009\u4E2D (' + selRegexIds.length + ')</button><button class="pua-btn pua-btn-sm" id="regex-clear-sel">\u53D6\u6D88\u9009\u4E2D</button></div>'
+    }
     h += '<div class="pua-panel-body" id="pua-regex-list">'
 
-    for (var j = 0; j < this.regexes.length; j++) {
-      var r = this.regexes[j]
+    // Group regexes by 'group' field
+    var rGroups = {}
+    var rGroupOrder = []
+    for (var rgi = 0; rgi < this.regexes.length; rgi++) {
+      var rgName = this.regexes[rgi].group || '\u9ED8\u8BA4'
+      if (!rGroups[rgName]) { rGroups[rgName] = []; rGroupOrder.push(rgName) }
+      rGroups[rgName].push(this.regexes[rgi])
+    }
+    for (var rgoi = 0; rgoi < rGroupOrder.length; rgoi++) {
+      var rgk = rGroupOrder[rgoi]
+      var rgItems = rGroups[rgk]
+      if (rGroupOrder.length > 1 || rgk !== '\u9ED8\u8BA4') {
+        h += '<div class="pua-group-header"><span>' + self._escHtml(rgk) + '</span><span style="font-size:9px;color:var(--pua-text-dim)">' + rgItems.length + ' \u9879</span></div>'
+      }
+      for (var j = 0; j < rgItems.length; j++) {
+      var r = rgItems[j]
       var typeClass, typeLabel
       if (r.type === 'render') {
         typeClass = 'pua-regex-type-render'
@@ -3818,12 +3996,15 @@
         typeClass = 'pua-regex-type-prompt'
         typeLabel = '后端过滤'
       }
-      h += '<div class="pua-entry-item' + (r.id === this.selRegex ? ' selected' : '') + '" data-id="' + r.id + '" draggable="true">'
+      var isRChecked = selRegexIds.indexOf(r.id) >= 0
+      h += '<div class="pua-entry-item' + (r.id === this.selRegex ? ' selected' : '') + (isRChecked ? ' pua-entry-checked' : '') + '" data-id="' + r.id + '" draggable="true">'
+      h += '<input type="checkbox" class="pua-item-cb" data-id="' + r.id + '"' + (isRChecked ? ' checked' : '') + '>'
       h += '<span class="pua-drag-handle">\u2630</span>'
       h += '<div class="pua-entry-info"><div class="pua-entry-title">' + self._escHtml(r.name) + '</div>'
       h += '<div class="pua-entry-sub"><span class="pua-regex-type ' + typeClass + '">' + typeLabel + '</span>' + (r.on ? '' : ' \u00B7 \u7981\u7528') + '</div></div>'
-      h += '<button class="pua-toggle-item' + (r.on ? ' on' : '') + '" data-id="' + r.id + '"></button>'
-      h += '</div>'
+        h += '<button class="pua-toggle-item' + (r.on ? ' on' : '') + '" data-id="' + r.id + '"></button>'
+        h += '</div>'
+      }
     }
     h += '</div></div>'
 
@@ -4022,7 +4203,7 @@
     for (var ei = 0; ei < entryItems.length; ei++) {
       (function(el) {
         el.addEventListener('click', function(e) {
-          if (e.target.classList.contains('pua-toggle-item') || e.target.classList.contains('pua-drag-handle')) return
+          if (e.target.classList.contains('pua-toggle-item') || e.target.classList.contains('pua-drag-handle') || e.target.classList.contains('pua-item-cb')) return
           self.selRegex = this.getAttribute('data-id')
           self._render()
         })
@@ -4136,6 +4317,62 @@
       delBtn.addEventListener('click', function() {
         var id = this.getAttribute('data-id')
         self._delRegex(id)
+      })
+    }
+
+    // Checkbox: individual item select
+    var rItemCbs = listEl.querySelectorAll('.pua-item-cb')
+    for (var rci = 0; rci < rItemCbs.length; rci++) {
+      (function(cb) {
+        cb.addEventListener('change', function(e) {
+          e.stopPropagation()
+          var itemId = this.getAttribute('data-id')
+          if (!self._selRegexIds) self._selRegexIds = []
+          if (this.checked) {
+            if (self._selRegexIds.indexOf(itemId) < 0) self._selRegexIds.push(itemId)
+          } else {
+            var ni2 = []
+            for (var si2 = 0; si2 < self._selRegexIds.length; si2++) {
+              if (self._selRegexIds[si2] !== itemId) ni2.push(self._selRegexIds[si2])
+            }
+            self._selRegexIds = ni2
+          }
+          self._renderRegexesOnly()
+        })
+        cb.addEventListener('click', function(e) { e.stopPropagation() })
+      })(rItemCbs[rci])
+    }
+
+    // Checkbox: select all
+    var rSelectAllCb = document.getElementById('regex-select-all')
+    if (rSelectAllCb) {
+      rSelectAllCb.addEventListener('change', function() {
+        if (this.checked) {
+          self._selRegexIds = []
+          for (var rai = 0; rai < self.regexes.length; rai++) self._selRegexIds.push(self.regexes[rai].id)
+        } else {
+          self._selRegexIds = []
+        }
+        self._renderRegexesOnly()
+      })
+    }
+
+    // Batch delete
+    var rBatchDelBtn = document.getElementById('regex-batch-del')
+    if (rBatchDelBtn) {
+      rBatchDelBtn.addEventListener('click', function() {
+        if (!self._selRegexIds || self._selRegexIds.length === 0) return
+        if (!confirm('\u786E\u5B9A\u5220\u9664 ' + self._selRegexIds.length + ' \u4E2A\u9009\u4E2D\u7684\u6B63\u5219\uFF1F')) return
+        self._batchDelRegexes()
+      })
+    }
+
+    // Clear selection
+    var rClearSelBtn = document.getElementById('regex-clear-sel')
+    if (rClearSelBtn) {
+      rClearSelBtn.addEventListener('click', function() {
+        self._selRegexIds = []
+        self._renderRegexesOnly()
       })
     }
 
@@ -4413,6 +4650,35 @@
     this._render()
   }
 
+  P._batchDelRegexes = function() {
+    if (!this._selRegexIds || this._selRegexIds.length === 0) return
+    var delMap = {}
+    for (var di = 0; di < this._selRegexIds.length; di++) delMap[this._selRegexIds[di]] = true
+    var newRegexes = []
+    for (var i = 0; i < this.regexes.length; i++) {
+      if (!delMap[this.regexes[i].id]) newRegexes.push(this.regexes[i])
+    }
+    this.regexes = newRegexes
+    if (delMap[this.selRegex]) {
+      this.selRegex = this.regexes.length > 0 ? this.regexes[0].id : ''
+    }
+    this._selRegexIds = []
+    this._saveRegexes()
+    this._toast('\u5DF2\u5220\u9664 ' + Object.keys(delMap).length + ' \u4E2A\u6B63\u5219')
+    this._render()
+  }
+
+  P._renderRegexesOnly = function() {
+    var titleEl = document.getElementById('pua-page-title')
+    var actionsEl = document.getElementById('pua-page-actions')
+    var contentEl = document.getElementById('pua-page-content')
+    if (titleEl && actionsEl && contentEl) {
+      this._renderRegexes(titleEl, actionsEl, contentEl)
+    } else {
+      this._render()
+    }
+  }
+
   /* ── 正则排序 ── */
   P._reorderRegex = function(fromId, toId) {
     var fi = -1, ti = -1
@@ -4565,6 +4831,7 @@
     }
     var data = this._parsedRegexData
     var count = 0
+    var rImportGroup = data.groupName || ('\u5BFC\u5165-' + new Date().toLocaleString('zh-CN', {month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'}))
 
     if (data.type === 'pua_plugin_regexes' && data.regexes && Array.isArray(data.regexes)) {
       // 插件格式：直接导入完整正则对象
@@ -4578,7 +4845,8 @@
           type: src0.type || 'render',
           on: src0.on !== undefined ? src0.on : true,
           dMin: src0.dMin || 0,
-          dMax: src0.dMax || Infinity
+          dMax: src0.dMax || Infinity,
+          group: rImportGroup
         })
         count++
       }
@@ -4604,7 +4872,8 @@
               type: 'filter',
               on: true,
               dMin: 0,
-              dMax: Infinity
+              dMax: Infinity,
+              group: catName
             })
             count++
           }
@@ -4618,7 +4887,8 @@
               type: 'filter',
               on: true,
               dMin: 0,
-              dMax: Infinity
+              dMax: Infinity,
+              group: catName
             })
             count++
           }
@@ -4630,7 +4900,7 @@
     this._parsedRegexData = null
     this._saveRegexes()
     this._closeModal()
-    this._toast('\u5DF2\u5BFC\u5165 ' + count + ' \u4E2A\u6B63\u5219\u6761\u76EE')
+    this._toast('\u5DF2\u5BFC\u5165 ' + count + ' \u4E2A\u6B63\u5219\u6761\u76EE \u2192 [' + rImportGroup + ']')
     this._render()
   }
 
@@ -6202,7 +6472,7 @@
   }
 
   P._getDefaultSystemPrompt = function() {
-    return '\u4F60\u662F\u201C\u5E73\u884C\u65F6\u7A7A\u6863\u6848\u9986\u201D\u7684\u9884\u8BBE\u4E0E\u7F8E\u5316\u52A9\u624D\u3002\u4F60\u53EF\u4EE5\u5E2E\u52A9\u7528\u6237\uFF1A\n1. \u521B\u5EFA\u65B0\u7684\u9884\u8BBE\u6761\u76EE\uFF08system prompt\uFF09\n2. \u521B\u5EFA\u65B0\u7684\u6B63\u5219\u89C4\u5219\uFF08render/filter/replace\uFF09\n3. \u7F16\u8F91\u73B0\u6709\u7684\u9884\u8BBE\u548C\u6B63\u5219\n4. \u63D0\u4F9B\u7F8E\u5316\u5EFA\u8BAE\n5. \u7F16\u5199CSS\u7F8E\u5316\u4EE3\u7801\n6. \u5BFC\u5165Roche\u9884\u8BBE\u65F6\u81EA\u52A8\u8BC6\u522BoutputRegex/inputRegex\u5E76\u6B63\u786E\u6620\u5C04\n\n\u3010\u6B63\u5219\u7C7B\u578B\u4F53\u7CFB\u3011\nrender=\u7EAF\u524D\u7AEF\u6E32\u67D3\uFF08\u53EA\u5F71\u54CD\u7528\u6237\u89C6\u89C9\uFF0C\u901A\u8FC7regex\u5339\u914D+html\u6A21\u677F\u505A\u89C6\u89C9\u8F6C\u6362\uFF0C\u4E0D\u5F71\u54CD\u53D1\u7ED9\u6A21\u578B\u7684\u5185\u5BB9\uFF09\nfilter=\u540E\u7AEF\u8FC7\u6EE4\uFF08\u5F71\u54CD\u53D1\u7ED9\u6A21\u578B\u7684\u4E0A\u4e0b\u6587\uFF09\uFF0C\u5206\u4E24\u79CD\u8BED\u4E49\uFF1A\n  - \u8F93\u51FA\u8FC7\u6EE4\uFF08outputRegex\uFF09=\u6392\u9664\u5F0F\uFF0C\u5339\u914D\u5230\u7684\u5185\u5BB9\u4E0D\u8FDB\u5165\u4E0A\u4e0b\u6587\uFF08\u9690\u85CF\u601D\u7EF3\u94FE/\u5C0F\u5267\u573A\u7B49AI\u5185\u90E8\u6807\u7B7E\uFF09\n  - \u8F93\u5165\u8FC7\u6EE4\uFF08inputRegex\uFF09=\u5305\u542B\u5F0F\uFF0C\u53EA\u6709\u5339\u914D\u5230\u7684\u624D\u8FDB\u5165\u4E0A\u4e0b\u6587\uFF08\u9009\u62E9\u6027\u4FDD\u7559\u6B63\u6587/\u6458\u8981\u7B49\uFF09\nreplace=\u540E\u7AEF\u66FF\u6362\uFF08\u5728\u7EC4\u88C5\u4E0A\u4e0b\u6587\u65F6\u5BF9\u5339\u914D\u5185\u5BB9\u505A\u6587\u672C\u66FF\u6362\uFF0C\u5982\u5C06<neiliansiweilian>\u5185\u5BB9\u66FF\u6362\u4E3A\u7A7A\uFF09\n\n\u3010Roche\u9884\u8BBE\u683C\u5F0F\u3011\nJSON\u7ED3\u6784: {version:1, type:"roche_presets", categories:[{name, presets:[{title, content, outputRegex, isOutputRegexEnabled, inputRegex, isInputRegexEnabled}]}]}\n\u5BFC\u5165\u89C4\u5219: outputRegex+isOutputRegexEnabled=true \u2192 filter[\u8F93\u51FA\u8FC7\u6EE4]\uFF0C inputRegex+isInputRegexEnabled=true \u2192 filter[\u8F93\u5165\u8FC7\u6EE4]\n\u4E00\u6761\u9884\u8BBE\u53EF\u540C\u65F6\u6709outputRegex\u548CinputRegex\uFF0C\u5BFC\u5165\u65F6\u62C6\u6210\u4E24\u6761\u72EC\u7ACB\u89C4\u5219\n\n\u3010\u5178\u578B\u4F7F\u7528\u573A\u666F\u3011\n<siweilian>\u601D\u7EF3\u94FE \u2192 outputRegex\u9690\u85CF\u4E0D\u53D1\u6A21\u578B\n<zhengwen>\u6B63\u6587 \u2192 inputRegex+dMin/dMax\u63A7\u5236\u8F6E\u6570\n<zhaiyao>\u6458\u8981 \u2192 inputRegex+dMin/dMax\u63A7\u5236\u6761\u6570\n<xiaojuchang>\u5C0F\u5267\u573A \u2192 outputRegex\u9690\u85CF\u4E0D\u53D1\u6A21\u578B\n<neiliansiweilian>\u5185\u94FE\u601D\u7EF3 \u2192 replace\u66FF\u6362\u4E3A\u7A7A\n\u6240\u6709\u6807\u7B7E \u2192 render\u524D\u7AEF\u6E32\u67D3\u7ED9\u7528\u6237\u770B\n\n\u5F53\u4F60\u9700\u8981\u6DFB\u52A0\u6216\u4FEE\u6539\u9884\u8BBE/\u6B63\u5219\u65F6\uFF0C\u8BF7\u7528\u4EE5\u4E0BJSON\u683C\u5F0F\u8F93\u51FA\uFF1A\n\u3010ADD_PRESET\u3011{"title":"...","content":"...","role":"system","outRegex":"","outRegexOn":false,"inRegex":"","inRegexOn":false}\u3010/ADD_PRESET\u3011\n\u3010ADD_REGEX\u3011{"name":"...","regex":"...","html":"...","type":"render"}\u3010/ADD_REGEX\u3011\n\u3010EDIT_PRESET\u3011{"id":"...","title":"...","content":"..."}\u3010/EDIT_PRESET\u3011\n\u3010EDIT_REGEX\u3011{"id":"...","name":"...","regex":"...","html":"..."}\u3010/EDIT_REGEX\u3011\n\n\u6BCF\u6B21\u53EA\u6267\u884C\u4E00\u4E2A\u64CD\u4F5C\u3002\u7528\u81EA\u7136\u8BED\u8A00\u89E3\u91CA\u4F60\u5728\u505A\u4EC0\u4E48\u3002\n\u7EDD\u4E0D\u5220\u9664\u4EFB\u4F55\u6761\u76EE\uFF0C\u53EA\u6DFB\u52A0\u6216\u4FEE\u6539\u3002\n\u4F60\u53EF\u4EE5\u53D1\u9001\u4EE3\u7801\u5757\u8BA9\u7528\u6237\u9884\u89C8\u6548\u679C\u3002'
+    return '\u4F60\u662F\u201C\u5E73\u884C\u65F6\u7A7A\u6863\u6848\u9986\u201D\u7684\u9884\u8BBE\u4E0E\u7F8E\u5316\u52A9\u624D\u3002\u4F60\u53EF\u4EE5\u5E2E\u52A9\u7528\u6237\uFF1A\n1. \u521B\u5EFA\u65B0\u7684\u9884\u8BBE\u6761\u76EE\uFF08system prompt\uFF09\n2. \u521B\u5EFA\u65B0\u7684\u6B63\u5219\u89C4\u5219\uFF08render/filter/replace\uFF09\n3. \u7F16\u8F91\u73B0\u6709\u7684\u9884\u8BBE\u548C\u6B63\u5219\n4. \u63D0\u4F9B\u7F8E\u5316\u5EFA\u8BAE\n5. \u7F16\u5199CSS\u7F8E\u5316\u4EE3\u7801\n6. \u5BFC\u5165Roche\u9884\u8BBE\u65F6\u81EA\u52A8\u8BC6\u522BoutputRegex/inputRegex\u5E76\u6B63\u786E\u6620\u5C04\n\n\u3010\u6B63\u5219\u7C7B\u578B\u4F53\u7CFB\u3011\nrender=\u7EAF\u524D\u7AEF\u6E32\u67D3\uFF08\u53EA\u5F71\u54CD\u7528\u6237\u89C6\u89C9\uFF0C\u901A\u8FC7regex\u5339\u914D+html\u6A21\u677F\u505A\u89C6\u89C9\u8F6C\u6362\uFF0C\u4E0D\u5F71\u54CD\u53D1\u7ED9\u6A21\u578B\u7684\u5185\u5BB9\uFF09\nfilter=\u540E\u7AEF\u8FC7\u6EE4\uFF08\u5F71\u54CD\u53D1\u7ED9\u6A21\u578B\u7684\u4E0A\u4e0b\u6587\uFF09\uFF0C\u5206\u4E24\u79CD\u8BED\u4E49\uFF1A\n  - \u8F93\u51FA\u8FC7\u6EE4\uFF08outputRegex\uFF09=\u6392\u9664\u5F0F\uFF0C\u5339\u914D\u5230\u7684\u5185\u5BB9\u4E0D\u8FDB\u5165\u4E0A\u4e0b\u6587\uFF08\u9690\u85CF\u601D\u7EF3\u94FE/\u5C0F\u5267\u573A\u7B49AI\u5185\u90E8\u6807\u7B7E\uFF09\n  - \u8F93\u5165\u8FC7\u6EE4\uFF08inputRegex\uFF09=\u5305\u542B\u5F0F\uFF0C\u53EA\u6709\u5339\u914D\u5230\u7684\u624D\u8FDB\u5165\u4E0A\u4e0b\u6587\uFF08\u9009\u62E9\u6027\u4FDD\u7559\u6B63\u6587/\u6458\u8981\u7B49\uFF09\nreplace=\u540E\u7AEF\u66FF\u6362\uFF08\u5728\u7EC4\u88C5\u4E0A\u4e0b\u6587\u65F6\u5BF9\u5339\u914D\u5185\u5BB9\u505A\u6587\u672C\u66FF\u6362\uFF0C\u5982\u5C06<neiliansiweilian>\u5185\u5BB9\u66FF\u6362\u4E3A\u7A7A\uFF09\n\n\u3010Roche\u9884\u8BBE\u683C\u5F0F\u3011\nJSON\u7ED3\u6784: {version:1, type:"roche_presets", categories:[{name, presets:[{title, content, outputRegex, isOutputRegexEnabled, inputRegex, isInputRegexEnabled}]}]}\n\u5BFC\u5165\u89C4\u5219: outputRegex+isOutputRegexEnabled=true \u2192 filter[\u8F93\u51FA\u8FC7\u6EE4]\uFF0C inputRegex+isInputRegexEnabled=true \u2192 filter[\u8F93\u5165\u8FC7\u6EE4]\n\u4E00\u6761\u9884\u8BBE\u53EF\u540C\u65F6\u6709outputRegex\u548CinputRegex\uFF0C\u5BFC\u5165\u65F6\u62C6\u6210\u4E24\u6761\u72EC\u7ACB\u89C4\u5219\n\n\u3010\u5178\u578B\u4F7F\u7528\u573A\u666F\u3011\n<siweilian>\u601D\u7EF3\u94FE \u2192 outputRegex\u9690\u85CF\u4E0D\u53D1\u6A21\u578B\n<zhengwen>\u6B63\u6587 \u2192 inputRegex+dMin/dMax\u63A7\u5236\u8F6E\u6570\n<zhaiyao>\u6458\u8981 \u2192 inputRegex+dMin/dMax\u63A7\u5236\u6761\u6570\n<xiaojuchang>\u5C0F\u5267\u573A \u2192 outputRegex\u9690\u85CF\u4E0D\u53D1\u6A21\u578B\n<neiliansiweilian>\u5185\u94FE\u601D\u7EF3 \u2192 replace\u66FF\u6362\u4E3A\u7A7A\n\u6240\u6709\u6807\u7B7E \u2192 render\u524D\u7AEF\u6E32\u67D3\u7ED9\u7528\u6237\u770B\n\n\u5F53\u4F60\u9700\u8981\u6DFB\u52A0\u6216\u4FEE\u6539\u9884\u8BBE/\u6B63\u5219\u65F6\uFF0C\u8BF7\u7528\u4EE5\u4E0BJSON\u683C\u5F0F\u8F93\u51FA\uFF1A\n\u3010ADD_PRESET\u3011{"title":"...","content":"...","role":"system","outRegex":"","outRegexOn":false,"inRegex":"","inRegexOn":false}\u3010/ADD_PRESET\u3011\n\u3010ADD_REGEX\u3011{"name":"...","regex":"...","html":"...","type":"render"}\u3010/ADD_REGEX\u3011\n\u3010EDIT_PRESET\u3011{"id":"...","title":"...","content":"..."}\u3010/EDIT_PRESET\u3011\n\u3010EDIT_REGEX\u3011{"id":"...","name":"...","regex":"...","html":"...","type":"...","on":...}\u3010/EDIT_REGEX\u3011\n\n\u91CD\u8981\uFF1A\u4F60\u53EF\u4EE5\u5728\u4E00\u6B21\u56DE\u5E94\u4E2D\u8F93\u51FA\u591A\u4E2Aaction tag\uFF0C\u5B9E\u73B0\u6279\u91CF\u64CD\u4F5C\u3002\u4F8B\u5982\u7528\u6237\u9644\u52A0\u4E863\u4E2A\u6B63\u5219\u8981\u4FEE\u6539\uFF0C\u4F60\u53EF\u4EE5\u8F93\u51FA3\u4E2aEDIT_REGEX tag\u3002\u6BCF\u6B21\u64CD\u4F5C\u90FD\u9700\u8981user\u624b\u52A8\u786E\u8BA4\u624d\u751F\u6548\u3002\u7528\u81EA\u7136\u8BED\u8A00\u89E3\u91CA\u4F60\u5728\u505A\u4EC0\u4E48\u3002\n\u7EDD\u4E0D\u5220\u9664\u4EFB\u4F55\u6761\u76EE\uFF0C\u53EA\u6DFB\u52A0\u6216\u4FEE\u6539\u3002\n\u4F60\u53EF\u4EE5\u53D1\u9001\u4EE3\u7801\u5757\u8BA9\u7528\u6237\u9884\u89C8\u6548\u679C\u3002'
   }
 
   P._renderAssistant = function(titleEl, actionsEl, contentEl) {
@@ -6641,6 +6911,16 @@
       })(dismissBtns[dbi])
     }
 
+    // Bind batch operation buttons
+    var batchConfirmBtn = contentEl.querySelector('#ast-batch-confirm')
+    if (batchConfirmBtn) {
+      batchConfirmBtn.addEventListener('click', function() { self._batchConfirmActions() })
+    }
+    var batchDismissBtn = contentEl.querySelector('#ast-batch-dismiss')
+    if (batchDismissBtn) {
+      batchDismissBtn.addEventListener('click', function() { self._batchDismissActions() })
+    }
+
     // Bind edit buttons on user messages
     var editBtns = contentEl.querySelectorAll('.pua-assistant-edit-btn')
     for (var ebi = 0; ebi < editBtns.length; ebi++) {
@@ -6934,18 +7214,37 @@
     var h = '<div>' + self._renderMarkdown(displayContent) + '</div>'
 
     // Render action cards
+    var pendingCount = 0
+    for (var ai2 = 0; ai2 < actions.length; ai2++) {
+      if (actions[ai2].status === 'pending') pendingCount++
+    }
     for (var ai = 0; ai < actions.length; ai++) {
       var action = actions[ai]
       var actionStatus = action.status || 'confirmed'
       var label = ''
       var confirmLabel = ''
-      if (action.type === 'addPreset') { label = '\uD83D\uDCCB \u6DFB\u52A0\u9884\u8BBE: ' + self._escHtml(action.data.title || ''); confirmLabel = '\u2705 \u6DFB\u52A0\u5230\u9884\u8BBE' }
-      else if (action.type === 'addRegex') { label = '\u2699\uFE0F \u6DFB\u52A0\u6B63\u5219: ' + self._escHtml(action.data.name || ''); confirmLabel = '\u2705 \u6DFB\u52A0\u5230\u6B63\u5219' }
-      else if (action.type === 'editPreset') { label = '\uD83D\uDCCB \u4FEE\u6539\u9884\u8BBE: ' + self._escHtml(action.data.title || ''); confirmLabel = '\u2705 \u5E94\u7528\u4FEE\u6539' }
-      else if (action.type === 'editRegex') { label = '\u2699\uFE0F \u4FEE\u6539\u6B63\u5219: ' + self._escHtml(action.data.name || ''); confirmLabel = '\u2705 \u5E94\u7528\u4FEE\u6539' }
+      if (action.type === 'addPreset') { label = '\uD83D\uDCCB \u6DFB\u52A0\u9884\u8BBE: ' + self._escHtml(action.data.title || ''); confirmLabel = '\u2705 \u6DFB\u52A0' }
+      else if (action.type === 'addRegex') { label = '\u2699\uFE0F \u6DFB\u52A0\u6B63\u5219: ' + self._escHtml(action.data.name || ''); confirmLabel = '\u2705 \u6DFB\u52A0' }
+      else if (action.type === 'editPreset') { label = '\uD83D\uDCCB \u4FEE\u6539\u9884\u8BBE: ' + self._escHtml(action.data.title || ''); confirmLabel = '\u2705 \u5E94\u7528' }
+      else if (action.type === 'editRegex') { label = '\u2699\uFE0F \u4FEE\u6539\u6B63\u5219: ' + self._escHtml(action.data.name || ''); confirmLabel = '\u2705 \u5E94\u7528' }
 
-      h += '<div class="pua-assistant-action-card' + (actionStatus === 'ignored' ? ' pua-action-ignored' : '') + (actionStatus === 'confirmed' ? ' pua-action-confirmed' : '') + '">'
+      h += '<div class="pua-assistant-action-card' + (actionStatus === 'ignored' ? ' pua-action-ignored' : '') + (actionStatus === 'confirmed' ? ' pua-action-confirmed' : '') + '" data-action-card-id="' + self._escHtml(action.id) + '">'
       h += '<span class="pua-assistant-action-label">' + label + '</span>'
+
+      // Show before/after diff for edit actions
+      if (action.type === 'editPreset' && action.before && action.pending) {
+        h += '<div class="pua-action-diff">'
+        h += '<div class="pua-diff-before"><b>\u4FEE\u6539\u524D:</b><pre>' + self._escHtml((action.before.title || '') + '\n' + (action.before.content || '').substring(0, 200) + (action.before.content && action.before.content.length > 200 ? '...' : '')) + '</pre></div>'
+        h += '<div class="pua-diff-after"><b>\u2192 \u4FEE\u6539\u540E:</b><pre>' + self._escHtml((action.pending.title || '') + '\n' + (action.pending.content || '').substring(0, 200) + (action.pending.content && action.pending.content.length > 200 ? '...' : '')) + '</pre></div>'
+        h += '</div>'
+      }
+      if (action.type === 'editRegex' && action.before && action.pending) {
+        h += '<div class="pua-action-diff">'
+        h += '<div class="pua-diff-before"><b>\u4FEE\u6539\u524D:</b> name=' + self._escHtml(action.before.name || '') + ' type=' + self._escHtml(action.before.type || '') + ' regex=' + self._escHtml((action.before.regex || '').substring(0, 100)) + '</div>'
+        h += '<div class="pua-diff-after"><b>\u2192 \u4FEE\u6539\u540E:</b> name=' + self._escHtml(action.pending.name || '') + ' type=' + self._escHtml(action.pending.type || action.data.type || '') + ' regex=' + self._escHtml((action.pending.regex || action.data.regex || '').substring(0, 100)) + (action.pending.html ? ' html=' + self._escHtml(action.pending.html.substring(0, 80)) : '') + '</div>'
+        h += '</div>'
+      }
+
       // Add regex preview for addRegex and editRegex actions
       if ((action.type === 'addRegex' || action.type === 'editRegex') && action.data.regex && action.data.html) {
         h += '<div class="pua-regex-preview pua-regex-preview-auto" data-regex="' + self._escHtml(action.data.regex) + '" data-html="' + self._escHtml(action.data.html) + '">'
@@ -6954,16 +7253,29 @@
         h += '<div class="pua-elem-info" style="display:none"></div>'
         h += '</div>'
       }
+      // Show new content preview for addPreset
+      if (action.type === 'addPreset' && action.pending) {
+        h += '<div class="pua-action-preview"><b>\u5185\u5BB9\u9884\u89C8:</b><pre>' + self._escHtml((action.pending.content || '').substring(0, 300)) + (action.pending.content && action.pending.content.length > 300 ? '...' : '') + '</pre></div>'
+      }
       if (actionStatus === 'pending') {
         h += '<div class="pua-action-btns">'
         h += '<button class="pua-assistant-confirm-btn" data-action-id="' + self._escHtml(action.id) + '">' + confirmLabel + '</button>'
         h += '<button class="pua-assistant-dismiss-btn" data-action-id="' + self._escHtml(action.id) + '">\u274C \u5FFD\u7565</button>'
         h += '</div>'
       } else if (actionStatus === 'confirmed') {
-        h += '<span class="pua-action-status">\u2705 \u5DF2\u6DFB\u52A0</span>'
+        h += '<span class="pua-action-status">\u2705 \u5DF2\u4FDD\u5B58</span>'
       } else if (actionStatus === 'ignored') {
         h += '<span class="pua-action-status">\u274C \u5DF2\u5FFD\u7565</span>'
       }
+      h += '</div>'
+    }
+
+    // Batch operation bar when there are multiple pending actions
+    if (pendingCount > 1) {
+      h += '<div class="pua-batch-actions-bar">'
+      h += '<span class="pua-batch-info">\u5171 ' + pendingCount + ' \u4E2A\u5F85\u5904\u7406\u64CD\u4F5C</span>'
+      h += '<button class="pua-btn pua-btn-sm pua-btn-gold" id="ast-batch-confirm">\u2705 \u5168\u90E8\u4FDD\u5B58</button>'
+      h += '<button class="pua-btn pua-btn-sm" id="ast-batch-dismiss">\u274C \u5168\u90E8\u5FFD\u7565</button>'
       h += '</div>'
     }
 
@@ -7205,15 +7517,29 @@
 
       var content = (data.choices[0].message || {}).content || ''
 
-      // Parse action tags - do NOT auto-add, store pending data for user confirmation
+      // Parse action tags - support multiple actions of each type (batch operations)
       var actions = []
-      var addPresetMatch = content.match(/\u3010ADD_PRESET\u3011([\s\S]*?)\u3010\/ADD_PRESET\u3011/)
-      if (addPresetMatch) {
+      var actionCounter = 0
+      function nextActionId() { return 'action_' + Date.now() + '_' + (actionCounter++) }
+
+      // Helper: find all matches for a tag pattern
+      function findAllTags(tagOpen, tagClose) {
+        var results = []
+        var re = new RegExp(tagOpen + '([\\s\\S]*?)' + tagClose, 'g')
+        var m
+        while ((m = re.exec(content)) !== null) {
+          results.push(m[1])
+        }
+        return results
+      }
+
+      // Parse all ADD_PRESET tags
+      var addPresetMatches = findAllTags('\\u3010ADD_PRESET\\u3011', '\\u3010/ADD_PRESET\\u3011')
+      for (var apmi = 0; apmi < addPresetMatches.length; apmi++) {
         try {
-          var pd = JSON.parse(addPresetMatch[1].trim())
-          var actionId = 'action_' + Date.now()
+          var pd = JSON.parse(addPresetMatches[apmi].trim())
           var pendingPreset = {
-            id: 'p' + Date.now(),
+            id: 'p' + Date.now() + '_' + apmi,
             title: pd.title || '\u672A\u547D\u540D',
             role: pd.role || 'system',
             on: true,
@@ -7225,17 +7551,17 @@
             dMin: 0,
             dMax: Infinity
           }
-          actions.push({ type: 'addPreset', data: { id: pendingPreset.id, title: pendingPreset.title }, id: actionId, pending: pendingPreset, status: 'pending' })
+          actions.push({ type: 'addPreset', data: { id: pendingPreset.id, title: pendingPreset.title }, id: nextActionId(), pending: pendingPreset, status: 'pending' })
         } catch(e) {}
       }
 
-      var addRegexMatch = content.match(/\u3010ADD_REGEX\u3011([\s\S]*?)\u3010\/ADD_REGEX\u3011/)
-      if (addRegexMatch) {
+      // Parse all ADD_REGEX tags
+      var addRegexMatches = findAllTags('\\u3010ADD_REGEX\\u3011', '\\u3010/ADD_REGEX\\u3011')
+      for (var armi = 0; armi < addRegexMatches.length; armi++) {
         try {
-          var rd = JSON.parse(addRegexMatch[1].trim())
-          var actionId2 = 'action_' + Date.now() + '_r'
+          var rd = JSON.parse(addRegexMatches[armi].trim())
           var pendingRegex = {
-            id: 'r' + Date.now(),
+            id: 'r' + Date.now() + '_' + armi,
             name: rd.name || '\u672A\u547D\u540D',
             regex: rd.regex || '',
             html: rd.html || '',
@@ -7244,15 +7570,15 @@
             dMin: 0,
             dMax: Infinity
           }
-          actions.push({ type: 'addRegex', data: { id: pendingRegex.id, name: pendingRegex.name, regex: pendingRegex.regex, html: pendingRegex.html }, id: actionId2, pending: pendingRegex, status: 'pending' })
+          actions.push({ type: 'addRegex', data: { id: pendingRegex.id, name: pendingRegex.name, regex: pendingRegex.regex, html: pendingRegex.html }, id: nextActionId(), pending: pendingRegex, status: 'pending' })
         } catch(e2) {}
       }
 
-      var editPresetMatch = content.match(/\u3010EDIT_PRESET\u3011([\s\S]*?)\u3010\/EDIT_PRESET\u3011/)
-      if (editPresetMatch) {
+      // Parse all EDIT_PRESET tags
+      var editPresetMatches = findAllTags('\\u3010EDIT_PRESET\\u3011', '\\u3010/EDIT_PRESET\\u3011')
+      for (var epmi = 0; epmi < editPresetMatches.length; epmi++) {
         try {
-          var epd = JSON.parse(editPresetMatch[1].trim())
-          var actionId3 = 'action_' + Date.now() + '_ep'
+          var epd = JSON.parse(editPresetMatches[epmi].trim())
           var beforeEdit = null
           for (var epi = 0; epi < self.presets.length; epi++) {
             if (self.presets[epi].id === epd.id) {
@@ -7260,23 +7586,23 @@
               break
             }
           }
-          actions.push({ type: 'editPreset', data: { id: epd.id, title: epd.title || '' }, id: actionId3, pending: epd, before: beforeEdit, status: 'pending' })
+          actions.push({ type: 'editPreset', data: { id: epd.id, title: epd.title || '' }, id: nextActionId(), pending: epd, before: beforeEdit, status: 'pending' })
         } catch(e3) {}
       }
 
-      var editRegexMatch = content.match(/\u3010EDIT_REGEX\u3011([\s\S]*?)\u3010\/EDIT_REGEX\u3011/)
-      if (editRegexMatch) {
+      // Parse all EDIT_REGEX tags
+      var editRegexMatches = findAllTags('\\u3010EDIT_REGEX\\u3011', '\\u3010/EDIT_REGEX\\u3011')
+      for (var ermi = 0; ermi < editRegexMatches.length; ermi++) {
         try {
-          var erd = JSON.parse(editRegexMatch[1].trim())
-          var actionId4 = 'action_' + Date.now() + '_er'
+          var erd = JSON.parse(editRegexMatches[ermi].trim())
           var beforeEdit2 = null
           for (var eri = 0; eri < self.regexes.length; eri++) {
             if (self.regexes[eri].id === erd.id) {
-              beforeEdit2 = { name: self.regexes[eri].name, regex: self.regexes[eri].regex, html: self.regexes[eri].html }
+              beforeEdit2 = { name: self.regexes[eri].name, regex: self.regexes[eri].regex, html: self.regexes[eri].html, type: self.regexes[eri].type, on: self.regexes[eri].on }
               break
             }
           }
-          actions.push({ type: 'editRegex', data: { id: erd.id, name: erd.name || '', regex: erd.regex || '', html: erd.html || '' }, id: actionId4, pending: erd, before: beforeEdit2, status: 'pending' })
+          actions.push({ type: 'editRegex', data: { id: erd.id, name: erd.name || '', regex: erd.regex || '', html: erd.html || '' }, id: nextActionId(), pending: erd, before: beforeEdit2, status: 'pending' })
         } catch(e4) {}
       }
 
@@ -7397,6 +7723,77 @@
         }
       }
     }
+  }
+
+  P._batchConfirmActions = function() {
+    var branch = this._getActiveBranch()
+    if (!branch) return
+    var count = 0
+    for (var hi = 0; hi < branch.history.length; hi++) {
+      var msg = branch.history[hi]
+      if (!msg.actions) continue
+      for (var ai = 0; ai < msg.actions.length; ai++) {
+        var action = msg.actions[ai]
+        if (action.status !== 'pending') continue
+        if (action.type === 'addPreset' && action.pending) {
+          this.presets.push(action.pending)
+          this._savePresets()
+        } else if (action.type === 'addRegex' && action.pending) {
+          this.regexes.push(action.pending)
+          this._saveRegexes()
+        } else if (action.type === 'editPreset' && action.pending) {
+          for (var epi = 0; epi < this.presets.length; epi++) {
+            if (this.presets[epi].id === action.pending.id) {
+              if (action.pending.title !== undefined) this.presets[epi].title = action.pending.title
+              if (action.pending.content !== undefined) this.presets[epi].content = action.pending.content
+              if (action.pending.outRegex !== undefined) this.presets[epi].outRegex = action.pending.outRegex
+              if (action.pending.outRegexOn !== undefined) this.presets[epi].outRegexOn = action.pending.outRegexOn
+              if (action.pending.inRegex !== undefined) this.presets[epi].inRegex = action.pending.inRegex
+              if (action.pending.inRegexOn !== undefined) this.presets[epi].inRegexOn = action.pending.inRegexOn
+              if (action.pending.role !== undefined) this.presets[epi].role = action.pending.role
+              this._savePresets()
+              break
+            }
+          }
+        } else if (action.type === 'editRegex' && action.pending) {
+          for (var eri = 0; eri < this.regexes.length; eri++) {
+            if (this.regexes[eri].id === action.pending.id) {
+              if (action.pending.name !== undefined) this.regexes[eri].name = action.pending.name
+              if (action.pending.regex !== undefined) this.regexes[eri].regex = action.pending.regex
+              if (action.pending.html !== undefined) this.regexes[eri].html = action.pending.html
+              if (action.pending.type !== undefined) this.regexes[eri].type = action.pending.type
+              if (action.pending.on !== undefined) this.regexes[eri].on = action.pending.on
+              this._saveRegexes()
+              break
+            }
+          }
+        }
+        action.status = 'confirmed'
+        count++
+      }
+    }
+    this._saveAssistantData()
+    this._toast('\u5DF2\u4FDD\u5B58 ' + count + ' \u4E2A\u64CD\u4F5C')
+    this._render()
+  }
+
+  P._batchDismissActions = function() {
+    var branch = this._getActiveBranch()
+    if (!branch) return
+    var count = 0
+    for (var hi = 0; hi < branch.history.length; hi++) {
+      var msg = branch.history[hi]
+      if (!msg.actions) continue
+      for (var ai = 0; ai < msg.actions.length; ai++) {
+        if (msg.actions[ai].status === 'pending') {
+          msg.actions[ai].status = 'ignored'
+          count++
+        }
+      }
+    }
+    this._saveAssistantData()
+    this._toast('\u5DF2\u5FFD\u7565 ' + count + ' \u4E2A\u64CD\u4F5C')
+    this._render()
   }
 
   P._showPromptModal = function() {
@@ -11157,7 +11554,7 @@
   window.RochePlugin.register({
     id: 'parallel-universe',
     name: '\u5E73\u884C\u65F6\u7A7A\u6863\u6848\u9986',
-    version: '0.9.1',
+    version: '0.22.0',
     icon: '\u2606',
     apps: [{
       id: 'parallel-universe-home',
