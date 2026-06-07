@@ -688,13 +688,13 @@
     '.pua-conv-chat::-webkit-scrollbar-thumb { background:rgba(255,255,255,0.06); border-radius:2px; }',
     '.pua-conv-collapsed { text-align:center; padding:8px; font-size:10px; color:var(--pua-text-dim); cursor:pointer; }',
     '.pua-conv-collapsed:hover { color:var(--pua-accent); }',
-    '.pua-conv-msg { max-width:92%; padding:12px 18px; border-radius:14px; font-size:12px; line-height:1.8; word-break:break-word; position:relative; margin:0 auto; width:100%; }',
-    '.pua-conv-msg-user { background:transparent; border:none; color:var(--pua-accent-text); text-align:right; padding-right:0; font-style:italic; }',
-    '.pua-conv-msg-assistant { background:var(--pua-bg-card); border:1px solid var(--pua-border); color:var(--pua-text); text-align:left; padding-left:0; }',
+    '.pua-conv-msg { max-width:80%; padding:10px 14px; border-radius:12px; font-size:11px; line-height:1.6; word-break:break-word; position:relative; margin:0 auto; }',
+    '.pua-conv-msg-user { align-self:flex-end; background:var(--pua-accent-glow); border:1px solid var(--pua-border-active); color:var(--pua-accent-text); border-bottom-right-radius:4px; text-align:left; }',
+    '.pua-conv-msg-assistant { align-self:flex-start; background:var(--pua-bg-card); border:1px solid var(--pua-border); color:var(--pua-text); border-bottom-left-radius:4px; text-align:left; }',
     '.pua-conv-msg-system { align-self:center; background:rgba(91,141,239,0.08); border:1px solid rgba(91,141,239,0.2); color:var(--pua-text-sub); border-radius:8px; font-size:10px; max-width:90%; }',
     '.pua-conv-msg-dimmed { opacity:0.4; }',
     '.pua-conv-msg-dimmed .pua-conv-msg-content { text-decoration:line-through; }',
-    '.pua-conv-msg-header { display:flex; align-items:center; gap:6px; margin-bottom:2px; }',
+    '.pua-conv-msg-header { display:flex; align-items:center; gap:6px; margin-bottom:4px; }',
     '.pua-conv-msg-floor { font-size:9px; color:var(--pua-text-dim); cursor:pointer; font-weight:600; }',
     '.pua-conv-msg-floor:hover { color:var(--pua-accent); }',
     '.pua-conv-msg-time { font-size:8px; color:var(--pua-text-dim); }',
@@ -8301,9 +8301,19 @@
       if (!rx.on || rx.type !== 'render' || !rx.regex) continue
       try {
         var re = new RegExp(rx.regex, 'g')
-        result = result.replace(re, function(match) {
+        var self = this
+        result = result.replace(re, function() {
+          var match = arguments[0]
+          // Resolve $1, $2, ... $N and $& in html template to actual capture groups
+          var htmlTpl = rx.html || ''
+          // Replace $& with full match first
+          var resolved = htmlTpl.split('$&').join(match)
+          // Replace $1-$9 with capture groups
+          for (var ci = 1; ci < arguments.length - 2 && ci <= 9; ci++) {
+            resolved = resolved.split('$' + ci).join(arguments[ci] !== undefined ? arguments[ci] : '')
+          }
           var idx = replacements.length
-          replacements.push({ html: rx.html || '', match: match })
+          replacements.push(resolved)
           return '\x01R' + idx + 'R\x01'
         })
       } catch(e) {}
@@ -8312,7 +8322,7 @@
     result = this._escHtml(result)
     // Restore replacement HTML
     for (var k = 0; k < replacements.length; k++) {
-      result = result.replace('\x01R' + k + 'R\x01', replacements[k].html)
+      result = result.replace('\x01R' + k + 'R\x01', replacements[k])
     }
     // Hide <> tags but preserve their content (e.g. <nexus>1</nexus> → 1)
     result = result.replace(/&lt;\/?[^&]*?&gt;/g, '')
@@ -8641,8 +8651,12 @@
     } else {
       this._editingMsgId = msgId
     }
-    var contentEl = this._contentEl
-    if (contentEl) this._renderConvMessages(contentEl)
+    // Delay DOM rebuild to avoid interrupting touch event chain (e.g., long press)
+    var self = this
+    setTimeout(function() {
+      var contentEl = self._contentEl
+      if (contentEl) self._renderConvMessages(contentEl)
+    }, 100)
   }
 
   /* ── Switch alternative version ── */
