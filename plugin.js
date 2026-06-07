@@ -3742,7 +3742,7 @@
     var data = this._parsedPresetData
     console.log('[PUA] _doImportPreset data type=' + data.type + ' has categories=' + !!(data.categories) + ' has presets=' + !!(data.presets))
     var count = 0
-    var importGroup = data.groupName || ('\u5BFC\u5165-' + new Date().toLocaleString('zh-CN', {month:'2-digit',day:'2digit',hour:'2-digit',minute:'2-digit'}))
+    var importGroup = data.groupName || ('\u5BFC\u5165-' + new Date().toLocaleString('zh-CN', {month:'2-digit',day:'numeric',hour:'2-digit',minute:'2-digit'}))
 
     if (data.type === 'pua_plugin_presets' && data.presets && Array.isArray(data.presets)) {
       // 插件格式：直接导入完整预设对象
@@ -8455,11 +8455,12 @@
     for (var mi = 0; mi < msgEls.length; mi++) {
       (function(msgEl) {
         var longPressTimer = null
-        var longPressFired = false
+        var editTriggered = false
         msgEl.addEventListener('touchstart', function(e) {
-          longPressFired = false
+          editTriggered = false
           longPressTimer = setTimeout(function() {
-            longPressFired = true
+            if (editTriggered) return // Already triggered by contextmenu
+            editTriggered = true
             var msgId = msgEl.getAttribute('data-msg-id')
             console.log('[PUA] longpress fired for msgId=' + msgId)
             if (msgId) self._toggleEditMode(msgId)
@@ -8467,18 +8468,17 @@
         }, { passive: true })
         msgEl.addEventListener('touchend', function(e) {
           clearTimeout(longPressTimer)
-          // Prevent click event from firing after long press
-          if (longPressFired) {
-            e.preventDefault()
-          }
+          if (editTriggered) e.preventDefault()
         })
         msgEl.addEventListener('touchmove', function() { clearTimeout(longPressTimer) })
         msgEl.addEventListener('contextmenu', function(e) {
           e.preventDefault()
+          if (editTriggered) return // Already triggered by longpress
+          editTriggered = true
+          clearTimeout(longPressTimer)
           var msgId = msgEl.getAttribute('data-msg-id')
-          console.log('[PUA] contextmenu fired for msgId=' + msgId + ', longPressFired=' + longPressFired)
-          // Only trigger if not already triggered by touch long press
-          if (!longPressFired && msgId) self._toggleEditMode(msgId)
+          console.log('[PUA] contextmenu fired for msgId=' + msgId)
+          if (msgId) self._toggleEditMode(msgId)
         })
       })(msgEls[mi])
     }
