@@ -700,14 +700,14 @@
     '.pua-conv-msg-count { font-size:9px; color:var(--pua-text-dim); background:var(--pua-bg-input); padding:2px 6px; border-radius:8px; }',
     '.pua-conv-topbar-btn { width:26px; height:26px; border-radius:6px; border:1px solid var(--pua-border); background:var(--pua-bg-card); color:var(--pua-text-sub); cursor:pointer; font-size:12px; display:flex; align-items:center; justify-content:center; transition:var(--pua-transition); }',
     '.pua-conv-topbar-btn:hover { border-color:var(--pua-border-active); color:var(--pua-text); }',
-    '.pua-conv-chat { flex:1; overflow-y:auto; overflow-x:hidden; padding:14px; display:flex; flex-direction:column; gap:10px; }',
+    '.pua-conv-chat { flex:1; overflow-y:auto; overflow-x:hidden; padding:8px; display:flex; flex-direction:column; gap:10px; }',
     '.pua-conv-chat::-webkit-scrollbar { width:4px; }',
     '.pua-conv-chat::-webkit-scrollbar-thumb { background:rgba(255,255,255,0.06); border-radius:2px; }',
     '.pua-conv-collapsed { text-align:center; padding:8px; font-size:10px; color:var(--pua-text-dim); cursor:pointer; }',
     '.pua-conv-collapsed:hover { color:var(--pua-accent); }',
-    '.pua-conv-msg { width:100%; padding:12px 16px; border-radius:12px; font-size:12px; line-height:1.7; word-break:break-word; position:relative; margin:0 auto; box-sizing:border-box; }',
-    '.pua-conv-msg-user { align-self:flex-end; background:var(--pua-accent-glow); border:1px solid var(--pua-border-active); color:var(--pua-accent-text); border-bottom-right-radius:4px; text-align:left; }',
-    '.pua-conv-msg-assistant { align-self:flex-start; background:var(--pua-bg-card); border:1px solid var(--pua-border); color:var(--pua-text); border-bottom-left-radius:4px; text-align:left; }',
+    '.pua-conv-msg { width:100%; padding:10px 12px; border-radius:12px; font-size:12px; line-height:1.7; word-break:break-word; position:relative; margin:0 auto; box-sizing:border-box; }',
+    '.pua-conv-msg-user { background:var(--pua-accent-glow); border:1px solid var(--pua-border-active); color:var(--pua-accent-text); border-bottom-right-radius:4px; text-align:left; }',
+    '.pua-conv-msg-assistant { background:var(--pua-bg-card); border:1px solid var(--pua-border); color:var(--pua-text); border-bottom-left-radius:4px; text-align:left; }',
     '.pua-conv-msg-system { align-self:center; background:rgba(91,141,239,0.08); border:1px solid rgba(91,141,239,0.2); color:var(--pua-text-sub); border-radius:8px; font-size:10px; max-width:90%; }',
     '.pua-conv-msg-dimmed { opacity:0.4; }',
     '.pua-conv-msg-dimmed .pua-conv-msg-content { text-decoration:line-through; }',
@@ -8050,6 +8050,8 @@
 
   P._renderConversation = function(titleEl, actionsEl, contentEl) {
     var self = this
+    // Reduce padding for conversation page to maximize message width
+    contentEl.style.padding = '0'
     titleEl.textContent = '\u5BF9\u8BDD'
     actionsEl.innerHTML = ''
 
