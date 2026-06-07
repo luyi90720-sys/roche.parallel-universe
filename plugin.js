@@ -48,11 +48,11 @@
     '}',
     '.pua-root.pua-light {',
     '  --pua-bg:rgba(248,248,250,0.92); --pua-bg-solid:#f8f8fa;',
-    '  --pua-bg-card:rgba(255,255,255,0.7); --pua-bg-card-hover:rgba(255,255,255,0.85);',
-    '  --pua-bg-input:rgba(0,0,0,0.04); --pua-border:rgba(0,0,0,0.08);',
-    '  --pua-border-active:rgba(149,115,48,0.4); --pua-accent:#957330; --pua-accent-dim:#7a5f28;',
+    '  --pua-bg-card:rgba(255,255,255,0.85); --pua-bg-card-hover:rgba(255,255,255,0.95);',
+    '  --pua-bg-input:rgba(0,0,0,0.05); --pua-border:rgba(0,0,0,0.12);',
+    '  --pua-border-active:rgba(149,115,48,0.5); --pua-accent:#957330; --pua-accent-dim:#7a5f28;',
     '  --pua-accent-glow:rgba(149,115,48,0.15); --pua-text:#1A1A1E; --pua-text-sub:#45454A;',
-    '  --pua-text-dim:#999; --pua-accent-text:#3b352d; --pua-shadow:0 8px 32px rgba(0,0,0,0.06);',
+    '  --pua-text-dim:#888; --pua-accent-text:#3b352d; --pua-shadow:0 8px 32px rgba(0,0,0,0.08);',
     '}',
 
     '/* ── 布局 ── */',
@@ -215,7 +215,7 @@
     '  justify-content:center; }',
     '.pua-modal-overlay.show { display:flex; animation:pua-modalIn 0.2s ease; }',
     '@keyframes pua-modalIn { from { opacity:0; } to { opacity:1; } }',
-    '.pua-modal { width:500px; max-height:80vh; background:#1a1a2e; border:1px solid var(--pua-border);',
+    '.pua-modal { width:500px; max-height:80vh; background:var(--pua-bg-solid); border:1px solid var(--pua-border);',
     '  border-radius:var(--pua-radius); overflow:hidden; display:flex; flex-direction:column;',
     '  transform:scale(0.95) translateY(10px); transition:var(--pua-transition); }',
     '.pua-modal-overlay.show .pua-modal { transform:scale(1) translateY(0); }',
@@ -226,7 +226,7 @@
     '  background:rgba(255,255,255,0.05); color:var(--pua-text-sub); cursor:pointer; font-size:13px;',
     '  display:flex; align-items:center; justify-content:center; transition:var(--pua-transition); }',
     '.pua-modal-close:hover { background:rgba(255,255,255,0.1); color:var(--pua-text); }',
-    '.pua-modal-body { flex:1; overflow-y:auto; padding:16px; color:#e0e0e0; }',
+    '.pua-modal-body { flex:1; overflow-y:auto; padding:16px; color:var(--pua-text); }',
     '.pua-modal-footer { padding:10px 16px; border-top:1px solid var(--pua-border);',
     '  display:flex; gap:8px; justify-content:flex-end; }',
 
@@ -610,13 +610,13 @@
     '.pua-assistant-typing::before { content:""; display:inline-block; width:12px; height:12px; border:2px solid var(--pua-accent); border-top-color:transparent; border-radius:50%; animation:pua-spin 0.8s linear infinite; }',
     '@keyframes pua-spin { to { transform:rotate(360deg); } }',
     // Code block styles
-    '.pua-code-block { position:relative; margin:6px 0; border-radius:6px; overflow:hidden; background:#1a1a2e; border:1px solid var(--pua-border); }',
+    '.pua-code-block { position:relative; margin:6px 0; border-radius:6px; overflow:hidden; background:var(--pua-bg-solid); border:1px solid var(--pua-border); }',
     '.pua-code-block-header { display:flex; align-items:center; justify-content:space-between; padding:4px 10px; background:rgba(255,255,255,0.04); font-size:9px; color:var(--pua-text-sub); }',
     '.pua-code-block-lang { font-weight:600; text-transform:uppercase; }',
     '.pua-code-block-actions { display:flex; gap:4px; }',
     '.pua-code-block-btn { font-size:8px; padding:2px 6px; border-radius:3px; border:1px solid var(--pua-border); background:var(--pua-bg-card); color:var(--pua-text-sub); cursor:pointer; transition:var(--pua-transition); }',
     '.pua-code-block-btn:hover { border-color:var(--pua-accent); color:var(--pua-text); }',
-    '.pua-code-block pre { margin:0; padding:10px; overflow-x:auto; font-size:10px; line-height:1.5; font-family:"Cascadia Code","Fira Code",monospace; color:#e0e0e0; }',
+    '.pua-code-block pre { margin:0; padding:10px; overflow-x:auto; font-size:10px; line-height:1.5; font-family:"Cascadia Code","Fira Code",monospace; color:var(--pua-text); }',
     '.pua-code-block pre::-webkit-scrollbar { height:3px; }',
     '.pua-code-block pre::-webkit-scrollbar-thumb { background:rgba(255,255,255,0.1); border-radius:2px; }',
     '.pua-inline-code { background:rgba(255,183,77,0.1); border:1px solid rgba(255,183,77,0.2); border-radius:3px; padding:1px 4px; font-size:10px; font-family:"Cascadia Code","Fira Code",monospace; color:var(--pua-accent-text); }',
@@ -651,17 +651,17 @@
     '.pua-elem-editor-range::-webkit-slider-thumb { -webkit-appearance:none; width:12px; height:12px; border-radius:50%; background:var(--pua-accent); cursor:pointer; }',
     // Prompt modal
     '.pua-prompt-modal-overlay { position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.6); z-index:10000; display:flex; align-items:center; justify-content:center; }',
-    '.pua-prompt-modal { width:90%; max-width:600px; max-height:80vh; background:#1a1a2e; border:1px solid var(--pua-border); border-radius:12px; box-shadow:var(--pua-shadow); display:flex; flex-direction:column; overflow:hidden; }',
+    '.pua-prompt-modal { width:90%; max-width:600px; max-height:80vh; background:var(--pua-bg-solid); border:1px solid var(--pua-border); border-radius:12px; box-shadow:var(--pua-shadow); display:flex; flex-direction:column; overflow:hidden; }',
     '.pua-prompt-modal-header { padding:12px 16px; border-bottom:1px solid var(--pua-border); display:flex; align-items:center; justify-content:space-between; }',
     '.pua-prompt-modal-title { font-size:13px; font-weight:600; color:#ffffff; }',
-    '.pua-prompt-modal-close { font-size:16px; background:none; border:none; color:#e0e0e0; cursor:pointer; padding:4px; }',
-    '.pua-prompt-modal-close:hover { color:#ffffff; }',
-    '.pua-prompt-modal-body { flex:1; overflow-y:auto; padding:16px; color:#e0e0e0; }',
-    '.pua-prompt-modal-textarea { width:100%; min-height:200px; background:#0d0d1a; border:1px solid var(--pua-border); border-radius:6px; padding:8px 10px; color:#ffffff; font-size:10px; font-family:"Cascadia Code","Fira Code",monospace; line-height:1.5; outline:none; resize:vertical; }',
+    '.pua-prompt-modal-close { font-size:16px; background:none; border:none; color:var(--pua-text-sub); cursor:pointer; padding:4px; }',
+    '.pua-prompt-modal-close:hover { color:var(--pua-text); }',
+    '.pua-prompt-modal-body { flex:1; overflow-y:auto; padding:16px; color:var(--pua-text); }',
+    '.pua-prompt-modal-textarea { width:100%; min-height:200px; background:var(--pua-bg-input); border:1px solid var(--pua-border); border-radius:6px; padding:8px 10px; color:var(--pua-text); font-size:10px; font-family:"Cascadia Code","Fira Code",monospace; line-height:1.5; outline:none; resize:vertical; }',
     '.pua-prompt-modal-textarea:focus { border-color:var(--pua-accent); }',
     '.pua-prompt-modal-presets { margin-top:8px; display:flex; gap:6px; flex-wrap:wrap; align-items:center; }',
-    '.pua-prompt-modal-preset-select { background:#0d0d1a; border:1px solid var(--pua-border); border-radius:6px; padding:4px 8px; color:#ffffff; font-size:10px; font-family:inherit; outline:none; cursor:pointer; min-width:120px; }',
-    '.pua-prompt-modal-preset-select:focus { border-color:#c8a84e; }',
+    '.pua-prompt-modal-preset-select { background:var(--pua-bg-input); border:1px solid var(--pua-border); border-radius:6px; padding:4px 8px; color:var(--pua-text); font-size:10px; font-family:inherit; outline:none; cursor:pointer; min-width:120px; }',
+    '.pua-prompt-modal-preset-select:focus { border-color:var(--pua-accent); }',
     '.pua-prompt-modal-preset-btn { padding:6px 10px; border-radius:6px; font-weight:600; font-size:11px; cursor:pointer; border:none; transition:all 0.2s; display:flex; align-items:center; gap:2px; }',
     '.pua-prompt-modal-save-btn { background:#c8a84e; color:#1a1a2e; }',
     '.pua-prompt-modal-save-btn:hover { background:#d4b85a; }',
@@ -699,11 +699,17 @@
     '.pua-conv-msg-floor:hover { color:var(--pua-accent); }',
     '.pua-conv-msg-time { font-size:8px; color:var(--pua-text-dim); }',
     '.pua-conv-msg-content { white-space:pre-wrap; }',
-    '.pua-conv-msg-actions { display:flex; gap:4px; margin-top:6px; opacity:0; transition:opacity 0.2s; }',
+    '.pua-conv-msg-actions { display:flex; gap:4px; margin-top:6px; opacity:0; transition:opacity 0.2s; flex-wrap:wrap; }',
     '.pua-conv-msg:hover .pua-conv-msg-actions { opacity:1; }',
-    '.pua-conv-msg-action { font-size:9px; padding:2px 6px; border-radius:3px; border:1px solid var(--pua-border); background:var(--pua-bg-card); color:var(--pua-text-sub); cursor:pointer; transition:var(--pua-transition); }',
+    '.pua-conv-msg-action { font-size:10px; padding:3px 8px; border-radius:4px; border:1px solid var(--pua-border); background:var(--pua-bg-card); color:var(--pua-text-sub); cursor:pointer; transition:var(--pua-transition); white-space:nowrap; }',
     '.pua-conv-msg-action:hover { border-color:var(--pua-accent); color:var(--pua-text); }',
-    '.pua-conv-msg-action.active { border-color:var(--pua-accent); color:var(--pua-accent); }',
+    '.pua-conv-msg-action.active { border-color:var(--pua-accent); color:var(--pua-accent); background:var(--pua-accent-glow); }',
+    '.pua-conv-status { font-size:10px; padding:2px 0; display:flex; align-items:center; gap:4px; }',
+    '.pua-conv-status-dot { width:6px; height:6px; border-radius:50%; background:var(--pua-accent); animation:pua-spin 0.8s linear infinite; }',
+    '.pua-conv-status-streaming { color:var(--pua-accent); }',
+    '.pua-conv-status-error { color:var(--pua-danger); }',
+    '.pua-conv-status-interrupted { color:var(--pua-text-dim); }',
+    '.pua-conv-edit-mode { font-family:monospace; white-space:pre-wrap; background:var(--pua-bg-input); border:1px dashed var(--pua-border); border-radius:4px; padding:8px; }',
     '.pua-conv-alt-tabs { display:flex; gap:3px; margin-top:4px; }',
     '.pua-conv-alt-tab { font-size:8px; padding:1px 5px; border-radius:3px; border:1px solid var(--pua-border); background:var(--pua-bg-input); color:var(--pua-text-dim); cursor:pointer; }',
     '.pua-conv-alt-tab.active { border-color:var(--pua-accent); color:var(--pua-accent); background:var(--pua-accent-glow); }',
@@ -836,6 +842,7 @@
     this._convBranchId = ''
     this._convSending = false
     this._convStreamingMsg = null
+    this._editingMsgId = null
     this._convRenderLimit = 10
     this._convContextDepth = 30
     this._convAutoScroll = false
@@ -891,6 +898,18 @@
 
     // 异步加载分支，完成后渲染
     this._loadBranches()
+
+    // Handle page visibility - re-render when coming back
+    var self = this
+    if (!this._visHandler) {
+      this._visHandler = function() {
+        if (!document.hidden && self._convSending) {
+          // Page became visible while streaming - re-render to show current state
+          self._renderPage()
+        }
+      }
+      document.addEventListener('visibilitychange', this._visHandler)
+    }
   }
 
   /* ── 捕获控制台日志 ── */
@@ -1041,6 +1060,10 @@
           }
           if (!found) self.selRegex = self.regexes.length > 0 ? self.regexes[0].id : ''
         }
+        // Re-render if on conversation page to apply render regexes
+        if (self._currentPage === 'conversation') {
+          self._renderPage()
+        }
       }
     }).catch(function() {})
   }
@@ -1185,7 +1208,8 @@
     overlay.innerHTML = '<div class="pua-modal"><div class="pua-modal-header"><div class="pua-modal-title"></div><button class="pua-modal-close">&times;</button></div><div class="pua-modal-body"></div></div>'
     overlay.querySelector('.pua-modal-close').addEventListener('click', function() { self._closeModal() })
     overlay.addEventListener('click', function(e) { if (e.target === overlay) self._closeModal() })
-    root.appendChild(overlay)
+    // Append to document.body for proper fixed positioning (shadow DOM can break fixed)
+    document.body.appendChild(overlay)
 
     // Toast
     var toast = document.createElement('div')
@@ -7867,20 +7891,38 @@
 
     // Content
     var content = msg.content || ''
+    var isEditing = this._editingMsgId === msg.id
     if (msg.role === 'assistant') {
       // Get active version
       var altIdx = msg.activeAltIndex || 0
       if (msg.alternatives && msg.alternatives.length > 0 && altIdx > 0 && msg.alternatives[altIdx - 1]) {
         content = msg.alternatives[altIdx - 1]
       }
-      // Apply render regexes for display
-      if (msg.rendered) {
+      if (isEditing) {
+        // Edit mode: show raw content with system regex applied but no render regex
+        h += '<div class="pua-conv-msg-content pua-conv-edit-mode">' + this._escHtml(this._applyConvFilterRegex(content, 'assistant')) + '</div>'
+      } else if (msg.rendered) {
         h += '<div class="pua-conv-msg-content">' + msg.rendered + '</div>'
       } else {
         h += '<div class="pua-conv-msg-content">' + this._escHtml(content) + '</div>'
       }
     } else {
-      h += '<div class="pua-conv-msg-content">' + this._escHtml(content) + '</div>'
+      if (isEditing) {
+        h += '<div class="pua-conv-msg-content pua-conv-edit-mode">' + this._escHtml(content) + '</div>'
+      } else {
+        h += '<div class="pua-conv-msg-content">' + this._escHtml(content) + '</div>'
+      }
+    }
+
+    // Status indicator for assistant messages
+    if (msg.role === 'assistant') {
+      if (this._convSending && this._convStreamingMsg && this._convStreamingMsg.id === msg.id) {
+        h += '<div class="pua-conv-status pua-conv-status-streaming"><span class="pua-conv-status-dot"></span>生成中...</div>'
+      } else if (msg.content && msg.content.indexOf('[错误]') === 0) {
+        h += '<div class="pua-conv-status pua-conv-status-error">生成失败</div>'
+      } else if (msg.content && msg.content.indexOf('[中断]') === 0) {
+        h += '<div class="pua-conv-status pua-conv-status-interrupted">已中断</div>'
+      }
     }
 
     // Alternative version tabs
@@ -7896,14 +7938,15 @@
     // Actions
     h += '<div class="pua-conv-msg-actions">'
     if (msg.role === 'assistant') {
-      h += '<button class="pua-conv-msg-action" data-action="regenerate" data-msg-id="' + this._escHtml(msg.id) + '">\uD83D\uDD04</button>'
+      h += '<button class="pua-conv-msg-action" data-action="regenerate" data-msg-id="' + this._escHtml(msg.id) + '" title="重新生成">重新生成</button>'
     }
     if (msg.role === 'user') {
-      h += '<button class="pua-conv-msg-action" data-action="edit" data-msg-id="' + this._escHtml(msg.id) + '">\u270F\uFE0F</button>'
+      h += '<button class="pua-conv-msg-action" data-action="edit" data-msg-id="' + this._escHtml(msg.id) + '" title="编辑">编辑</button>'
     }
-    h += '<button class="pua-conv-msg-action' + (msg.favorited ? ' active' : '') + '" data-action="favorite" data-msg-id="' + this._escHtml(msg.id) + '">\u2B50</button>'
-    h += '<button class="pua-conv-msg-action" data-action="viewctx" data-msg-id="' + this._escHtml(msg.id) + '">\uD83D\uDCCB</button>'
-    h += '<button class="pua-conv-msg-action" data-action="delete" data-msg-id="' + this._escHtml(msg.id) + '">\uD83D\uDDD1\uFE0F</button>'
+    h += '<button class="pua-conv-msg-action' + (msg.favorited ? ' active' : '') + '" data-action="favorite" data-msg-id="' + this._escHtml(msg.id) + '" title="收藏">' + (msg.favorited ? '已收藏' : '收藏') + '</button>'
+    h += '<button class="pua-conv-msg-action" data-action="viewctx" data-msg-id="' + this._escHtml(msg.id) + '" title="查看上下文">上下文</button>'
+    h += '<button class="pua-conv-msg-action' + (isEditing ? ' active' : '') + '" data-action="toggleEdit" data-msg-id="' + this._escHtml(msg.id) + '" title="编辑模式">' + (isEditing ? '预览' : '源码') + '</button>'
+    h += '<button class="pua-conv-msg-action" data-action="delete" data-msg-id="' + this._escHtml(msg.id) + '" title="删除">删除</button>'
     h += '</div>'
 
     h += '</div>'
@@ -7939,6 +7982,7 @@
           else if (action === 'favorite') self._toggleFavorite(msgId)
           else if (action === 'viewctx') self._viewContext(msgId)
           else if (action === 'delete') self._deleteMessage(msgId)
+          else if (action === 'toggleEdit') self._toggleEditMode(msgId)
         })
       })(actionBtns[ai])
     }
@@ -7954,6 +7998,27 @@
           self._switchAltVersion(msgId, altIdx)
         })
       })(altTabs[ti])
+    }
+
+    // Long press to toggle edit mode
+    var msgEls = contentEl.querySelectorAll('.pua-conv-msg')
+    for (var mi = 0; mi < msgEls.length; mi++) {
+      (function(msgEl) {
+        var longPressTimer = null
+        msgEl.addEventListener('touchstart', function(e) {
+          longPressTimer = setTimeout(function() {
+            var msgId = msgEl.getAttribute('data-msg-id')
+            if (msgId) self._toggleEditMode(msgId)
+          }, 600)
+        }, { passive: true })
+        msgEl.addEventListener('touchend', function() { clearTimeout(longPressTimer) })
+        msgEl.addEventListener('touchmove', function() { clearTimeout(longPressTimer) })
+        msgEl.addEventListener('contextmenu', function(e) {
+          e.preventDefault()
+          var msgId = msgEl.getAttribute('data-msg-id')
+          if (msgId) self._toggleEditMode(msgId)
+        })
+      })(msgEls[mi])
     }
   }
 
@@ -8112,8 +8177,8 @@
       self._convStreamingMsg = null
       self._saveConvMessages()
 
-      // Update the streaming message element
-      self._updateStreamingMessage(contentEl, astMsg.rendered || self._escHtml(fullContent), false)
+      // Full re-render to ensure correct state
+      self._renderPage()
 
       // Memory summarization trigger
       self._msgSinceLastSummary = (self._msgSinceLastSummary || 0) + 1
@@ -8128,12 +8193,12 @@
       self._convSending = false
       self._convStreamingMsg = null
       self._saveConvMessages()
-      self._updateStreamingMessage(contentEl, astMsg.rendered, false)
+      self._renderPage()
       self._toast('API \u8C03\u7528\u5931\u8D25: ' + (err.message || err))
     })
   }
 
-  P._buildConvContext = function() {
+  P._buildConvContext = function(upToMsgId) {
     var messages = []
     var depth = this._convContextDepth || 30
 
@@ -8145,10 +8210,16 @@
       messages.push({ role: systemCtx[i].role, content: systemCtx[i].content })
     }
 
-    // Add conversation messages (limited by depth)
+    // Add conversation messages (limited by depth, optionally truncated up to a message)
     var convMsgs = this._convMessages
-    var start = Math.max(0, convMsgs.length - depth)
-    for (var mi = start; mi < convMsgs.length; mi++) {
+    var endIdx = convMsgs.length
+    if (upToMsgId) {
+      for (var ei = 0; ei < convMsgs.length; ei++) {
+        if (convMsgs[ei].id === upToMsgId) { endIdx = ei; break }
+      }
+    }
+    var start = Math.max(0, endIdx - depth)
+    for (var mi = start; mi < endIdx; mi++) {
       var m = convMsgs[mi]
       if (m.dimmed) continue
       var content = m.content
@@ -8196,17 +8267,29 @@
 
   P._applyConvRegexRender = function(text) {
     if (!text) return this._escHtml(text)
-    // First escape HTML
-    var result = this._escHtml(text)
-    // Then apply render-type regexes
+    // Apply render-type regexes on raw text FIRST, then escape remaining HTML
+    var result = text
+    var replacements = [] // Track replacement positions to preserve HTML
     for (var ri = 0; ri < this.regexes.length; ri++) {
       var rx = this.regexes[ri]
       if (!rx.on || rx.type !== 'render' || !rx.regex) continue
       try {
         var re = new RegExp(rx.regex, 'g')
-        result = result.replace(re, rx.html || '')
+        result = result.replace(re, function(match) {
+          var placeholder = '\x00RENDER_' + replacements.length + '\x00'
+          replacements.push(rx.html || '')
+          return placeholder
+        })
       } catch(e) {}
     }
+    // Escape HTML in the remaining text
+    result = this._escHtml(result)
+    // Restore replacement HTML (already safe, not escaped)
+    for (var k = 0; k < replacements.length; k++) {
+      result = result.replace('\x00RENDER_' + k + '\x00', replacements[k])
+    }
+    // Hide <> tags in display mode (not edit mode)
+    result = result.replace(/&lt;([^&]*)&gt;/g, '')
     return result
   }
 
@@ -8425,8 +8508,12 @@
     msg.content = ''
     msg.rendered = null
 
-    // Build context up to this message
-    var messages = this._buildConvContext()
+    // Build context up to this message (exclude it and everything after)
+    var prevMsgId = null
+    for (var pi = 0; pi < msgIdx; pi++) {
+      if (!this._convMessages[pi].dimmed) prevMsgId = this._convMessages[pi].id
+    }
+    var messages = this._buildConvContext(prevMsgId)
 
     this._streamChat(messages).then(function(fullContent) {
       msg.content = fullContent
@@ -8514,6 +8601,15 @@
     this._saveConvMessages()
     this._renderPage()
     this._toast('消息已删除')
+  }
+
+  P._toggleEditMode = function(msgId) {
+    if (this._editingMsgId === msgId) {
+      this._editingMsgId = null
+    } else {
+      this._editingMsgId = msgId
+    }
+    this._renderPage()
   }
 
   /* ── Switch alternative version ── */
@@ -8672,11 +8768,6 @@
     var btn = document.createElement('button')
     btn.className = 'pua-fab-btn'
     btn.textContent = '\u26A1'
-    btn.addEventListener('click', function(e) {
-      e.stopPropagation()
-      self._fabExpanded = !self._fabExpanded
-      menu.classList.toggle('show', self._fabExpanded)
-    })
     fab.appendChild(btn)
 
     // ── Free drag (no snap) ──
@@ -8740,8 +8831,7 @@
     document.addEventListener('touchmove', function(e) { if (isDragging && e.touches.length === 1) onMove(e.touches[0].clientX, e.touches[0].clientY) }, { passive: true })
     document.addEventListener('touchend', onEnd)
 
-    // Override click to prevent menu toggle when dragging
-    btn.removeEventListener('click', btn._clickHandler)
+    // Click to toggle menu (only if not dragging)
     btn.addEventListener('click', function(e) {
       if (hasMoved) { e.stopPropagation(); return }
       e.stopPropagation()
@@ -9323,7 +9413,7 @@
         if (themes[ci].id === activeId) { currentCss = themes[ci].css || ''; break }
       }
     }
-    h += '<textarea id="theme-css-editor" style="width:100%;min-height:400px;background:#1a1a2e;border:1px solid var(--pua-border);border-radius:8px;padding:14px 16px;color:#e0e0e0;font-size:12px;font-family:Consolas,Monaco,monospace;line-height:1.7;outline:none;resize:vertical;tab-size:2">' + self._escHtml(currentCss) + '</textarea>'
+    h += '<textarea id="theme-css-editor" style="width:100%;min-height:400px;background:var(--pua-bg-input);border:1px solid var(--pua-border);border-radius:8px;padding:14px 16px;color:var(--pua-text);font-size:12px;font-family:Consolas,Monaco,monospace;line-height:1.7;outline:none;resize:vertical;tab-size:2">' + self._escHtml(currentCss) + '</textarea>'
     h += '<div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap">'
     h += '<button class="pua-btn pua-btn-sm pua-btn-gold" id="theme-save">\u4FDD\u5B58</button>'
     h += '<button class="pua-btn pua-btn-sm" id="theme-preview">\u9884\u89C8</button>'
