@@ -665,6 +665,94 @@
     '.pua-prompt-modal-footer #ast-prompt-save:hover, .pua-prompt-modal-footer #ast-preset-save-as:hover { background:#d4b85a !important; }',
     '.pua-prompt-modal-footer #ast-prompt-reset { background:transparent !important; border:1px solid #c8a84e !important; color:#c8a84e !important; font-weight:600 !important; }',
     '.pua-prompt-modal-footer #ast-prompt-reset:hover { background:rgba(200,168,78,0.15) !important; }',
+
+    '/* ── 对话页面 ── */',
+    '.pua-conv-layout { display:flex; flex-direction:column; height:100%; }',
+    '.pua-conv-topbar { padding:6px 14px; border-bottom:1px solid var(--pua-border); display:flex; align-items:center; gap:8px; flex-shrink:0; }',
+    '.pua-conv-branch-name { font-size:12px; font-weight:600; color:var(--pua-accent-text); flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }',
+    '.pua-conv-msg-count { font-size:9px; color:var(--pua-text-dim); background:var(--pua-bg-input); padding:2px 6px; border-radius:8px; }',
+    '.pua-conv-topbar-btn { width:26px; height:26px; border-radius:6px; border:1px solid var(--pua-border); background:var(--pua-bg-card); color:var(--pua-text-sub); cursor:pointer; font-size:12px; display:flex; align-items:center; justify-content:center; transition:var(--pua-transition); }',
+    '.pua-conv-topbar-btn:hover { border-color:var(--pua-border-active); color:var(--pua-text); }',
+    '.pua-conv-chat { flex:1; overflow-y:auto; padding:14px; display:flex; flex-direction:column; gap:10px; }',
+    '.pua-conv-chat::-webkit-scrollbar { width:4px; }',
+    '.pua-conv-chat::-webkit-scrollbar-thumb { background:rgba(255,255,255,0.06); border-radius:2px; }',
+    '.pua-conv-collapsed { text-align:center; padding:8px; font-size:10px; color:var(--pua-text-dim); cursor:pointer; }',
+    '.pua-conv-collapsed:hover { color:var(--pua-accent); }',
+    '.pua-conv-msg { max-width:85%; padding:10px 14px; border-radius:12px; font-size:11px; line-height:1.6; word-break:break-word; position:relative; }',
+    '.pua-conv-msg-user { align-self:flex-end; background:var(--pua-accent-glow); border:1px solid var(--pua-border-active); color:var(--pua-accent-text); border-bottom-right-radius:4px; }',
+    '.pua-conv-msg-assistant { align-self:flex-start; background:var(--pua-bg-card); border:1px solid var(--pua-border); color:var(--pua-text); border-bottom-left-radius:4px; }',
+    '.pua-conv-msg-system { align-self:center; background:rgba(91,141,239,0.08); border:1px solid rgba(91,141,239,0.2); color:var(--pua-text-sub); border-radius:8px; font-size:10px; max-width:90%; }',
+    '.pua-conv-msg-dimmed { opacity:0.4; }',
+    '.pua-conv-msg-dimmed .pua-conv-msg-content { text-decoration:line-through; }',
+    '.pua-conv-msg-header { display:flex; align-items:center; gap:6px; margin-bottom:4px; }',
+    '.pua-conv-msg-floor { font-size:9px; color:var(--pua-text-dim); cursor:pointer; font-weight:600; }',
+    '.pua-conv-msg-floor:hover { color:var(--pua-accent); }',
+    '.pua-conv-msg-time { font-size:8px; color:var(--pua-text-dim); }',
+    '.pua-conv-msg-content { white-space:pre-wrap; }',
+    '.pua-conv-msg-actions { display:flex; gap:4px; margin-top:6px; opacity:0; transition:opacity 0.2s; }',
+    '.pua-conv-msg:hover .pua-conv-msg-actions { opacity:1; }',
+    '.pua-conv-msg-action { font-size:9px; padding:2px 6px; border-radius:3px; border:1px solid var(--pua-border); background:var(--pua-bg-card); color:var(--pua-text-sub); cursor:pointer; transition:var(--pua-transition); }',
+    '.pua-conv-msg-action:hover { border-color:var(--pua-accent); color:var(--pua-text); }',
+    '.pua-conv-msg-action.active { border-color:var(--pua-accent); color:var(--pua-accent); }',
+    '.pua-conv-alt-tabs { display:flex; gap:3px; margin-top:4px; }',
+    '.pua-conv-alt-tab { font-size:8px; padding:1px 5px; border-radius:3px; border:1px solid var(--pua-border); background:var(--pua-bg-input); color:var(--pua-text-dim); cursor:pointer; }',
+    '.pua-conv-alt-tab.active { border-color:var(--pua-accent); color:var(--pua-accent); background:var(--pua-accent-glow); }',
+    '.pua-conv-input-area { padding:10px 14px; border-top:1px solid var(--pua-border); flex-shrink:0; }',
+    '.pua-conv-input-row { display:flex; gap:8px; align-items:flex-end; }',
+    '.pua-conv-input { flex:1; background:var(--pua-bg-input); border:1px solid var(--pua-border); border-radius:8px; padding:8px 12px; color:var(--pua-text); font-size:11px; font-family:inherit; outline:none; resize:none; height:60px; min-height:60px; max-height:150px; transition:height 0.25s ease, min-height 0.25s ease; }',
+    '.pua-conv-input.expanded { height:150px; min-height:150px; }',
+    '.pua-conv-input:focus { border-color:var(--pua-accent); }',
+    '.pua-conv-send { padding:8px 16px; border-radius:8px; border:none; background:linear-gradient(135deg,var(--pua-accent-dim),var(--pua-accent)); color:#121216; font-size:13px; font-weight:600; cursor:pointer; transition:var(--pua-transition); align-self:flex-end; }',
+    '.pua-conv-send:hover { opacity:0.9; }',
+    '.pua-conv-send:disabled { opacity:0.4; cursor:default; }',
+    '.pua-conv-input-btns { display:flex; gap:4px; margin-top:6px; align-items:center; }',
+    '.pua-conv-input-btn { font-size:10px; padding:3px 8px; border-radius:4px; border:1px solid var(--pua-border); background:var(--pua-bg-card); color:var(--pua-text-sub); cursor:pointer; transition:var(--pua-transition); }',
+    '.pua-conv-input-btn:hover { border-color:var(--pua-accent); color:var(--pua-text); }',
+    '.pua-conv-jump-input { width:60px; background:var(--pua-bg-input); border:1px solid var(--pua-border); border-radius:4px; padding:3px 6px; color:var(--pua-text); font-size:10px; outline:none; text-align:center; }',
+    '.pua-conv-jump-input:focus { border-color:var(--pua-accent); }',
+    '.pua-conv-jump-row { display:none; align-items:center; gap:4px; margin-top:4px; }',
+    '.pua-conv-jump-row.show { display:flex; }',
+    '.pua-conv-bottom-btn { position:absolute; bottom:80px; right:20px; width:32px; height:32px; border-radius:50%; border:1px solid var(--pua-border); background:var(--pua-bg-card); color:var(--pua-text-sub); cursor:pointer; font-size:14px; display:flex; align-items:center; justify-content:center; transition:var(--pua-transition); z-index:50; box-shadow:var(--pua-shadow); }',
+    '.pua-conv-bottom-btn:hover { border-color:var(--pua-accent); color:var(--pua-accent); }',
+    '.pua-conv-settings-panel { position:absolute; top:48px; right:10px; width:240px; background:var(--pua-bg-solid); border:1px solid var(--pua-border); border-radius:10px; box-shadow:var(--pua-shadow); z-index:100; padding:14px; display:none; }',
+    '.pua-conv-settings-panel.show { display:block; animation:pua-modalIn 0.2s ease; }',
+    '.pua-conv-settings-title { font-size:11px; font-weight:600; color:var(--pua-accent); margin-bottom:8px; }',
+    '.pua-conv-settings-row { display:flex; align-items:center; justify-content:space-between; margin-bottom:6px; }',
+    '.pua-conv-settings-label { font-size:10px; color:var(--pua-text-sub); }',
+    '.pua-conv-settings-input { width:50px; background:var(--pua-bg-input); border:1px solid var(--pua-border); border-radius:4px; padding:3px 6px; color:var(--pua-text); font-size:10px; text-align:center; outline:none; }',
+    '.pua-conv-settings-input:focus { border-color:var(--pua-accent); }',
+    '.pua-conv-typing { font-size:10px; color:var(--pua-accent); opacity:0.7; padding:4px 0; display:flex; align-items:center; gap:6px; }',
+    '.pua-conv-typing::before { content:""; display:inline-block; width:12px; height:12px; border:2px solid var(--pua-accent); border-top-color:transparent; border-radius:50%; animation:pua-spin 0.8s linear infinite; }',
+
+    '/* ── 悬浮球 ── */',
+    '.pua-fab { position:absolute; bottom:20px; right:20px; z-index:200; }',
+    '.pua-fab-btn { width:40px; height:40px; border-radius:50%; border:none; background:linear-gradient(135deg,var(--pua-accent-dim),var(--pua-accent)); color:#121216; font-size:16px; cursor:pointer; box-shadow:0 4px 20px var(--pua-accent-glow); display:flex; align-items:center; justify-content:center; transition:var(--pua-transition); animation:pua-fab-pulse 2s ease-in-out infinite; }',
+    '.pua-fab-btn:hover { transform:scale(1.1); }',
+    '@keyframes pua-fab-pulse { 0%,100%{ box-shadow:0 4px 20px var(--pua-accent-glow); } 50%{ box-shadow:0 4px 30px rgba(197,160,89,0.4); } }',
+    '.pua-fab-menu { position:absolute; bottom:50px; right:0; width:220px; background:var(--pua-bg-solid); border:1px solid var(--pua-border); border-radius:12px; box-shadow:var(--pua-shadow); padding:10px; display:none; }',
+    '.pua-fab-menu.show { display:block; animation:pua-modalIn 0.2s ease; }',
+    '.pua-fab-menu-title { font-size:9px; color:var(--pua-text-dim); font-weight:600; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:6px; padding-bottom:4px; border-bottom:1px solid var(--pua-border); }',
+    '.pua-fab-menu-item { display:flex; align-items:center; gap:8px; padding:6px 8px; border-radius:6px; cursor:pointer; font-size:10px; color:var(--pua-text-sub); transition:var(--pua-transition); }',
+    '.pua-fab-menu-item:hover { background:var(--pua-bg-card-hover); color:var(--pua-text); }',
+    '.pua-fab-menu-item-icon { width:18px; text-align:center; font-size:12px; }',
+    '.pua-fab-toggle-row { display:flex; align-items:center; justify-content:space-between; padding:4px 8px; font-size:10px; color:var(--pua-text-sub); }',
+    '.pua-fab-slider-row { display:flex; align-items:center; gap:6px; padding:4px 8px; font-size:10px; color:var(--pua-text-sub); }',
+    '.pua-fab-slider { -webkit-appearance:none; width:80px; height:4px; background:var(--pua-border); border-radius:2px; outline:none; }',
+    '.pua-fab-slider::-webkit-slider-thumb { -webkit-appearance:none; width:12px; height:12px; border-radius:50%; background:var(--pua-accent); cursor:pointer; }',
+
+    '/* ── 收藏页面 ── */',
+    '.pua-fav-item { background:var(--pua-bg-card); border:1px solid var(--pua-border); border-radius:10px; padding:12px 14px; margin-bottom:8px; transition:var(--pua-transition); position:relative; }',
+    '.pua-fav-item:hover { border-color:var(--pua-border-active); }',
+    '.pua-fav-item-header { display:flex; align-items:center; gap:8px; margin-bottom:6px; }',
+    '.pua-fav-branch { font-size:10px; color:var(--pua-accent); font-weight:600; }',
+    '.pua-fav-floor { font-size:9px; color:var(--pua-text-dim); background:var(--pua-bg-input); padding:1px 5px; border-radius:4px; }',
+    '.pua-fav-role { font-size:9px; padding:1px 5px; border-radius:3px; font-weight:600; }',
+    '.pua-fav-role-user { background:rgba(78,201,160,0.12); color:var(--pua-user); }',
+    '.pua-fav-role-assistant { background:rgba(239,106,138,0.12); color:var(--pua-mem); }',
+    '.pua-fav-content { font-size:10.5px; color:var(--pua-text-sub); line-height:1.5; max-height:60px; overflow:hidden; white-space:pre-wrap; }',
+    '.pua-fav-note { font-size:9px; color:var(--pua-accent-text); margin-top:4px; font-style:italic; }',
+    '.pua-fav-actions { display:flex; gap:4px; margin-top:8px; }',
+    '.pua-fav-warning { font-size:9px; color:var(--pua-danger); display:flex; align-items:center; gap:4px; }',
   ].join('\n')
 
   /* ════════════════════════════════════════════════════════════
@@ -733,6 +821,19 @@
     this._mobileDetailOpen = false
     // 设置数据
     this.settings = null
+    // 对话系统数据
+    this._convMessages = []
+    this._convBranchId = ''
+    this._convSending = false
+    this._convStreamingMsg = null
+    this._convRenderLimit = 10
+    this._convContextDepth = 30
+    this._convAutoScroll = false
+    this._convShowSettings = false
+    this._convShowJump = false
+    this._msgSinceLastSummary = 0
+    // 悬浮球状态
+    this._fabExpanded = false
   }
 
   var P = ParallelUniverse.prototype
@@ -1118,6 +1219,9 @@
     logToggle.appendChild(logCount)
     root.appendChild(logToggle)
 
+    // 悬浮球
+    root.appendChild(this._renderFloatingBall())
+
     c.appendChild(root)
 
     // 存储关键元素引用（不再依赖 document.getElementById）
@@ -1183,6 +1287,7 @@
       { id: 'assembly', icon: '\u2699', label: '\u4E0A\u4E0B\u6587\u7EC4\u88C5', badge: this.asmBranchId ? 1 : 0 },
       { id: 'memory', icon: '\u263D', label: '\u8BB0\u5FC6\u7CFB\u7EDF' },
       { id: 'chat', icon: '\uD83D\uDCAC', label: '\u5BF9\u8BDD', badge: 0 },
+      { id: 'favorites', icon: '\u2B50', label: '\u6536\u85CF', badge: 0 },
       { id: 'theme', icon: '\uD83C\uDFA8', label: '\u7F8E\u5316', badge: 0 },
       { id: 'assistant', icon: '\u2728', label: '\u52A9\u624B', badge: 0 },
       { id: 'settings', icon: '\u2691', label: '\u8BBE\u7F6E' },
@@ -1274,7 +1379,8 @@
       case 'regex': this._renderRegexes(titleEl, actionsEl, contentEl); break
       case 'assembly': this._renderAssembly(titleEl, actionsEl, contentEl); break
       case 'memory': this._renderMemory(titleEl, actionsEl, contentEl); break
-      case 'chat': this._renderChat(titleEl, actionsEl, contentEl); break
+      case 'chat': this._renderConversation(titleEl, actionsEl, contentEl); break
+      case 'favorites': this._renderFavorites(titleEl, actionsEl, contentEl); break
       case 'theme': this._renderTheme(titleEl, actionsEl, contentEl); break
       case 'assistant': this._renderAssistant(titleEl, actionsEl, contentEl); break
       case 'settings': this._renderSettings(titleEl, actionsEl, contentEl); break
@@ -7435,24 +7541,1449 @@
   }
 
   /* ════════════════════════════════════════════════════════════
-     对话页面（Coming Soon）
+     对话页面 — 完整聊天系统
      ════════════════════════════════════════════════════════════ */
 
   P._renderChat = function(titleEl, actionsEl, contentEl) {
+    // Redirect to the new conversation renderer
+    this._renderConversation(titleEl, actionsEl, contentEl)
+  }
+
+  P._renderConversation = function(titleEl, actionsEl, contentEl) {
+    var self = this
     titleEl.textContent = '\u5BF9\u8BDD'
     actionsEl.innerHTML = ''
 
-    var h = ''
-    h += '<div style="display:flex;align-items:center;justify-content:center;height:100%;min-height:400px">'
-    h += '<div style="text-align:center;padding:40px;max-width:480px">'
-    h += '<div style="width:80px;height:80px;margin:0 auto 24px;border-radius:50%;background:linear-gradient(135deg,var(--pua-accent-dim),var(--pua-accent));display:flex;align-items:center;justify-content:center;font-size:36px;box-shadow:0 0 40px var(--pua-accent-glow);animation:pua-chat-pulse 2s ease-in-out infinite">\uD83D\uDCAC</div>'
-    h += '<h2 style="font-size:20px;font-weight:700;color:var(--pua-accent-text);margin-bottom:8px">\u65F6\u7A7A\u5BF9\u8BDD\u7CFB\u7EDF</h2>'
-    h += '<p style="font-size:12px;color:var(--pua-accent);margin-bottom:16px">\u6838\u5FC3\u529F\u80FD\u5F00\u53D1\u4E2D...</p>'
-    h += '<p style="font-size:11px;color:var(--pua-text-sub);line-height:1.8">\u8FDE\u63A5\u4E3B API\uFF0C\u4F7F\u7528\u7EC4\u88C5\u4E0A\u4E0B\u6587 + \u8BB0\u5FC6\u7CFB\u7EDF\uFF0C<br>\u5B9E\u73B0\u771F\u6B63\u7684\u89D2\u8272\u626E\u6F14\u5BF9\u8BDD\u3002<br>\u652F\u6301\u591A\u5206\u652F\u8BB0\u5FC6\u8054\u52A8\u3001\u5411\u91CF\u53EC\u56DE\u3001\u81EA\u52A8\u603B\u7ED3\u3002</p>'
-    h += '<div style="margin-top:24px;font-size:10px;color:var(--pua-text-dim)">\u8BF7\u671F\u5F85\u4E0B\u4E00\u7248\u672C \u2728</div>'
-    h += '</div></div>'
+    var settings = this._loadSettings()
+    this._convRenderLimit = settings.renderLimit || 10
+    this._convContextDepth = settings.contextDepth || 30
+    this._convAutoScroll = settings.autoScroll || false
+
+    // Find current branch
+    var branch = null
+    var branchName = ''
+    if (this._convBranchId) {
+      for (var bi = 0; bi < this.branches.length; bi++) {
+        if (this.branches[bi].id === this._convBranchId) { branch = this.branches[bi]; break }
+      }
+    }
+    if (!branch && this.branches.length > 0) {
+      branch = this.branches[0]
+      this._convBranchId = branch.id
+    }
+    if (branch) branchName = branch.name || ''
+
+    // Load messages from storage
+    this._loadConvMessages()
+
+    var h = '<div class="pua-conv-layout" style="position:relative">'
+
+    // Top bar
+    h += '<div class="pua-conv-topbar">'
+    h += '<select class="pua-branch-select" id="conv-branch-select" style="max-width:140px">'
+    for (var bsi = 0; bsi < this.branches.length; bsi++) {
+      h += '<option value="' + this._escHtml(this.branches[bsi].id) + '"' + (this.branches[bsi].id === this._convBranchId ? ' selected' : '') + '>' + this._escHtml(this.branches[bsi].name) + '</option>'
+    }
+    h += '</select>'
+    h += '<span class="pua-conv-msg-count" id="conv-msg-count">' + this._convMessages.length + ' \u6761</span>'
+    h += '<button class="pua-conv-topbar-btn" id="conv-settings-btn" title="\u8BBE\u7F6E">\u2699</button>'
+    h += '<button class="pua-conv-topbar-btn" id="conv-context-btn" title="\u67E5\u770B\u4E0A\u4E0B\u6587">\uD83D\uDCCB</button>'
+    h += '</div>'
+
+    // Settings panel (hidden)
+    h += '<div class="pua-conv-settings-panel' + (this._convShowSettings ? ' show' : '') + '" id="conv-settings-panel">'
+    h += '<div class="pua-conv-settings-title">\u5BF9\u8BDD\u8BBE\u7F6E</div>'
+    h += '<div class="pua-conv-settings-row"><span class="pua-conv-settings-label">\u6E32\u67D3\u9650\u5236</span><input class="pua-conv-settings-input" id="conv-set-renderlimit" type="number" value="' + this._convRenderLimit + '" min="1" max="100"></div>'
+    h += '<div class="pua-conv-settings-row"><span class="pua-conv-settings-label">\u4E0A\u4E0B\u6587\u6DF1\u5EA6</span><input class="pua-conv-settings-input" id="conv-set-contextdepth" type="number" value="' + this._convContextDepth + '" min="1" max="200"></div>'
+    h += '<div class="pua-conv-settings-row"><span class="pua-conv-settings-label">\u81EA\u52A8\u6EDA\u52A8</span><button class="pua-toggle-item' + (this._convAutoScroll ? ' on' : '') + '" id="conv-set-autoscroll"></button></div>'
+    h += '<div style="margin-top:8px;display:flex;gap:6px"><button class="pua-btn pua-btn-sm pua-btn-gold" id="conv-set-save">\u4FDD\u5B58</button></div>'
+    h += '</div>'
+
+    // Chat area
+    h += '<div class="pua-conv-chat" id="conv-chat">'
+
+    // Render messages
+    var msgs = this._convMessages
+    var renderLimit = this._convRenderLimit
+    var collapsedCount = 0
+    var startIdx = 0
+    if (msgs.length > renderLimit) {
+      collapsedCount = msgs.length - renderLimit
+      startIdx = collapsedCount
+    }
+
+    if (msgs.length === 0) {
+      h += '<div class="pua-empty"><div class="pua-empty-icon">\uD83D\uDCAC</div><div class="pua-empty-text">\u9009\u62E9\u5206\u652F\u5F00\u59CB\u5BF9\u8BDD</div></div>'
+    } else {
+      if (collapsedCount > 0) {
+        h += '<div class="pua-conv-collapsed" id="conv-load-more">\u66F4\u65E9\u7684\u6D88\u606F (' + collapsedCount + '\u6761) \u2014 \u52A0\u8F7D\u66F4\u591A</div>'
+      }
+      for (var mi = startIdx; mi < msgs.length; mi++) {
+        h += this._renderConvMessage(msgs[mi])
+      }
+    }
+
+    h += '</div>'
+
+    // Input area
+    h += '<div class="pua-conv-input-area">'
+    h += '<div class="pua-conv-input-row">'
+    h += '<textarea class="pua-conv-input" id="conv-input" placeholder="\u8F93\u5165\u6D88\u606F..." rows="2"></textarea>'
+    h += '<button class="pua-conv-send" id="conv-send">\u27A4</button>'
+    h += '</div>'
+    h += '<div class="pua-conv-input-btns">'
+    h += '<button class="pua-conv-input-btn" id="conv-jump-btn">\uD83D\uDCCD \u8DF3\u8F6C\u697C\u5C42</button>'
+    h += '<button class="pua-conv-input-btn" id="conv-export-btn">\uD83D\uDCE5 \u5BFC\u51FA</button>'
+    h += '<button class="pua-conv-input-btn" id="conv-import-btn">\uD83D\uDCE4 \u5BFC\u5165</button>'
+    h += '</div>'
+    h += '<div class="pua-conv-jump-row' + (this._convShowJump ? ' show' : '') + '" id="conv-jump-row">'
+    h += '<span style="font-size:10px;color:var(--pua-text-sub)">\u697C\u5C42\u53F7:</span>'
+    h += '<input class="pua-conv-jump-input" id="conv-jump-input" type="number" min="1">'
+    h += '<button class="pua-btn pua-btn-sm" id="conv-jump-go">\u8DF3\u8F6C</button>'
+    h += '</div>'
+    h += '</div>'
+
+    // Jump to bottom button
+    h += '<button class="pua-conv-bottom-btn" id="conv-bottom-btn" style="display:none">\u2B07</button>'
+
+    h += '</div>'
 
     contentEl.innerHTML = h
+
+    // Bind events
+    var chatEl = contentEl.querySelector('#conv-chat')
+    var inputEl = contentEl.querySelector('#conv-input')
+    var sendBtn = contentEl.querySelector('#conv-send')
+    var bottomBtn = contentEl.querySelector('#conv-bottom-btn')
+
+    // Branch selector
+    var branchSelect = contentEl.querySelector('#conv-branch-select')
+    if (branchSelect) {
+      branchSelect.addEventListener('change', function() {
+        self._convBranchId = this.value
+        self._convMessages = []
+        self._loadConvMessages()
+        self._renderPage()
+      })
+    }
+
+    // Input expand on focus
+    if (inputEl) {
+      inputEl.addEventListener('focus', function() { this.classList.add('expanded') })
+      inputEl.addEventListener('blur', function() { if (!this.value) this.classList.remove('expanded') })
+      inputEl.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); self._sendMessage(contentEl) }
+      })
+    }
+
+    // Send button
+    if (sendBtn) {
+      sendBtn.addEventListener('click', function() { self._sendMessage(contentEl) })
+    }
+
+    // Settings panel toggle
+    var settingsBtn = contentEl.querySelector('#conv-settings-btn')
+    var settingsPanel = contentEl.querySelector('#conv-settings-panel')
+    if (settingsBtn && settingsPanel) {
+      settingsBtn.addEventListener('click', function(e) {
+        e.stopPropagation()
+        self._convShowSettings = !self._convShowSettings
+        settingsPanel.classList.toggle('show', self._convShowSettings)
+      })
+    }
+
+    // Save settings
+    var saveSettingsBtn = contentEl.querySelector('#conv-set-save')
+    if (saveSettingsBtn) {
+      saveSettingsBtn.addEventListener('click', function() {
+        var rl = parseInt(contentEl.querySelector('#conv-set-renderlimit').value) || 10
+        var cd = parseInt(contentEl.querySelector('#conv-set-contextdepth').value) || 30
+        var as = contentEl.querySelector('#conv-set-autoscroll').classList.contains('on')
+        self._convRenderLimit = rl
+        self._convContextDepth = cd
+        self._convAutoScroll = as
+        var s = self._loadSettings()
+        s.renderLimit = rl
+        s.contextDepth = cd
+        s.autoScroll = as
+        self._saveSettings(s)
+        self._convShowSettings = false
+        self._toast('\u8BBE\u7F6E\u5DF2\u4FDD\u5B58')
+        self._renderPage()
+      })
+    }
+
+    // Auto scroll toggle
+    var autoScrollToggle = contentEl.querySelector('#conv-set-autoscroll')
+    if (autoScrollToggle) {
+      autoScrollToggle.addEventListener('click', function() { this.classList.toggle('on') })
+    }
+
+    // Context viewer
+    var contextBtn = contentEl.querySelector('#conv-context-btn')
+    if (contextBtn) {
+      contextBtn.addEventListener('click', function() { self._viewContext() })
+    }
+
+    // Load more
+    var loadMoreBtn = contentEl.querySelector('#conv-load-more')
+    if (loadMoreBtn) {
+      loadMoreBtn.addEventListener('click', function() {
+        self._convRenderLimit = self._convMessages.length
+        self._renderPage()
+      })
+    }
+
+    // Jump to floor
+    var jumpBtn = contentEl.querySelector('#conv-jump-btn')
+    var jumpRow = contentEl.querySelector('#conv-jump-row')
+    if (jumpBtn && jumpRow) {
+      jumpBtn.addEventListener('click', function() {
+        self._convShowJump = !self._convShowJump
+        jumpRow.classList.toggle('show', self._convShowJump)
+      })
+    }
+    var jumpGo = contentEl.querySelector('#conv-jump-go')
+    if (jumpGo) {
+      jumpGo.addEventListener('click', function() {
+        var floor = parseInt(contentEl.querySelector('#conv-jump-input').value) || 0
+        if (floor > 0) self._scrollToFloor(contentEl, floor)
+      })
+    }
+
+    // Scroll detection for bottom button
+    if (chatEl && bottomBtn) {
+      chatEl.addEventListener('scroll', function() {
+        var atBottom = chatEl.scrollHeight - chatEl.scrollTop - chatEl.clientHeight < 50
+        bottomBtn.style.display = atBottom ? 'none' : 'flex'
+      })
+      bottomBtn.addEventListener('click', function() {
+        chatEl.scrollTop = chatEl.scrollHeight
+      })
+    }
+
+    // Export
+    var exportBtn = contentEl.querySelector('#conv-export-btn')
+    if (exportBtn) {
+      exportBtn.addEventListener('click', function() { self._exportChat() })
+    }
+
+    // Import
+    var importBtn = contentEl.querySelector('#conv-import-btn')
+    if (importBtn) {
+      importBtn.addEventListener('click', function() { self._importChat() })
+    }
+
+    // Bind message action buttons
+    this._bindConvMessageActions(contentEl)
+
+    // Scroll to bottom if autoScroll
+    if (chatEl && this._convAutoScroll) {
+      chatEl.scrollTop = chatEl.scrollHeight
+    }
+
+    // Close settings panel on outside click
+    if (settingsPanel) {
+      setTimeout(function() {
+        contentEl.addEventListener('click', function(e) {
+          if (self._convShowSettings && !settingsPanel.contains(e.target) && e.target.id !== 'conv-settings-btn') {
+            self._convShowSettings = false
+            settingsPanel.classList.remove('show')
+          }
+        })
+      }, 100)
+    }
+  }
+
+  P._renderConvMessage = function(msg) {
+    var h = ''
+    var cls = 'pua-conv-msg pua-conv-msg-' + msg.role
+    if (msg.dimmed) cls += ' pua-conv-msg-dimmed'
+    h += '<div class="' + cls + '" data-msg-id="' + this._escHtml(msg.id) + '" data-floor="' + (msg.floorNumber || 0) + '">'
+
+    // Header
+    h += '<div class="pua-conv-msg-header">'
+    h += '<span class="pua-conv-msg-floor" data-copy-floor="#' + (msg.floorNumber || 0) + '">#' + (msg.floorNumber || 0) + '</span>'
+    if (msg.timestamp) {
+      var d = new Date(msg.timestamp)
+      h += '<span class="pua-conv-msg-time">' + d.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' }) + '</span>'
+    }
+    if (msg.source) {
+      h += '<span class="pua-tag" style="font-size:8px">' + (msg.source === 'online' ? '\u7EBF\u4E0A' : msg.source === 'offline' ? '\u7EBF\u4E0B' : '\u5B9E\u65F6') + '</span>'
+    }
+    h += '</div>'
+
+    // Content
+    var content = msg.content || ''
+    if (msg.role === 'assistant') {
+      // Get active version
+      var altIdx = msg.activeAltIndex || 0
+      if (msg.alternatives && msg.alternatives.length > 0 && altIdx > 0 && msg.alternatives[altIdx - 1]) {
+        content = msg.alternatives[altIdx - 1]
+      }
+      // Apply render regexes for display
+      if (msg.rendered) {
+        h += '<div class="pua-conv-msg-content">' + msg.rendered + '</div>'
+      } else {
+        h += '<div class="pua-conv-msg-content">' + this._escHtml(content) + '</div>'
+      }
+    } else {
+      h += '<div class="pua-conv-msg-content">' + this._escHtml(content) + '</div>'
+    }
+
+    // Alternative version tabs
+    if (msg.role === 'assistant' && msg.alternatives && msg.alternatives.length > 0) {
+      h += '<div class="pua-conv-alt-tabs">'
+      h += '<span class="pua-conv-alt-tab' + ((msg.activeAltIndex || 0) === 0 ? ' active' : '') + '" data-alt-idx="0" data-msg-id="' + this._escHtml(msg.id) + '">v1</span>'
+      for (var ai = 0; ai < msg.alternatives.length; ai++) {
+        h += '<span class="pua-conv-alt-tab' + ((msg.activeAltIndex || 0) === (ai + 1) ? ' active' : '') + '" data-alt-idx="' + (ai + 1) + '" data-msg-id="' + this._escHtml(msg.id) + '">v' + (ai + 2) + '</span>'
+      }
+      h += '</div>'
+    }
+
+    // Actions
+    h += '<div class="pua-conv-msg-actions">'
+    if (msg.role === 'assistant') {
+      h += '<button class="pua-conv-msg-action" data-action="regenerate" data-msg-id="' + this._escHtml(msg.id) + '">\uD83D\uDD04</button>'
+    }
+    if (msg.role === 'user') {
+      h += '<button class="pua-conv-msg-action" data-action="edit" data-msg-id="' + this._escHtml(msg.id) + '">\u270F\uFE0F</button>'
+    }
+    h += '<button class="pua-conv-msg-action' + (msg.favorited ? ' active' : '') + '" data-action="favorite" data-msg-id="' + this._escHtml(msg.id) + '">\u2B50</button>'
+    h += '<button class="pua-conv-msg-action" data-action="viewctx" data-msg-id="' + this._escHtml(msg.id) + '">\uD83D\uDCCB</button>'
+    h += '</div>'
+
+    h += '</div>'
+    return h
+  }
+
+  P._bindConvMessageActions = function(contentEl) {
+    var self = this
+
+    // Floor number click to copy
+    var floorEls = contentEl.querySelectorAll('.pua-conv-msg-floor')
+    for (var fi = 0; fi < floorEls.length; fi++) {
+      (function(el) {
+        el.addEventListener('click', function() {
+          var text = el.getAttribute('data-copy-floor') || ''
+          if (navigator.clipboard) {
+            navigator.clipboard.writeText(text).then(function() { self._toast('\u5DF2\u590D\u5236 ' + text) })
+          }
+        })
+      })(floorEls[fi])
+    }
+
+    // Action buttons
+    var actionBtns = contentEl.querySelectorAll('.pua-conv-msg-action')
+    for (var ai = 0; ai < actionBtns.length; ai++) {
+      (function(btn) {
+        btn.addEventListener('click', function(e) {
+          e.stopPropagation()
+          var action = btn.getAttribute('data-action')
+          var msgId = btn.getAttribute('data-msg-id')
+          if (action === 'regenerate') self._regenerateMessage(msgId)
+          else if (action === 'edit') self._editMessage(msgId)
+          else if (action === 'favorite') self._toggleFavorite(msgId)
+          else if (action === 'viewctx') self._viewContext(msgId)
+        })
+      })(actionBtns[ai])
+    }
+
+    // Alt version tabs
+    var altTabs = contentEl.querySelectorAll('.pua-conv-alt-tab')
+    for (var ti = 0; ti < altTabs.length; ti++) {
+      (function(tab) {
+        tab.addEventListener('click', function(e) {
+          e.stopPropagation()
+          var altIdx = parseInt(tab.getAttribute('data-alt-idx')) || 0
+          var msgId = tab.getAttribute('data-msg-id')
+          self._switchAltVersion(msgId, altIdx)
+        })
+      })(altTabs[ti])
+    }
+  }
+
+  /* ── Message data management ── */
+
+  P._createMessage = function(role, content, source) {
+    return {
+      id: 'msg_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6),
+      role: role,
+      content: content,
+      timestamp: new Date().toISOString(),
+      source: source || 'live',
+      rendered: null,
+      alternatives: [],
+      activeAltIndex: 0,
+      favorited: false,
+      floorNumber: 0,
+      dimmed: false
+    }
+  }
+
+  P._loadConvMessages = function() {
+    if (!this._convBranchId) { this._convMessages = []; return }
+    var key = 'pua_conv_' + this._convBranchId
+    try {
+      var raw = localStorage.getItem(key)
+      if (raw) {
+        this._convMessages = JSON.parse(raw)
+        // Re-assign floor numbers
+        for (var i = 0; i < this._convMessages.length; i++) {
+          this._convMessages[i].floorNumber = i + 1
+        }
+        return
+      }
+    } catch(e) {}
+    this._convMessages = []
+  }
+
+  P._saveConvMessages = function() {
+    if (!this._convBranchId) return
+    var key = 'pua_conv_' + this._convBranchId
+    try {
+      localStorage.setItem(key, JSON.stringify(this._convMessages))
+    } catch(e) {}
+  }
+
+  P._loadOnlineMessages = function(convId) {
+    var self = this
+    if (!this.roche || !this.roche.conversation || !this.roche.conversation.get) {
+      this._toast('\u65E0\u6CD5\u8BBF\u95EE\u4F1A\u8BDD\u63A5\u53E3')
+      return
+    }
+    this.roche.conversation.get(convId).then(function(conv) {
+      if (!conv || !conv.messages) { self._toast('\u65E0\u6D88\u606F'); return }
+      var msgs = []
+      for (var i = 0; i < conv.messages.length; i++) {
+        var m = conv.messages[i]
+        var role = m.type === 'assistant' || m.type === 'model' ? 'assistant' : (m.type === 'system' ? 'system' : 'user')
+        var msg = self._createMessage(role, m.text || m.content || '', 'online')
+        msg.floorNumber = i + 1
+        if (m.timestamp) msg.timestamp = m.timestamp
+        msgs.push(msg)
+      }
+      self._convMessages = msgs
+      self._saveConvMessages()
+      self._renderPage()
+      self._toast('\u5DF2\u52A0\u8F7D ' + msgs.length + ' \u6761\u5728\u7EBF\u6D88\u606F')
+    }).catch(function(e) {
+      self._toast('\u52A0\u8F7D\u5931\u8D25: ' + (e.message || e))
+    })
+  }
+
+  P._parseOfflineMessages = function(text) {
+    var lines = text.split('\n')
+    var msgs = []
+    for (var i = 0; i < lines.length; i++) {
+      var line = lines[i].trim()
+      if (!line) continue
+      var match = line.match(/^(.+?)[:\uff1a]\s*(.+)$/)
+      if (match) {
+        var name = match[1].trim()
+        var content = match[2].trim()
+        var role = (name.toLowerCase() === 'user' || name === '\u7528\u6237' || name === '\u4F60') ? 'user' : 'assistant'
+        var msg = this._createMessage(role, content, 'offline')
+        msg.floorNumber = msgs.length + 1
+        msgs.push(msg)
+      }
+    }
+    return msgs
+  }
+
+  /* ── Send message flow ── */
+
+  P._sendMessage = function(contentEl) {
+    var self = this
+    if (this._convSending) return
+
+    var inputEl = contentEl.querySelector('#conv-input')
+    if (!inputEl) return
+    var text = inputEl.value.trim()
+    if (!text) return
+
+    // Create user message
+    var userMsg = this._createMessage('user', text, 'live')
+    userMsg.floorNumber = this._convMessages.length + 1
+    this._convMessages.push(userMsg)
+    inputEl.value = ''
+    inputEl.classList.remove('expanded')
+    this._saveConvMessages()
+
+    // Create placeholder assistant message
+    var astMsg = this._createMessage('assistant', '', 'live')
+    astMsg.floorNumber = this._convMessages.length + 1
+    this._convMessages.push(astMsg)
+    this._convSending = true
+    this._convStreamingMsg = astMsg
+
+    // Re-render to show user message + typing indicator
+    this._renderConvMessages(contentEl)
+
+    // Build context
+    var messages = this._buildConvContext()
+
+    // Stream chat
+    this._streamChat(messages).then(function(fullContent) {
+      astMsg.content = fullContent
+      // Apply render regexes
+      astMsg.rendered = self._applyConvRegexRender(fullContent)
+      self._convSending = false
+      self._convStreamingMsg = null
+      self._saveConvMessages()
+
+      // Update the streaming message element
+      self._updateStreamingMessage(contentEl, astMsg.rendered || self._escHtml(fullContent), false)
+
+      // Memory summarization trigger
+      self._msgSinceLastSummary = (self._msgSinceLastSummary || 0) + 1
+      var settings = self._loadSettings()
+      if (self._msgSinceLastSummary >= (settings.summarizeInterval || 30)) {
+        self._msgSinceLastSummary = 0
+        self._triggerConvSummary()
+      }
+    }).catch(function(err) {
+      astMsg.content = '[\u9519\u8BEF] ' + (err.message || err)
+      astMsg.rendered = self._escHtml(astMsg.content)
+      self._convSending = false
+      self._convStreamingMsg = null
+      self._saveConvMessages()
+      self._updateStreamingMessage(contentEl, astMsg.rendered, false)
+      self._toast('API \u8C03\u7528\u5931\u8D25: ' + (err.message || err))
+    })
+  }
+
+  P._buildConvContext = function() {
+    var messages = []
+    var depth = this._convContextDepth || 30
+
+    // Use _buildMessages for system context (presets, char, worldbook, memory)
+    var systemCtx = this._buildMessages()
+
+    // Add system context (everything except chat)
+    var chatStartIdx = -1
+    for (var si = systemCtx.length - 1; si >= 0; si--) {
+      // Find where chat messages start (they have role user/assistant and are at the end)
+      // We'll use all system messages from _buildMessages
+    }
+
+    // Add all system-level messages from _buildMessages
+    for (var i = 0; i < systemCtx.length; i++) {
+      messages.push({ role: systemCtx[i].role, content: systemCtx[i].content })
+    }
+
+    // Add conversation messages (limited by depth)
+    var convMsgs = this._convMessages
+    var start = Math.max(0, convMsgs.length - depth)
+    for (var mi = start; mi < convMsgs.length; mi++) {
+      var m = convMsgs[mi]
+      if (m.dimmed) continue
+      var content = m.content
+      // Use active alternative version for assistant messages
+      if (m.role === 'assistant' && m.alternatives && m.alternatives.length > 0 && m.activeAltIndex > 0) {
+        content = m.alternatives[m.activeAltIndex - 1] || content
+      }
+      // Apply filter/replace regexes
+      content = this._applyConvFilterRegex(content, m.role)
+      if (content) {
+        messages.push({ role: m.role, content: content })
+      }
+    }
+
+    return messages
+  }
+
+  P._applyConvFilterRegex = function(text, role) {
+    if (!text) return text
+    // Apply filter and replace type regexes
+    for (var ri = 0; ri < this.regexes.length; ri++) {
+      var rx = this.regexes[ri]
+      if (!rx.on) continue
+      if (rx.type === 'filter' || rx.type === 'replace') {
+        try {
+          var re = new RegExp(rx.regex, 'g')
+          text = text.replace(re, rx.html || '')
+        } catch(e) {}
+      }
+    }
+    // Apply preset outRegex/inRegex for assistant messages
+    if (role === 'assistant') {
+      for (var pi = 0; pi < this.presets.length; pi++) {
+        var pr = this.presets[pi]
+        if (pr.outRegex && pr.outRegexOn) {
+          try { text = text.replace(new RegExp(pr.outRegex, 'g'), '') } catch(e) {}
+        }
+        if (pr.inRegex && pr.inRegexOn) {
+          try { text = text.replace(new RegExp(pr.inRegex, 'g'), '') } catch(e) {}
+        }
+      }
+    }
+    return text
+  }
+
+  P._applyConvRegexRender = function(text) {
+    if (!text) return this._escHtml(text)
+    // First escape HTML
+    var result = this._escHtml(text)
+    // Then apply render-type regexes
+    for (var ri = 0; ri < this.regexes.length; ri++) {
+      var rx = this.regexes[ri]
+      if (!rx.on || rx.type !== 'render' || !rx.regex) continue
+      try {
+        var re = new RegExp(rx.regex, 'g')
+        result = result.replace(re, rx.html || '')
+      } catch(e) {}
+    }
+    return result
+  }
+
+  P._streamChat = function(messages) {
+    var self = this
+    var preset = this._getActivePreset()
+    if (!preset) return Promise.reject(new Error('\u8BF7\u5148\u914D\u7F6E API'))
+    var endpoint = (preset.mainEndpoint || '').replace(/\/+$/, '')
+    var apiKey = preset.mainApiKey || ''
+    var model = preset.mainModel || ''
+    if (!endpoint || !apiKey || !model) return Promise.reject(new Error('\u8BF7\u5148\u914D\u7F6E\u4E3B API'))
+
+    var url = endpoint + '/v1/chat/completions'
+
+    return fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + apiKey
+      },
+      body: JSON.stringify({
+        model: model,
+        messages: messages,
+        stream: true
+      })
+    }).then(function(response) {
+      if (!response.ok) throw new Error('HTTP ' + response.status)
+      var reader = response.body.getReader()
+      var decoder = new TextDecoder()
+      var buffer = ''
+      var fullContent = ''
+      var contentEl = self._contentEl
+
+      function processChunk() {
+        return reader.read().then(function(result) {
+          if (result.done) return fullContent
+          buffer += decoder.decode(result.value, { stream: true })
+          var lines = buffer.split('\n')
+          buffer = lines.pop() || ''
+          for (var li = 0; li < lines.length; li++) {
+            var line = lines[li].trim()
+            if (!line || !line.startsWith('data: ')) continue
+            if (line === 'data: [DONE]') continue
+            try {
+              var json = JSON.parse(line.substring(6))
+              var delta = json.choices && json.choices[0] && json.choices[0].delta && json.choices[0].delta.content || ''
+              if (delta) {
+                fullContent += delta
+                self._updateStreamingMessage(contentEl, self._escHtml(fullContent), true)
+              }
+            } catch(e) {}
+          }
+          return processChunk()
+        })
+      }
+
+      return processChunk()
+    })
+  }
+
+  P._updateStreamingMessage = function(contentEl, html, isStreaming) {
+    if (!contentEl) return
+    var chatEl = contentEl.querySelector('#conv-chat')
+    if (!chatEl) return
+    // Find the last assistant message element
+    var msgEls = chatEl.querySelectorAll('.pua-conv-msg-assistant')
+    if (msgEls.length === 0) return
+    var lastMsgEl = msgEls[msgEls.length - 1]
+    var contentDiv = lastMsgEl.querySelector('.pua-conv-msg-content')
+    if (contentDiv) {
+      contentDiv.innerHTML = html
+      if (isStreaming) {
+        contentDiv.innerHTML += '<span class="pua-conv-typing" style="display:inline"></span>'
+      }
+    }
+    // Auto-scroll if enabled
+    if (this._convAutoScroll) {
+      chatEl.scrollTop = chatEl.scrollHeight
+    }
+  }
+
+  P._renderConvMessages = function(contentEl) {
+    var chatEl = contentEl.querySelector('#conv-chat')
+    if (!chatEl) return
+
+    var h = ''
+    var msgs = this._convMessages
+    var renderLimit = this._convRenderLimit
+    var collapsedCount = 0
+    var startIdx = 0
+    if (msgs.length > renderLimit) {
+      collapsedCount = msgs.length - renderLimit
+      startIdx = collapsedCount
+    }
+
+    if (collapsedCount > 0) {
+      h += '<div class="pua-conv-collapsed" id="conv-load-more">\u66F4\u65E9\u7684\u6D88\u606F (' + collapsedCount + '\u6761) \u2014 \u52A0\u8F7D\u66F4\u591A</div>'
+    }
+
+    for (var mi = startIdx; mi < msgs.length; mi++) {
+      h += this._renderConvMessage(msgs[mi])
+    }
+
+    // Add typing indicator if sending
+    if (this._convSending) {
+      h += '<div class="pua-conv-typing">\u6B63\u5728\u601D\u8003...</div>'
+    }
+
+    chatEl.innerHTML = h
+
+    // Re-bind message actions
+    this._bindConvMessageActions(contentEl)
+
+    // Re-bind load more
+    var loadMoreBtn = chatEl.querySelector('#conv-load-more')
+    var self = this
+    if (loadMoreBtn) {
+      loadMoreBtn.addEventListener('click', function() {
+        self._convRenderLimit = self._convMessages.length
+        self._renderPage()
+      })
+    }
+
+    // Update message count
+    var countEl = contentEl.querySelector('#conv-msg-count')
+    if (countEl) countEl.textContent = msgs.length + ' \u6761'
+
+    // Scroll
+    if (this._convAutoScroll) {
+      chatEl.scrollTop = chatEl.scrollHeight
+    }
+  }
+
+  /* ── Regenerate message ── */
+
+  P._regenerateMessage = function(msgId) {
+    var self = this
+    // Find the message
+    var msg = null
+    var msgIdx = -1
+    for (var i = 0; i < this._convMessages.length; i++) {
+      if (this._convMessages[i].id === msgId) { msg = this._convMessages[i]; msgIdx = i; break }
+    }
+    if (!msg || msg.role !== 'assistant') return
+
+    // Add to alternatives
+    if (!msg.alternatives) msg.alternatives = []
+    msg.alternatives.push(msg.content)
+
+    // Create new response
+    this._convSending = true
+    this._convStreamingMsg = msg
+    msg.content = ''
+    msg.rendered = null
+
+    // Build context up to this message
+    var messages = this._buildConvContext()
+
+    this._streamChat(messages).then(function(fullContent) {
+      msg.content = fullContent
+      msg.activeAltIndex = msg.alternatives.length
+      msg.rendered = self._applyConvRegexRender(fullContent)
+      self._convSending = false
+      self._convStreamingMsg = null
+      self._saveConvMessages()
+      self._renderPage()
+    }).catch(function(err) {
+      msg.content = '[\u9519\u8BEF] ' + (err.message || err)
+      msg.rendered = self._escHtml(msg.content)
+      self._convSending = false
+      self._convStreamingMsg = null
+      self._saveConvMessages()
+      self._renderPage()
+      self._toast('\u91CD\u65B0\u751F\u6210\u5931\u8D25: ' + (err.message || err))
+    })
+  }
+
+  /* ── Edit & Resend ── */
+
+  P._editMessage = function(msgId) {
+    var contentEl = this._contentEl
+    if (!contentEl) return
+
+    // Find the message
+    var msg = null
+    for (var i = 0; i < this._convMessages.length; i++) {
+      if (this._convMessages[i].id === msgId) { msg = this._convMessages[i]; break }
+    }
+    if (!msg || msg.role !== 'user') return
+
+    // Put content into input
+    var inputEl = contentEl.querySelector('#conv-input')
+    if (inputEl) {
+      inputEl.value = msg.content
+      inputEl.classList.add('expanded')
+      inputEl.focus()
+    }
+
+    // Dim the original message
+    msg.dimmed = true
+    this._saveConvMessages()
+
+    // Re-render
+    this._renderConvMessages(contentEl)
+  }
+
+  /* ── Switch alternative version ── */
+
+  P._switchAltVersion = function(msgId, altIdx) {
+    for (var i = 0; i < this._convMessages.length; i++) {
+      if (this._convMessages[i].id === msgId) {
+        this._convMessages[i].activeAltIndex = altIdx
+        // Re-render the displayed content
+        var content = this._convMessages[i].content
+        if (altIdx > 0 && this._convMessages[i].alternatives && this._convMessages[i].alternatives[altIdx - 1]) {
+          content = this._convMessages[i].alternatives[altIdx - 1]
+        }
+        this._convMessages[i].rendered = this._applyConvRegexRender(content)
+        break
+      }
+    }
+    this._saveConvMessages()
+    this._renderPage()
+  }
+
+  /* ── Toggle favorite ── */
+
+  P._toggleFavorite = function(msgId) {
+    var msg = null
+    for (var i = 0; i < this._convMessages.length; i++) {
+      if (this._convMessages[i].id === msgId) { msg = this._convMessages[i]; break }
+    }
+    if (!msg) return
+
+    msg.favorited = !msg.favorited
+
+    // Update favorites storage
+    var favs = this._loadFavorites()
+    if (msg.favorited) {
+      // Add to favorites
+      var branchName = ''
+      for (var bi = 0; bi < this.branches.length; bi++) {
+        if (this.branches[bi].id === this._convBranchId) { branchName = this.branches[bi].name; break }
+      }
+      favs.push({
+        id: 'fav_' + Date.now(),
+        messageId: msg.id,
+        branchId: this._convBranchId,
+        branchName: branchName,
+        content: (msg.content || '').substring(0, 100),
+        fullContent: msg.content || '',
+        role: msg.role,
+        timestamp: msg.timestamp,
+        floorNumber: msg.floorNumber,
+        note: '',
+        conversationExists: true
+      })
+    } else {
+      // Remove from favorites
+      var newFavs = []
+      for (var fi = 0; fi < favs.length; fi++) {
+        if (favs[fi].messageId !== msgId) newFavs.push(favs[fi])
+      }
+      favs = newFavs
+    }
+
+    this._saveFavorites(favs)
+    this._saveConvMessages()
+    this._renderPage()
+  }
+
+  /* ── Scroll to floor ── */
+
+  P._scrollToFloor = function(contentEl, floor) {
+    var chatEl = contentEl.querySelector('#conv-chat')
+    if (!chatEl) return
+    var msgEl = chatEl.querySelector('[data-floor="' + floor + '"]')
+    if (msgEl) {
+      msgEl.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      msgEl.style.outline = '2px solid var(--pua-accent)'
+      setTimeout(function() { msgEl.style.outline = '' }, 2000)
+    } else {
+      // Message might be collapsed, expand all
+      this._convRenderLimit = this._convMessages.length
+      this._renderPage()
+      var self = this
+      setTimeout(function() {
+        var chatEl2 = self._contentEl.querySelector('#conv-chat')
+        if (chatEl2) {
+          var msgEl2 = chatEl2.querySelector('[data-floor="' + floor + '"]')
+          if (msgEl2) {
+            msgEl2.scrollIntoView({ behavior: 'smooth', block: 'center' })
+            msgEl2.style.outline = '2px solid var(--pua-accent)'
+            setTimeout(function() { msgEl2.style.outline = '' }, 2000)
+          }
+        }
+      }, 100)
+    }
+  }
+
+  /* ── Memory summarization trigger ── */
+
+  P._triggerConvSummary = function() {
+    var self = this
+    var preset = this._getActivePreset()
+    if (!preset || !preset.subEndpoint || !preset.subApiKey || !preset.subModel) return
+
+    // Build a summary of recent conversation
+    var recentMsgs = this._convMessages.slice(-10)
+    var convText = ''
+    for (var i = 0; i < recentMsgs.length; i++) {
+      convText += recentMsgs[i].role + ': ' + (recentMsgs[i].content || '').substring(0, 200) + '\n'
+    }
+
+    var prompt = '\u8BF7\u4ECE\u4EE5\u4E0B\u5BF9\u8BDD\u4E2D\u63D0\u53D6\u5173\u952E\u4E8B\u5B9E\u4FE1\u606F\uFF0C\u7528\u4E00\u53E5\u8BDD\u6982\u62EC\uFF1A\n\n' + convText
+
+    var url = preset.subEndpoint.replace(/\/+$/, '') + '/chat/completions'
+    fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + preset.subApiKey },
+      body: JSON.stringify({
+        model: preset.subModel,
+        messages: [{ role: 'user', content: prompt }],
+        temperature: 0.1,
+        max_tokens: 200
+      })
+    }).then(function(r) { return r.json() }).then(function(data) {
+      if (data.choices && data.choices[0]) {
+        var summary = (data.choices[0].message || {}).content || ''
+        if (summary) {
+          // Add to memory system
+          var branchId = self._convBranchId
+          if (branchId) {
+            var memData = self._loadMemData(branchId)
+            if (memData) {
+              if (!memData.facts) memData.facts = []
+              memData.facts.push({
+                text: summary,
+                summaryText: summary,
+                needsSummary: false,
+                timestamp: new Date().toISOString()
+              })
+              self._saveMemData(memData, branchId)
+            }
+          }
+        }
+      }
+    }).catch(function() {})
+  }
+
+  /* ════════════════════════════════════════════════════════════
+     悬浮球
+     ════════════════════════════════════════════════════════════ */
+
+  P._renderFloatingBall = function() {
+    var self = this
+    var fab = document.createElement('div')
+    fab.className = 'pua-fab'
+
+    var btn = document.createElement('button')
+    btn.className = 'pua-fab-btn'
+    btn.textContent = '\u26A1'
+    btn.addEventListener('click', function(e) {
+      e.stopPropagation()
+      self._fabExpanded = !self._fabExpanded
+      menu.classList.toggle('show', self._fabExpanded)
+    })
+    fab.appendChild(btn)
+
+    var menu = document.createElement('div')
+    menu.className = 'pua-fab-menu' + (this._fabExpanded ? ' show' : '')
+
+    // Quick navigation
+    var navItems = [
+      { id: 'branches', icon: '\u2606', label: '\u5206\u652F\u5B58\u6863' },
+      { id: 'chat', icon: '\uD83D\uDCAC', label: '\u5BF9\u8BDD' },
+      { id: 'favorites', icon: '\u2B50', label: '\u6536\u85CF' },
+      { id: 'memory', icon: '\u263D', label: '\u8BB0\u5FC6\u7CFB\u7EDF' },
+      { id: 'settings', icon: '\u2691', label: '\u8BBE\u7F6E' }
+    ]
+
+    var navTitle = document.createElement('div')
+    navTitle.className = 'pua-fab-menu-title'
+    navTitle.textContent = '\u5FEB\u6377\u5BFC\u822A'
+    menu.appendChild(navTitle)
+
+    for (var ni = 0; ni < navItems.length; ni++) {
+      (function(item) {
+        var el = document.createElement('div')
+        el.className = 'pua-fab-menu-item'
+        el.innerHTML = '<span class="pua-fab-menu-item-icon">' + item.icon + '</span>' + item.label
+        el.addEventListener('click', function() {
+          self.currentPage = item.id
+          self._fabExpanded = false
+          self._render()
+        })
+        menu.appendChild(el)
+      })(navItems[ni])
+    }
+
+    // Quick toggles
+    var toggleTitle = document.createElement('div')
+    toggleTitle.className = 'pua-fab-menu-title'
+    toggleTitle.style.marginTop = '8px'
+    toggleTitle.textContent = '\u5FEB\u6377\u5F00\u5173'
+    menu.appendChild(toggleTitle)
+
+    var toggles = [
+      { key: 'regexOn', label: '\u6B63\u5219', getValue: function() { return self.regexes.length > 0 && self.regexes[0].on } },
+      { key: 'presetOn', label: '\u9884\u8BBE', getValue: function() { return self.presets.length > 0 && self.presets[0].on } }
+    ]
+
+    for (var ti = 0; ti < toggles.length; ti++) {
+      (function(toggle) {
+        var row = document.createElement('div')
+        row.className = 'pua-fab-toggle-row'
+        var label = document.createElement('span')
+        label.textContent = toggle.label
+        var toggleBtn = document.createElement('button')
+        toggleBtn.className = 'pua-toggle-item' + (toggle.getValue() ? ' on' : '')
+        toggleBtn.addEventListener('click', function() {
+          toggleBtn.classList.toggle('on')
+        })
+        row.appendChild(label)
+        row.appendChild(toggleBtn)
+        menu.appendChild(row)
+      })(toggles[ti])
+    }
+
+    // Memory config
+    var memTitle = document.createElement('div')
+    memTitle.className = 'pua-fab-menu-title'
+    memTitle.style.marginTop = '8px'
+    memTitle.textContent = '\u8BB0\u5FC6\u914D\u7F6E'
+    menu.appendChild(memTitle)
+
+    var settings = this._loadSettings()
+    var recallRow = document.createElement('div')
+    recallRow.className = 'pua-fab-slider-row'
+    recallRow.innerHTML = '<span>\u53EC\u56DE\u6570</span><input type="range" class="pua-fab-slider" min="1" max="20" value="' + (settings.recallMaxCount || 8) + '"><span id="fab-recall-val">' + (settings.recallMaxCount || 8) + '</span>'
+    menu.appendChild(recallRow)
+
+    var sliderEl = recallRow.querySelector('.pua-fab-slider')
+    var sliderVal = recallRow.querySelector('#fab-recall-val')
+    if (sliderEl) {
+      sliderEl.addEventListener('input', function() {
+        if (sliderVal) sliderVal.textContent = this.value
+      })
+    }
+
+    // Action buttons
+    var actionTitle = document.createElement('div')
+    actionTitle.className = 'pua-fab-menu-title'
+    actionTitle.style.marginTop = '8px'
+    actionTitle.textContent = '\u64CD\u4F5C'
+    menu.appendChild(actionTitle)
+
+    var actions = [
+      { icon: '\uD83D\uDCCD', label: '\u8DF3\u8F6C\u697C\u5C42', action: function() { self.currentPage = 'chat'; self._convShowJump = true; self._fabExpanded = false; self._render() } },
+      { icon: '\u2B07', label: '\u8DF3\u5230\u5E95\u90E8', action: function() { var chatEl = self._contentEl.querySelector('#conv-chat'); if (chatEl) chatEl.scrollTop = chatEl.scrollHeight; self._fabExpanded = false; menu.classList.remove('show') } }
+    ]
+
+    for (var ai = 0; ai < actions.length; ai++) {
+      (function(act) {
+        var el = document.createElement('div')
+        el.className = 'pua-fab-menu-item'
+        el.innerHTML = '<span class="pua-fab-menu-item-icon">' + act.icon + '</span>' + act.label
+        el.addEventListener('click', function() { act.action() })
+        menu.appendChild(el)
+      })(actions[ai])
+    }
+
+    fab.appendChild(menu)
+
+    // Close on outside click
+    setTimeout(function() {
+      document.addEventListener('click', function(e) {
+        if (self._fabExpanded && !fab.contains(e.target)) {
+          self._fabExpanded = false
+          menu.classList.remove('show')
+        }
+      })
+    }, 500)
+
+    return fab
+  }
+
+  /* ════════════════════════════════════════════════════════════
+     收藏页面
+     ════════════════════════════════════════════════════════════ */
+
+  P._loadFavorites = function() {
+    try {
+      var raw = localStorage.getItem('pua_favorites')
+      if (raw) return JSON.parse(raw)
+    } catch(e) {}
+    return []
+  }
+
+  P._saveFavorites = function(favs) {
+    try {
+      localStorage.setItem('pua_favorites', JSON.stringify(favs))
+    } catch(e) {}
+  }
+
+  P._renderFavorites = function(titleEl, actionsEl, contentEl) {
+    var self = this
+    titleEl.textContent = '\u2B50 \u6536\u85CF'
+    actionsEl.innerHTML = ''
+
+    var favs = this._loadFavorites()
+
+    // Check which branches still exist
+    var branchIds = {}
+    for (var bi = 0; bi < this.branches.length; bi++) {
+      branchIds[this.branches[bi].id] = true
+    }
+
+    if (favs.length === 0) {
+      contentEl.innerHTML = '<div class="pua-empty"><div class="pua-empty-icon">\u2B50</div><div class="pua-empty-text">\u8FD8\u6CA1\u6709\u6536\u85CF\u7684\u6D88\u606F</div></div>'
+      return
+    }
+
+    var h = ''
+    for (var fi = 0; fi < favs.length; fi++) {
+      var fav = favs[fi]
+      var exists = !!branchIds[fav.branchId]
+      fav.conversationExists = exists
+
+      h += '<div class="pua-fav-item" data-fav-id="' + this._escHtml(fav.id) + '">'
+      h += '<div class="pua-fav-item-header">'
+      h += '<span class="pua-fav-branch">' + this._escHtml(fav.branchName || '\u672A\u77E5\u5206\u652F') + '</span>'
+      h += '<span class="pua-fav-floor">#' + (fav.floorNumber || 0) + '</span>'
+      h += '<span class="pua-fav-role pua-fav-role-' + (fav.role || 'user') + '">' + (fav.role === 'assistant' ? '\u52A9\u624B' : '\u7528\u6237') + '</span>'
+      if (!exists) {
+        h += '<span class="pua-fav-warning">\u26A0\uFE0F \u5DF2\u5220\u9664</span>'
+      }
+      h += '</div>'
+      h += '<div class="pua-fav-content">' + this._escHtml(fav.content || '') + '</div>'
+      if (fav.note) {
+        h += '<div class="pua-fav-note">\uD83D\uDCDD ' + this._escHtml(fav.note) + '</div>'
+      }
+      h += '<div class="pua-fav-actions">'
+      if (exists) {
+        h += '<button class="pua-btn pua-btn-sm" data-fav-action="jump" data-fav-id="' + this._escHtml(fav.id) + '">\u8DF3\u8F6C</button>'
+      }
+      h += '<button class="pua-btn pua-btn-sm" data-fav-action="note" data-fav-id="' + this._escHtml(fav.id) + '">\u7F16\u8F91\u5907\u6CE8</button>'
+      h += '<button class="pua-btn pua-btn-sm pua-btn-danger" data-fav-action="delete" data-fav-id="' + this._escHtml(fav.id) + '">\u5220\u9664</button>'
+      h += '</div>'
+      h += '</div>'
+    }
+
+    contentEl.innerHTML = h
+
+    // Bind actions
+    var actionBtns = contentEl.querySelectorAll('[data-fav-action]')
+    for (var abi = 0; abi < actionBtns.length; abi++) {
+      (function(btn) {
+        btn.addEventListener('click', function() {
+          var action = btn.getAttribute('data-fav-action')
+          var favId = btn.getAttribute('data-fav-id')
+          if (action === 'jump') self._jumpToFav(favId)
+          else if (action === 'note') self._editFavNote(favId)
+          else if (action === 'delete') self._deleteFav(favId)
+        })
+      })(actionBtns[abi])
+    }
+  }
+
+  P._jumpToFav = function(favId) {
+    var favs = this._loadFavorites()
+    var fav = null
+    for (var i = 0; i < favs.length; i++) {
+      if (favs[i].id === favId) { fav = favs[i]; break }
+    }
+    if (!fav || !fav.conversationExists) { this._toast('\u65E0\u6CD5\u8DF3\u8F6C\uFF0C\u5206\u652F\u5DF2\u5220\u9664'); return }
+
+    this._convBranchId = fav.branchId
+    this._convShowJump = true
+    this.currentPage = 'chat'
+    this._loadConvMessages()
+    this._render()
+
+    // Scroll to floor after render
+    var self = this
+    setTimeout(function() {
+      if (self._contentEl) {
+        self._scrollToFloor(self._contentEl, fav.floorNumber || 1)
+      }
+    }, 200)
+  }
+
+  P._editFavNote = function(favId) {
+    var favs = this._loadFavorites()
+    var fav = null
+    for (var i = 0; i < favs.length; i++) {
+      if (favs[i].id === favId) { fav = favs[i]; break }
+    }
+    if (!fav) return
+
+    var newNote = prompt('\u7F16\u8F91\u5907\u6CE8:', fav.note || '')
+    if (newNote === null) return
+    fav.note = newNote
+    this._saveFavorites(favs)
+    this._renderPage()
+  }
+
+  P._deleteFav = function(favId) {
+    var favs = this._loadFavorites()
+    var newFavs = []
+    for (var i = 0; i < favs.length; i++) {
+      if (favs[i].id !== favId) newFavs.push(favs[i])
+    }
+    this._saveFavorites(newFavs)
+    this._renderPage()
+  }
+
+  /* ════════════════════════════════════════════════════════════
+     聊天导出/导入
+     ════════════════════════════════════════════════════════════ */
+
+  P._exportChat = function() {
+    var self = this
+    var msgs = this._convMessages
+    if (msgs.length === 0) { this._toast('\u65E0\u6D88\u606F\u53EF\u5BFC\u51FA'); return }
+
+    var h = '<div style="margin-bottom:12px">'
+    h += '<div class="pua-field"><div class="pua-field-label">\u5BFC\u51FA\u683C\u5F0F</div></div>'
+    h += '<div style="display:flex;flex-direction:column;gap:6px">'
+    h += '<label class="pua-check-item checked" data-format="display"><div class="pua-check-box"></div><span class="pua-check-label">\u5C55\u793A\u7248 JSON\uFF08\u4EC5\u5F53\u524D\u7248\u672C\uFF09</span></label>'
+    h += '<label class="pua-check-item" data-format="full"><div class="pua-check-box"></div><span class="pua-check-label">\u5B8C\u6574\u7248 JSON\uFF08\u542B\u6240\u6709\u66FF\u4EE3\u7248\u672C\uFF09</span></label>'
+    h += '<label class="pua-check-item" data-format="txt"><div class="pua-check-box"></div><span class="pua-check-label">\u7EAF\u6587\u672C TXT</span></label>'
+    h += '<label class="pua-check-item" data-format="roche"><div class="pua-check-box"></div><span class="pua-check-label">Roche \u683C\u5F0F</span></label>'
+    h += '</div></div>'
+
+    this._openModal('\u5BFC\u51FA\u5BF9\u8BDD', h)
+
+    // Add footer buttons
+    var modal = this._modalOverlay
+    var modalInner = modal.querySelector('.pua-modal')
+    if (modalInner) {
+      var oldFooter = modalInner.querySelector('.pua-modal-footer')
+      if (oldFooter) oldFooter.remove()
+      var footer = document.createElement('div')
+      footer.className = 'pua-modal-footer'
+      var exportBtn = document.createElement('button')
+      exportBtn.className = 'pua-btn pua-btn-gold'
+      exportBtn.textContent = '\u5BFC\u51FA'
+      exportBtn.addEventListener('click', function() {
+        var selected = modal.querySelector('.pua-check-item.checked')
+        var format = selected ? selected.getAttribute('data-format') : 'display'
+        self._doExportChat(format)
+        self._closeModal()
+      })
+      footer.appendChild(exportBtn)
+      modalInner.appendChild(footer)
+    }
+
+    // Format selection toggle
+    var items = modal.querySelectorAll('.pua-check-item')
+    for (var ii = 0; ii < items.length; ii++) {
+      (function(item) {
+        item.addEventListener('click', function() {
+          for (var jj = 0; jj < items.length; jj++) items[jj].classList.remove('checked')
+          item.classList.add('checked')
+        })
+      })(items[ii])
+    }
+  }
+
+  P._doExportChat = function(format) {
+    var msgs = this._convMessages
+    var data
+
+    if (format === 'display') {
+      var displayMsgs = []
+      for (var i = 0; i < msgs.length; i++) {
+        var m = msgs[i]
+        var content = m.content
+        if (m.role === 'assistant' && m.alternatives && m.alternatives.length > 0 && m.activeAltIndex > 0) {
+          content = m.alternatives[m.activeAltIndex - 1] || content
+        }
+        displayMsgs.push({ role: m.role, content: content, timestamp: m.timestamp, floorNumber: m.floorNumber })
+      }
+      data = JSON.stringify({ version: 1, format: 'display', branchId: this._convBranchId, messages: displayMsgs }, null, 2)
+    } else if (format === 'full') {
+      data = JSON.stringify({ version: 1, format: 'full', branchId: this._convBranchId, messages: msgs }, null, 2)
+    } else if (format === 'txt') {
+      var lines = []
+      for (var ti = 0; ti < msgs.length; ti++) {
+        var tm = msgs[ti]
+        var name = tm.role === 'user' ? 'User' : (tm.role === 'assistant' ? 'Assistant' : 'System')
+        var tContent = tm.content
+        if (tm.role === 'assistant' && tm.alternatives && tm.alternatives.length > 0 && tm.activeAltIndex > 0) {
+          tContent = tm.alternatives[tm.activeAltIndex - 1] || tContent
+        }
+        lines.push(name + ': ' + tContent)
+      }
+      data = lines.join('\n')
+    } else if (format === 'roche') {
+      var rocheMsgs = []
+      for (var ri = 0; ri < msgs.length; ri++) {
+        var rm = msgs[ri]
+        var rContent = rm.content
+        if (rm.role === 'assistant' && rm.alternatives && rm.alternatives.length > 0 && rm.activeAltIndex > 0) {
+          rContent = rm.alternatives[rm.activeAltIndex - 1] || rContent
+        }
+        rocheMsgs.push({ type: rm.role === 'user' ? 'user' : (rm.role === 'assistant' ? 'model' : 'system'), text: rContent })
+      }
+      data = JSON.stringify({ messages: rocheMsgs }, null, 2)
+    }
+
+    // Download
+    var ext = format === 'txt' ? '.txt' : '.json'
+    var blob = new Blob([data], { type: 'text/plain;charset=utf-8' })
+    var url = URL.createObjectURL(blob)
+    var a = document.createElement('a')
+    a.href = url
+    a.download = 'chat_' + (this._convBranchId || 'export') + '_' + new Date().toISOString().replace(/[:.]/g, '-').substring(0, 19) + ext
+    a.click()
+    URL.revokeObjectURL(url)
+    this._toast('\u5BFC\u51FA\u6210\u529F')
+  }
+
+  P._importChat = function() {
+    var self = this
+    var h = '<div class="pua-field">'
+    h += '<div class="pua-field-label">\u9009\u62E9\u6587\u4EF6</div>'
+    h += '<input type="file" id="conv-import-file" accept=".json,.txt" style="width:100%;font-size:11px;color:var(--pua-text)">'
+    h += '<div class="pua-field-hint">\u652F\u6301 .json \u548C .txt \u683C\u5F0F\uFF0C\u81EA\u52A8\u68C0\u6D4B</div>'
+    h += '</div>'
+    h += '<div class="pua-field">'
+    h += '<div class="pua-field-label">\u5BFC\u5165\u65B9\u5F0F</div>'
+    h += '<select class="pua-field-input pua-field-select" id="conv-import-mode">'
+    h += '<option value="append">\u8FFD\u52A0\u5230\u5F53\u524D\u5BF9\u8BDD</option>'
+    h += '<option value="replace">\u66FF\u6362\u5F53\u524D\u5BF9\u8BDD</option>'
+    h += '</select>'
+    h += '</div>'
+    h += '<div id="conv-import-preview" style="margin-top:8px;font-size:10px;color:var(--pua-text-dim)"></div>'
+
+    this._openModal('\u5BFC\u5165\u5BF9\u8BDD', h)
+
+    var modal = this._modalOverlay
+    var modalInner = modal.querySelector('.pua-modal')
+    if (modalInner) {
+      var oldFooter = modalInner.querySelector('.pua-modal-footer')
+      if (oldFooter) oldFooter.remove()
+      var footer = document.createElement('div')
+      footer.className = 'pua-modal-footer'
+      var importBtn = document.createElement('button')
+      importBtn.className = 'pua-btn pua-btn-gold'
+      importBtn.textContent = '\u5BFC\u5165'
+      importBtn.addEventListener('click', function() {
+        var fileInput = modal.querySelector('#conv-import-file')
+        var mode = (modal.querySelector('#conv-import-mode') || {}).value || 'append'
+        if (fileInput && fileInput.files.length > 0) {
+          self._doImportChat(fileInput.files[0], mode)
+        } else {
+          self._toast('\u8BF7\u9009\u62E9\u6587\u4EF6')
+        }
+      })
+      footer.appendChild(importBtn)
+      modalInner.appendChild(footer)
+    }
+
+    // Preview on file select
+    var fileInput = modal.querySelector('#conv-import-file')
+    if (fileInput) {
+      fileInput.addEventListener('change', function() {
+        var preview = modal.querySelector('#conv-import-preview')
+        if (!preview || !this.files.length) return
+        var file = this.files[0]
+        var reader = new FileReader()
+        reader.onload = function() {
+          var text = reader.result
+          var count = 0
+          if (file.name.endsWith('.json')) {
+            try {
+              var json = JSON.parse(text)
+              count = (json.messages || []).length
+            } catch(e) { count = -1 }
+          } else {
+            var lines = text.split('\n')
+            for (var li = 0; li < lines.length; li++) {
+              if (lines[li].match(/^.+?[:\uff1a]\s*.+$/)) count++
+            }
+          }
+          if (count >= 0) {
+            preview.textContent = '\u9884\u89C8: ' + count + ' \u6761\u6D88\u606F'
+          } else {
+            preview.textContent = '\u65E0\u6CD5\u89E3\u6790\u8BE5\u6587\u4EF6'
+          }
+        }
+        reader.readAsText(file)
+      })
+    }
+  }
+
+  P._doImportChat = function(file, mode) {
+    var self = this
+    var reader = new FileReader()
+    reader.onload = function() {
+      var text = reader.result
+      var importedMsgs = []
+
+      if (file.name.endsWith('.json')) {
+        try {
+          var json = JSON.parse(text)
+          var rawMsgs = json.messages || []
+          for (var i = 0; i < rawMsgs.length; i++) {
+            var rm = rawMsgs[i]
+            var role = rm.role || rm.type || 'user'
+            if (role === 'model') role = 'assistant'
+            var content = rm.content || rm.text || ''
+            var msg = self._createMessage(role, content, 'offline')
+            importedMsgs.push(msg)
+          }
+        } catch(e) {
+          self._toast('JSON \u89E3\u6790\u5931\u8D25')
+          return
+        }
+      } else {
+        importedMsgs = self._parseOfflineMessages(text)
+      }
+
+      if (importedMsgs.length === 0) {
+        self._toast('\u672A\u627E\u5230\u53EF\u5BFC\u5165\u7684\u6D88\u606F')
+        return
+      }
+
+      if (mode === 'replace') {
+        self._convMessages = importedMsgs
+      } else {
+        // Append
+        for (var ai = 0; ai < importedMsgs.length; ai++) {
+          self._convMessages.push(importedMsgs[ai])
+        }
+      }
+
+      // Re-assign floor numbers
+      for (var fi = 0; fi < self._convMessages.length; fi++) {
+        self._convMessages[fi].floorNumber = fi + 1
+      }
+
+      self._saveConvMessages()
+      self._closeModal()
+      self._renderPage()
+      self._toast('\u5DF2\u5BFC\u5165 ' + importedMsgs.length + ' \u6761\u6D88\u606F')
+    }
+    reader.readAsText(file)
   }
 
   /* ════════════════════════════════════════════════════════════
@@ -8208,7 +9739,8 @@
       presets: [{ id: 'preset-default', name: '\u9ED8\u8BA4\u9884\u8BBE', mainEndpoint: '', mainApiKey: '', mainModel: '', subEndpoint: '', subApiKey: '', subModel: '', vecEndpoint: '', vecApiKey: '', vecModel: '' }],
       activePresetId: 'preset-default',
       factSendCount: 10, summarizeInterval: 30,
-      coreCharLimit: 2000, eventsCharLimit: 1000, recallMaxCount: 8, recallMode: 'vector'
+      coreCharLimit: 2000, eventsCharLimit: 1000, recallMaxCount: 8, recallMode: 'vector',
+      renderLimit: 10, contextDepth: 30, autoScroll: false
     }
     return this._settingsCache
   }
