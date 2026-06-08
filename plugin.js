@@ -919,6 +919,16 @@
     this._loadAsmOrder()
     this._loadSettings()
     this._loadAssistantData()
+
+    // Migrate font size from old localStorage key to settings
+    var oldFontSize = localStorage.getItem('pua_conv_font_size')
+    if (oldFontSize && !this._loadSettings().convFontSize) {
+      var s = this._loadSettings()
+      s.convFontSize = parseInt(oldFontSize) || 14
+      this._saveSettings(s)
+      localStorage.removeItem('pua_conv_font_size')
+    }
+
     this._currentMemBranchId = ''
 
     // 异步加载分支，完成后渲染
@@ -8918,6 +8928,16 @@
 
     contentEl.innerHTML = h
 
+    // Apply saved font size to conversation messages
+    var settings = this._loadSettings()
+    var savedFontSize = settings.convFontSize || 0
+    if (savedFontSize > 0) {
+      var msgContents = contentEl.querySelectorAll('.pua-conv-msg-content')
+      for (var fi = 0; fi < msgContents.length; fi++) {
+        msgContents[fi].style.fontSize = savedFontSize + 'px'
+      }
+    }
+
     // If streaming is in progress, restore the streaming message display
     if (this._convSending && this._convStreamingMsg) {
       // Update rendered content from memory (may have changed while on another page)
@@ -9900,7 +9920,8 @@
         contentDiv.innerHTML += '<span class="pua-conv-typing" style="display:inline"></span>'
       }
       // Apply font size during streaming
-      var savedFontSize = parseInt(localStorage.getItem('pua_conv_font_size')) || 0
+      var fsSettings = this._loadSettings()
+      var savedFontSize = fsSettings.convFontSize || 0
       if (savedFontSize > 0) contentDiv.style.fontSize = savedFontSize + 'px'
     }
     // No auto-scroll during streaming - user controls scroll position
@@ -9974,11 +9995,12 @@
     chatEl.scrollTop = savedScrollTop + (newScrollHeight - savedScrollHeight)
 
     // Apply saved font size to conversation messages
-    var savedFontSize = parseInt(localStorage.getItem('pua_conv_font_size')) || 0
-    if (savedFontSize > 0) {
+    var fsSettings2 = this._loadSettings()
+    var savedFontSize2 = fsSettings2.convFontSize || 0
+    if (savedFontSize2 > 0) {
       var msgContents = chatEl.querySelectorAll('.pua-conv-msg-content')
       for (var fi = 0; fi < msgContents.length; fi++) {
-        msgContents[fi].style.fontSize = savedFontSize + 'px'
+        msgContents[fi].style.fontSize = savedFontSize2 + 'px'
       }
     }
   }
@@ -10741,7 +10763,8 @@
 
       var fontRow = document.createElement('div')
       fontRow.className = 'pua-fab-slider-row'
-      var savedFontSize = parseInt(localStorage.getItem('pua_conv_font_size')) || 14
+      var fontSettings = self._loadSettings()
+      var savedFontSize = fontSettings.convFontSize || 14
       fontRow.innerHTML = '<input type="range" class="pua-fab-slider" min="10" max="24" value="' + savedFontSize + '" style="flex:1"><span style="min-width:28px;text-align:center">' + savedFontSize + 'px</span>'
       tabContent.appendChild(fontRow)
 
@@ -10751,7 +10774,9 @@
         fontSlider.addEventListener('input', function() {
           var size = parseInt(this.value)
           fontValEl.textContent = size + 'px'
-          localStorage.setItem('pua_conv_font_size', size)
+          var s = self._loadSettings()
+          s.convFontSize = size
+          self._saveSettings(s)
           // Apply immediately to conversation messages
           var contentEl = self._contentEl
           if (contentEl) {
@@ -11944,6 +11969,7 @@
       factSendCount: 10, summarizeInterval: 30,
       coreCharLimit: 2000, eventsCharLimit: 1000, recallMaxCount: 8, recallMode: 'vector',
       renderLimit: 10, contextDepth: 30, autoScroll: false,
+      convFontSize: 14,
       latestUserPrompt: '这是user的最新输入: {content}\n请只回复user最新输入，之前的user输入为既定发生过的事实，不需要考虑。请依照格式规范要求输出思维链正文及内联思维链以及状态栏日记和小剧场。'
     }
     return this._settingsCache
@@ -12910,7 +12936,7 @@
   window.RochePlugin.register({
     id: 'parallel-universe',
     name: '\u5E73\u884C\u65F6\u7A7A\u6863\u6848\u9986',
-    version: '0.27.2',
+    version: '0.27.3',
     icon: '\u2606',
     apps: [{
       id: 'parallel-universe-home',
