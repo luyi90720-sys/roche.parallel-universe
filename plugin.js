@@ -12638,7 +12638,7 @@
   window.RochePlugin.register({
     id: 'parallel-universe',
     name: '\u5E73\u884C\u65F6\u7A7A\u6863\u6848\u9986',
-    version: '0.22.0',
+    version: '0.23.0',
     icon: '\u2606',
     apps: [{
       id: 'parallel-universe-home',
