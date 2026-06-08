@@ -732,6 +732,7 @@
     '.pua-conv-status-error { color:var(--pua-danger); }',
     '.pua-conv-status-interrupted { color:var(--pua-text-dim); }',
     '.pua-conv-edit-mode { font-family:monospace; white-space:pre-wrap; background:var(--pua-bg-input); border:1px dashed var(--pua-border); border-radius:4px; padding:8px; }',
+    '.pua-conv-edit-textarea { width:100%; min-height:120px; font-family:monospace; font-size:12px; line-height:1.5; background:var(--pua-bg-input); color:var(--pua-text); border:1px solid var(--pua-border); border-radius:4px; padding:8px; resize:vertical; white-space:pre-wrap; word-break:break-all; }',
     '.pua-conv-alt-tabs { display:flex; gap:3px; margin-top:4px; }',
     '.pua-conv-alt-tab { font-size:8px; padding:1px 5px; border-radius:3px; border:1px solid var(--pua-border); background:var(--pua-bg-input); color:var(--pua-text-dim); cursor:pointer; }',
     '.pua-conv-alt-tab.active { border-color:var(--pua-accent); color:var(--pua-accent); background:var(--pua-accent-glow); }',
@@ -8875,8 +8876,14 @@
         content = msg.alternatives[altIdx - 1]
       }
       if (isEditing) {
-        // Edit mode: show completely raw content - no regex processing at all
-        h += '<div class="pua-conv-msg-content pua-conv-edit-mode">' + this._escHtml(content) + '</div>'
+        // Edit mode: editable textarea with action buttons
+        h += '<div class="pua-conv-msg-content pua-conv-edit-mode">'
+        h += '<textarea class="pua-conv-edit-textarea" id="edit-ta-' + this._escHtml(msg.id) + '">' + this._escHtml(content) + '</textarea>'
+        h += '<div style="display:flex;gap:6px;margin-top:6px">'
+        h += '<button class="pua-btn pua-btn-sm pua-btn-gold" data-action="saveEdit" data-msg-id="' + this._escHtml(msg.id) + '">保存</button>'
+        h += '<button class="pua-btn pua-btn-sm" data-action="cancelEdit" data-msg-id="' + this._escHtml(msg.id) + '">取消</button>'
+        h += '<button class="pua-btn pua-btn-sm" data-action="copyEdit" data-msg-id="' + this._escHtml(msg.id) + '">复制</button>'
+        h += '</div></div>'
       } else if (msg.rendered) {
         h += '<div class="pua-conv-msg-content">' + msg.rendered + '</div>'
       } else {
@@ -8884,7 +8891,13 @@
       }
     } else {
       if (isEditing) {
-        h += '<div class="pua-conv-msg-content pua-conv-edit-mode">' + this._escHtml(content) + '</div>'
+        h += '<div class="pua-conv-msg-content pua-conv-edit-mode">'
+        h += '<textarea class="pua-conv-edit-textarea" id="edit-ta-' + this._escHtml(msg.id) + '">' + this._escHtml(content) + '</textarea>'
+        h += '<div style="display:flex;gap:6px;margin-top:6px">'
+        h += '<button class="pua-btn pua-btn-sm pua-btn-gold" data-action="saveEdit" data-msg-id="' + this._escHtml(msg.id) + '">保存</button>'
+        h += '<button class="pua-btn pua-btn-sm" data-action="cancelEdit" data-msg-id="' + this._escHtml(msg.id) + '">取消</button>'
+        h += '<button class="pua-btn pua-btn-sm" data-action="copyEdit" data-msg-id="' + this._escHtml(msg.id) + '">复制</button>'
+        h += '</div></div>'
       } else {
         h += '<div class="pua-conv-msg-content">' + this._escHtml(content) + '</div>'
       }
@@ -8959,6 +8972,7 @@
           else if (action === 'viewctx') self._viewContext(msgId)
           else if (action === 'delete') self._deleteMessage(msgId)
           else if (action === 'toggleEdit') self._toggleEditMode(msgId)
+          else if (action === 'saveEdit' || action === 'cancelEdit' || action === 'copyEdit') self._handleEditAction(action, msgId)
         })
       })(actionBtns[ai])
     }
@@ -8974,6 +8988,19 @@
           self._switchAltVersion(msgId, altIdx)
         })
       })(altTabs[ti])
+    }
+
+    // Edit mode action buttons (save/cancel/copy) - use data-action attribute
+    var editBtns = contentEl.querySelectorAll('[data-action="saveEdit"], [data-action="cancelEdit"], [data-action="copyEdit"]')
+    for (var ei = 0; ei < editBtns.length; ei++) {
+      (function(btn) {
+        btn.addEventListener('click', function(e) {
+          e.stopPropagation()
+          var action = btn.getAttribute('data-action')
+          var msgId = btn.getAttribute('data-msg-id')
+          self._handleEditAction(action, msgId)
+        })
+      })(editBtns[ei])
     }
 
     // Long press to toggle edit mode
@@ -9522,6 +9549,16 @@
     // Re-bind message actions
     this._bindConvMessageActions(contentEl)
 
+    // Auto-focus textarea if in edit mode
+    if (this._editingMsgId) {
+      var editTa = chatEl.querySelector('#edit-ta-' + this._editingMsgId)
+      if (editTa) {
+        var len = editTa.value.length
+        editTa.focus()
+        editTa.setSelectionRange(len, len)
+      }
+    }
+
     // Re-bind load more
     var loadMoreBtn = chatEl.querySelector('#conv-load-more')
     var self = this
@@ -9694,47 +9731,47 @@
     } else {
       this._editingMsgId = msgId
     }
-    var newMode = this._editingMsgId
-    console.log('[PUA] _toggleEditMode result, editingMsgId=' + newMode)
-    // Local update: only modify the target message's content area, no full rebuild
+    console.log('[PUA] _toggleEditMode result, editingMsgId=' + this._editingMsgId)
+    // Re-render messages (preserves scroll position)
     var contentEl = this._contentEl
-    if (!contentEl) { console.warn('[PUA] _toggleEditMode: contentEl is null'); return }
-    var msgEl = contentEl.querySelector('[data-msg-id="' + msgId + '"]')
-    if (!msgEl) { console.warn('[PUA] _toggleEditMode: msgEl not found for id=' + msgId); return }
-    var contentDiv = msgEl.querySelector('.pua-conv-msg-content')
-    if (!contentDiv) { console.warn('[PUA] _toggleEditMode: contentDiv not found'); return }
+    if (contentEl) this._renderConvMessages(contentEl)
+  }
 
-    // Find the message object
-    var msg = null
-    for (var i = 0; i < this._convMessages.length; i++) {
-      if (this._convMessages[i].id === msgId) { msg = this._convMessages[i]; break }
-    }
-    if (!msg) { console.warn('[PUA] _toggleEditMode: msg not found in _convMessages'); return }
+  P._handleEditAction = function(action, msgId) {
+    var contentEl = this._contentEl
+    if (!contentEl) return
+    var self = this
 
-    if (newMode === msgId) {
-      // Enter edit mode: show raw content
-      console.log('[PUA] Entering edit mode for msg ' + msgId)
-      contentDiv.className = 'pua-conv-msg-content pua-conv-edit-mode'
-      contentDiv.innerHTML = this._escHtml(msg.content || '')
-    } else {
-      // Exit edit mode: restore rendered view
-      console.log('[PUA] Exiting edit mode for msg ' + msgId)
-      contentDiv.className = 'pua-conv-msg-content'
-      var c = msg.content || ''
-      if (msg.role === 'assistant') {
-        var altIdx = msg.activeAltIndex || 0
-        if (msg.alternatives && msg.alternatives.length > 0 && altIdx > 0 && msg.alternatives[altIdx - 1]) {
-          c = msg.alternatives[altIdx - 1]
+    if (action === 'saveEdit') {
+      var ta = contentEl.querySelector('#edit-ta-' + msgId)
+      if (!ta) return
+      var newContent = ta.value
+      for (var i = 0; i < this._convMessages.length; i++) {
+        if (this._convMessages[i].id === msgId) {
+          this._convMessages[i].content = newContent
+          if (this._convMessages[i].role === 'assistant') {
+            this._convMessages[i].rendered = this._applyConvRegexRender(newContent)
+          }
+          break
         }
-        contentDiv.innerHTML = msg.rendered || this._escHtml(c)
+      }
+      this._saveConvMessages()
+      this._editingMsgId = null
+      this._renderConvMessages(contentEl)
+      this._toast('已保存')
+    } else if (action === 'cancelEdit') {
+      this._editingMsgId = null
+      this._renderConvMessages(contentEl)
+    } else if (action === 'copyEdit') {
+      var ta2 = contentEl.querySelector('#edit-ta-' + msgId)
+      if (!ta2) return
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(ta2.value).then(function() { self._toast('已复制') })
       } else {
-        contentDiv.innerHTML = this._escHtml(c)
+        ta2.select()
+        try { document.execCommand('copy'); self._toast('已复制') } catch(e2) { self._toast('复制失败') }
       }
     }
-
-    // Update toggle button text
-    var toggleBtn = msgEl.querySelector('[data-action="toggleEdit"]')
-    if (toggleBtn) toggleBtn.textContent = newMode ? '预览' : '源码'
   }
 
   /* ── Switch alternative version ── */
