@@ -5361,30 +5361,58 @@
     this.roche.storage.get('pua_asm_order').then(function(data) {
       if (data && data.order && data.order.length) {
         self.asmOrder = data.order
-        // 迁移：如果保存的顺序中没有 recall，自动补上（在 memory-fact 之后）
+        // \u8FC1\u79FB\uFF1A\u5982\u679C\u4FDD\u5B58\u7684\u987A\u5E8F\u4E2D\u6CA1\u6709 recall\uFF0C\u81EA\u52A8\u8865\u4E0A\uFF08\u5728 memory-fact \u4E4B\u540E\uFF09
         var hasRecall = false
         for (var i = 0; i < self.asmOrder.length; i++) {
           if (self.asmOrder[i].type === 'recall') { hasRecall = true; break }
         }
         if (!hasRecall) {
-          // 在 memory-fact 后面插入 recall
           for (var j = 0; j < self.asmOrder.length; j++) {
             if (self.asmOrder[j].type === 'memory-fact') {
               self.asmOrder.splice(j + 1, 0, { type: 'recall', id: 'recall' })
               break
             }
           }
-          // 如果连 memory-fact 都没有，就追加到末尾
-          if (!hasRecall) {
-            hasRecall = false
-            for (var k = 0; k < self.asmOrder.length; k++) {
-              if (self.asmOrder[k].type === 'recall') { hasRecall = true; break }
-            }
-            if (!hasRecall) self.asmOrder.push({ type: 'recall', id: 'recall' })
+          var hasRecall2 = false
+          for (var k = 0; k < self.asmOrder.length; k++) {
+            if (self.asmOrder[k].type === 'recall') { hasRecall2 = true; break }
           }
+          if (!hasRecall2) self.asmOrder.push({ type: 'recall', id: 'recall' })
         }
+        // \u6821\u9A8C\uFF1A\u68C0\u67E5 asmOrder \u4E2D\u7684\u9884\u8BBE ID \u662F\u5426\u5B58\u5728\u4E8E this.presets\uFF0C\u4E0D\u5339\u914D\u5219\u91CD\u5EFA
+        self._validateAsmOrder()
       }
     }).catch(function() {})
+  }
+
+  P._validateAsmOrder = function() {
+    var presetIds = {}
+    for (var i = 0; i < this.presets.length; i++) {
+      presetIds[this.presets[i].id] = true
+    }
+    var needRebuild = false
+    for (var j = 0; j < this.asmOrder.length; j++) {
+      if (this.asmOrder[j].type === 'preset' && !presetIds[this.asmOrder[j].id]) {
+        needRebuild = true
+        break
+      }
+    }
+    // \u4E5F\u68C0\u67E5\u662F\u5426\u6709\u65B0\u9884\u8BBE\u4E0D\u5728 asmOrder \u4E2D
+    var asmPresetIds = {}
+    for (var m = 0; m < this.asmOrder.length; m++) {
+      if (this.asmOrder[m].type === 'preset') asmPresetIds[this.asmOrder[m].id] = true
+    }
+    for (var n = 0; n < this.presets.length; n++) {
+      if (this.presets[n].on && !asmPresetIds[this.presets[n].id]) {
+        needRebuild = true
+        break
+      }
+    }
+    if (needRebuild) {
+      console.log('[PUA] _validateAsmOrder: rebuilding asmOrder (preset IDs mismatch)')
+      this.asmOrder = this._defaultAsmOrder()
+      this._saveAsmOrder()
+    }
   }
 
   P._saveAsmOrder = function() {
@@ -6425,6 +6453,21 @@
     var order = this.asmOrder
     if (!order || order.length === 0) {
       order = this._defaultAsmOrder()
+      this.asmOrder = order
+      this._saveAsmOrder()
+    }
+    // \u5146\u5E95\u6821\u9A8C\uFF1A\u5982\u679C asmOrder \u4E2D\u7684\u9884\u8BBE ID \u4E0E this.presets \u4E0D\u5339\u914D\uFF0C\u76F4\u63A5\u91CD\u5EFA
+    var presetIds = {}
+    for (var vi = 0; vi < this.presets.length; vi++) { presetIds[this.presets[vi].id] = true }
+    var needRebuild = false
+    for (var vj = 0; vj < order.length; vj++) {
+      if (order[vj].type === 'preset' && !presetIds[order[vj].id]) { needRebuild = true; break }
+    }
+    if (needRebuild) {
+      console.log('[PUA] _buildMessages: asmOrder preset IDs mismatch, rebuilding')
+      order = this._defaultAsmOrder()
+      this.asmOrder = order
+      this._saveAsmOrder()
     }
     console.log('[PUA] _buildMessages: asmOrder length=' + order.length + ' presets length=' + this.presets.length)
     // \u8BCA\u65AD\uFF1A\u6253\u5370 asmOrder \u4E2D\u7684 preset \u6761\u76EE\u548C this.presets \u7684 ID
