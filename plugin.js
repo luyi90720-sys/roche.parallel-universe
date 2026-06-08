@@ -9454,7 +9454,14 @@
       result = result.replace('\x01R' + k + 'R\x01', replacements[k])
     }
     // Hide <> tags but preserve their content (e.g. <nexus>1</nexus> → 1)
-    result = result.replace(/&lt;\/?[^&]*?&gt;/g, '')
+    // Use a non-backtracking pattern: match &lt; then non-& chars then &gt;
+    // Avoid [^&]*? which causes catastrophic backtracking on long &lt; sequences
+    result = result.replace(/&lt;[^&]*&gt;/g, function(tag) {
+      // If it's a closing tag like &lt;/foo&gt;, remove it entirely
+      if (tag.indexOf('&lt;/') === 0) return ''
+      // If it's an opening/self-closing tag, remove it entirely too
+      return ''
+    })
     return result
   }
 
@@ -12655,7 +12662,7 @@
   window.RochePlugin.register({
     id: 'parallel-universe',
     name: '\u5E73\u884C\u65F6\u7A7A\u6863\u6848\u9986',
-    version: '0.23.2',
+    version: '0.23.3',
     icon: '\u2606',
     apps: [{
       id: 'parallel-universe-home',
