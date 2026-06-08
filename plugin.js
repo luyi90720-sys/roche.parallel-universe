@@ -744,6 +744,8 @@
     '.pua-conv-send { padding:8px 16px; border-radius:8px; border:none; background:linear-gradient(135deg,var(--pua-accent-dim),var(--pua-accent)); color:#121216; font-size:13px; font-weight:600; cursor:pointer; transition:var(--pua-transition); align-self:flex-end; }',
     '.pua-conv-send:hover { opacity:0.9; }',
     '.pua-conv-send:disabled { opacity:0.4; cursor:default; }',
+    '.pua-conv-regen-btn { padding:8px 12px; border-radius:8px; border:1px solid var(--pua-border); background:var(--pua-bg-card); color:var(--pua-text-sub); font-size:16px; cursor:pointer; transition:var(--pua-transition); align-self:flex-end; }',
+    '.pua-conv-regen-btn:hover { border-color:var(--pua-accent); color:var(--pua-accent); }',
     '.pua-conv-input-btns { display:flex; gap:4px; margin-top:6px; align-items:center; }',
     '.pua-conv-input-btn { font-size:10px; padding:3px 8px; border-radius:4px; border:1px solid var(--pua-border); background:var(--pua-bg-card); color:var(--pua-text-sub); cursor:pointer; transition:var(--pua-transition); }',
     '.pua-conv-input-btn:hover { border-color:var(--pua-accent); color:var(--pua-text); }',
@@ -8746,6 +8748,7 @@
     // Input area
     h += '<div class="pua-conv-input-area">'
     h += '<div class="pua-conv-input-row">'
+    h += '<button class="pua-conv-regen-btn" id="conv-regen" title="\u91CD\u65B0\u751F\u6210\u6700\u540E\u4E00\u6761\u56DE\u590D">\u21BB</button>'
     h += '<textarea class="pua-conv-input" id="conv-input" placeholder="\u8F93\u5165\u6D88\u606F..." rows="2"></textarea>'
     h += '<button class="pua-conv-send" id="conv-send">\u27A4</button>'
     h += '</div>'
@@ -8800,9 +8803,31 @@
       })
     }
 
-    // Send button
+    // Send button: if input has text, send new message; if empty and last msg is user, regenerate
     if (sendBtn) {
-      sendBtn.addEventListener('click', function() { self._sendMessage(contentEl) })
+      sendBtn.addEventListener('click', function() {
+        if (inputEl && inputEl.value.trim()) {
+          self._sendMessage(contentEl)
+        } else {
+          // No text in input: if last message is user (no assistant reply), regenerate
+          var msgs = self._convMessages
+          if (msgs.length > 0) {
+            var lastMsg = msgs[msgs.length - 1]
+            if (lastMsg.role === 'user' && !self._convSending) {
+              self._regenerateFromLastUser(contentEl)
+            }
+          }
+        }
+      })
+    }
+
+    // Regenerate button: always regenerate from last user message
+    var regenBtn = contentEl.querySelector('#conv-regen')
+    if (regenBtn) {
+      regenBtn.addEventListener('click', function() {
+        if (self._convSending) return
+        self._regenerateFromLastUser(contentEl)
+      })
     }
 
     // Settings panel toggle
@@ -9257,8 +9282,8 @@
     this._convSending = true
     this._convStreamingMsg = astMsg
 
-    // Re-render to show user message + typing indicator
-    this._renderConvMessages(contentEl)
+    // Re-render to show user message + typing indicator (keep scroll position)
+    this._renderConvMessages(contentEl, true)
 
     // Build context
     var messages = this._buildConvContext()
@@ -9588,12 +9613,12 @@
     }
   }
 
-  P._renderConvMessages = function(contentEl) {
-    console.log('[PUA] _renderConvMessages called')
+  P._renderConvMessages = function(contentEl, keepPosition) {
+    console.log('[PUA] _renderConvMessages called, keepPosition=' + keepPosition)
     var chatEl = contentEl.querySelector('#conv-chat')
     if (!chatEl) return
 
-    // \u4FDD\u5B58\u5F53\u524D\u6EDA\u52A8\u4F4D\u7F6E
+    // Save current scroll position
     var savedScrollTop = chatEl.scrollTop
     var savedScrollHeight = chatEl.scrollHeight
     var wasAtBottom = (savedScrollTop + chatEl.clientHeight >= savedScrollHeight - 50)
@@ -9650,13 +9675,17 @@
     var countEl = contentEl.querySelector('#conv-msg-count')
     if (countEl) countEl.textContent = msgs.length + ' \u6761'
 
-    // \u6062\u590D\u6EDA\u52A8\u4F4D\u7F6E\uFF1A\u5982\u679C\u4E4B\u524D\u5728\u5E95\u90E8\u5219\u6EDA\u5230\u5E95\u90E8\uFF0C\u5426\u5219\u4FDD\u6301\u539F\u4F4D\u7F6E
-    if (wasAtBottom || this._convAutoScroll) {
-      chatEl.scrollTop = chatEl.scrollHeight
-    } else {
-      // \u4FDD\u6301\u76F8\u5BF9\u4F4D\u7F6E\uFF1A\u65B0\u5185\u5BB9\u9AD8\u5EA6\u53D8\u5316\u65F6\u8C03\u6574 scrollTop
+    // Restore scroll position
+    if (keepPosition) {
+      // Keep relative position: adjust for height changes
       var newScrollHeight = chatEl.scrollHeight
       chatEl.scrollTop = savedScrollTop + (newScrollHeight - savedScrollHeight)
+    } else if (wasAtBottom || this._convAutoScroll) {
+      chatEl.scrollTop = chatEl.scrollHeight
+    } else {
+      // Keep relative position: adjust for height changes
+      var newScrollHeight2 = chatEl.scrollHeight
+      chatEl.scrollTop = savedScrollTop + (newScrollHeight2 - savedScrollHeight)
     }
 
     // Apply saved font size to conversation messages
@@ -9669,7 +9698,78 @@
     }
   }
 
-  /* ── Regenerate message ── */
+  /* ── Regenerate from last user message ── */
+
+  P._regenerateFromLastUser = function(contentEl) {
+    var self = this
+    var msgs = this._convMessages
+    if (msgs.length === 0) return
+
+    // Find the last user message
+    var lastUserIdx = -1
+    for (var i = msgs.length - 1; i >= 0; i--) {
+      if (msgs[i].role === 'user' && !msgs[i].dimmed) { lastUserIdx = i; break }
+    }
+    if (lastUserIdx < 0) { this._toast('\u6CA1\u6709\u53EF\u91CD\u65B0\u751F\u6210\u7684\u6D88\u606F'); return }
+
+    var astMsg = null
+
+    // Check if there's an assistant message right after the last user message
+    if (lastUserIdx + 1 < msgs.length && msgs[lastUserIdx + 1].role === 'assistant') {
+      astMsg = msgs[lastUserIdx + 1]
+      // Save current content as alternative version
+      if (!astMsg.alternatives) astMsg.alternatives = []
+      if (astMsg.content) astMsg.alternatives.push(astMsg.content)
+    } else {
+      // No assistant message yet, create one
+      astMsg = this._createMessage('assistant', '', 'live')
+      astMsg.floorNumber = msgs.length + 1
+      msgs.splice(lastUserIdx + 1, 0, astMsg)
+      // Re-assign floor numbers
+      for (var fi = 0; fi < msgs.length; fi++) { msgs[fi].floorNumber = fi + 1 }
+    }
+
+    this._convSending = true
+    this._convStreamingMsg = astMsg
+    astMsg.content = ''
+    astMsg.rendered = null
+
+    // Build context up to the last user message
+    var upToMsgId = msgs[lastUserIdx].id
+    var messages = this._buildConvContext(upToMsgId)
+    console.log('[PUA] _regenerateFromLastUser: upToMsgId=' + upToMsgId + ' contextLen=' + messages.length)
+
+    // Re-render to show typing indicator (keep scroll position)
+    this._renderConvMessages(contentEl, true)
+
+    this._streamChat(messages).then(function(fullContent) {
+      astMsg.content = fullContent
+      astMsg.activeAltIndex = astMsg.alternatives ? astMsg.alternatives.length : 0
+      astMsg.rendered = self._applyConvRegexRender(fullContent)
+      self._convSending = false
+      self._convStreamingMsg = null
+      self._saveConvMessages()
+      var contentEl = self._contentEl
+      if (contentEl) self._renderConvMessages(contentEl)
+    }).catch(function(err) {
+      // Restore from alternatives on error
+      if (astMsg.alternatives && astMsg.alternatives.length > 0) {
+        astMsg.content = astMsg.alternatives.pop()
+        astMsg.activeAltIndex = astMsg.alternatives.length
+      } else {
+        astMsg.content = '[\u9519\u8BEF] ' + (err.message || err)
+      }
+      astMsg.rendered = self._applyConvRegexRender(astMsg.content)
+      self._convSending = false
+      self._convStreamingMsg = null
+      self._saveConvMessages()
+      var contentEl = self._contentEl
+      if (contentEl) self._renderConvMessages(contentEl)
+      self._toast('\u91CD\u65B0\u751F\u6210\u5931\u8D25: ' + (err.message || err))
+    })
+  }
+
+  /* ── Regenerate message (per-message action) ── */
 
   P._regenerateMessage = function(msgId) {
     var self = this
@@ -9734,11 +9834,9 @@
   /* ── Edit & Resend ── */
 
   P._editMessage = function(msgId) {
-    // Enter edit mode for user message (same as toggleEditMode)
-    // This just sets _editingMsgId, the textarea + save/cancel buttons are rendered by _renderConvMessage
     this._editingMsgId = msgId
     var contentEl = this._contentEl
-    if (contentEl) this._renderConvMessages(contentEl)
+    if (contentEl) this._renderConvMessages(contentEl, true)
   }
 
   P._deleteMessage = function(msgId) {
@@ -9812,7 +9910,7 @@
     console.log('[PUA] _toggleEditMode result, editingMsgId=' + this._editingMsgId)
     // Re-render messages (preserves scroll position)
     var contentEl = this._contentEl
-    if (contentEl) this._renderConvMessages(contentEl)
+    if (contentEl) this._renderConvMessages(contentEl, true)
   }
 
   P._handleEditAction = function(action, msgId) {
@@ -9843,11 +9941,11 @@
       }
       this._saveConvMessages()
       this._editingMsgId = null
-      this._renderConvMessages(contentEl)
+      this._renderConvMessages(contentEl, true)
       this._toast('\u5DF2\u4FDD\u5B58')
     } else if (action === 'cancelEdit') {
       this._editingMsgId = null
-      this._renderConvMessages(contentEl)
+      this._renderConvMessages(contentEl, true)
     } else if (action === 'copyEdit') {
       var ta2 = contentEl.querySelector('#edit-ta-' + msgId)
       if (!ta2) return
