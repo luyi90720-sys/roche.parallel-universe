@@ -5432,6 +5432,7 @@
     order.push({ type: 'memory-fact', id: 'memory-fact' })
     order.push({ type: 'recall', id: 'recall' })
     order.push({ type: 'chat', id: 'chat' })
+    order.push({ type: 'latestUserPrompt', id: 'latestUserPrompt' })
     order.push({ type: 'world-mid', id: 'world-mid' })
     order.push({ type: 'world-post', id: 'world-post' })
     return order
@@ -5460,6 +5461,24 @@
             if (self.asmOrder[k].type === 'recall') { hasRecall2 = true; break }
           }
           if (!hasRecall2) self.asmOrder.push({ type: 'recall', id: 'recall' })
+        }
+        // \u8FC1\u79FB\uFF1A\u5982\u679C\u4FDD\u5B58\u7684\u987A\u5E8F\u4E2D\u6CA1\u6709 latestUserPrompt\uFF0C\u81EA\u52A8\u8865\u4E0A\uFF08\u5728 chat \u4E4B\u540E\uFF09
+        var hasLUP = false
+        for (var m = 0; m < self.asmOrder.length; m++) {
+          if (self.asmOrder[m].type === 'latestUserPrompt') { hasLUP = true; break }
+        }
+        if (!hasLUP) {
+          for (var n = 0; n < self.asmOrder.length; n++) {
+            if (self.asmOrder[n].type === 'chat') {
+              self.asmOrder.splice(n + 1, 0, { type: 'latestUserPrompt', id: 'latestUserPrompt' })
+              break
+            }
+          }
+          var hasLUP2 = false
+          for (var p = 0; p < self.asmOrder.length; p++) {
+            if (self.asmOrder[p].type === 'latestUserPrompt') { hasLUP2 = true; break }
+          }
+          if (!hasLUP2) self.asmOrder.push({ type: 'latestUserPrompt', id: 'latestUserPrompt' })
         }
         // \u6821\u9A8C\uFF1A\u68C0\u67E5 asmOrder \u4E2D\u7684\u9884\u8BBE ID \u662F\u5426\u5B58\u5728\u4E8E this.presets\uFF0C\u4E0D\u5339\u914D\u5219\u91CD\u5EFA
         self._validateAsmOrder()
@@ -6308,6 +6327,14 @@
           meta = chatCount + ' \u6761'
           body = '\u53D7\u6DF1\u5EA6\u8FC7\u6EE4 \xB7 \u70B9\u51FB\u67E5\u770B \xB7 \u53EF\u62D6\u62FD'
           break
+        case 'latestUserPrompt':
+          typeClass = 'asm-type-chat'
+          var lpSettings = this._loadSettings()
+          var lpPreview = (lpSettings.latestUserPrompt || '').substring(0, 50)
+          title = '\u6700\u65B0\u7528\u6237\u8F93\u5165\u63D0\u793A\u8BCD'
+          meta = lpPreview ? '\u2713' : '\u672A\u8BBE\u7F6E'
+          body = '\u70B9\u51FB\u7F16\u8F91 \xB7 \u53EF\u62D6\u62FD'
+          break
       }
 
       if (!typeClass) continue
@@ -6588,6 +6615,15 @@
         }
         h += '</div>'
         break
+      case 'latestUserPrompt':
+        var lpSettings = this._loadSettings()
+        var lpValue = lpSettings.latestUserPrompt || ''
+        h += '<div class="pua-field"><div class="pua-field-label">\u6700\u65B0\u7528\u6237\u8F93\u5165\u63D0\u793A\u8BCD <span style="font-size:9px;opacity:0.6">({content} = \u7528\u6237\u8F93\u5165)</span></div>'
+        h += '<textarea class="pua-detail-textarea asm-edit-latestprompt" style="min-height:120px">' + this._escHtml(lpValue) + '</textarea></div>'
+        h += '<div style="font-size:10px;color:var(--pua-text-dim);margin-bottom:8px">\u6E05\u7A7A\u5219\u4E0D\u5305\u88C5\u6700\u65B0\u7528\u6237\u8F93\u5165\u3002\u4F7F\u7528 {content} \u4F5C\u4E3A\u7528\u6237\u8F93\u5165\u5185\u5BB9\u7684\u5360\u4F4D\u7B26\u3002</div>'
+        h += '<div style="text-align:right;margin-top:8px">'
+        h += '<button class="pua-btn pua-btn-gold asm-edit-lp-save">\u4FDD\u5B58</button></div>'
+        break
     }
 
     this._openModal('\u8BE6\u60C5 - ' + type, h)
@@ -6617,9 +6653,26 @@
         })
       }
     }
-  }
 
-  /* ── 预览最终组装的 messages ── */
+    // Bind latestUserPrompt edit save button
+    if (type === 'latestUserPrompt') {
+      var lpSaveBtn = this._modalOverlay ? this._modalOverlay.querySelector('.asm-edit-lp-save') : null
+      if (lpSaveBtn) {
+        lpSaveBtn.addEventListener('click', function() {
+          var modal = self._modalOverlay
+          var lpTextarea = modal ? modal.querySelector('.asm-edit-latestprompt') : null
+          if (lpTextarea) {
+            var s = self._loadSettings()
+            s.latestUserPrompt = lpTextarea.value
+            self._saveSettings(s)
+            self._closeModal()
+            self._toast('\u6700\u65B0\u7528\u6237\u8F93\u5165\u63D0\u793A\u8BCD\u5DF2\u4FDD\u5B58')
+            self._render()
+          }
+        })
+      }
+    }
+  }
   P._previewAssembly = function() {
     var messages = this._buildMessages()
     var h = '<div style="font-family:monospace;font-size:11px;line-height:1.6;white-space:pre-wrap;word-break:break-all;max-height:60vh;overflow-y:auto;">'
@@ -6659,6 +6712,8 @@
   P._buildMessages = function(skipChat, convMsgs, upToMsgId) {
     var messages = []
     var self = this
+    // Reset last user message tracking for latestUserPrompt
+    this._lastUserMsgContent = null
     var order = this.asmOrder
     if (!order || order.length === 0) {
       order = this._defaultAsmOrder()
@@ -6830,11 +6885,6 @@
             }
             var cStart = Math.max(0, endIdx - depth)
             console.log('[PUA] _buildMessages chat: depth=' + depth + ' convMsgs=' + convMsgs.length + ' endIdx=' + endIdx + ' cStart=' + cStart + ' range=' + (endIdx - cStart))
-            // Find the last user message index in the range for latestUserPrompt
-            var lastUserIdx = -1
-            for (var lui = cStart; lui < endIdx; lui++) {
-              if (convMsgs[lui].role === 'user' && !convMsgs[lui].dimmed) lastUserIdx = lui
-            }
             // Calculate assistant message depth (0 = most recent assistant msg)
             var assistantDepthMap = {}
             var assistantCount = 0
@@ -6844,7 +6894,6 @@
                 assistantCount++
               }
             }
-            var latestPromptTpl = (this._loadSettings().latestUserPrompt || '').trim()
             for (var cmi = cStart; cmi < endIdx; cmi++) {
               var cm = convMsgs[cmi]
               if (cm.dimmed) continue
@@ -6855,14 +6904,12 @@
               var msgDepth = cm.role === 'assistant' ? (assistantDepthMap[cmi] !== undefined ? assistantDepthMap[cmi] : 0) : -1
               cContent = this._applyConvFilterRegex(cContent, cm.role, msgDepth)
               if (cContent) {
-                // If this is the last user message and template is set, wrap with template
-                if (cmi === lastUserIdx && latestPromptTpl) {
-                  var wrappedContent = latestPromptTpl.split('{content}').join(cContent)
-                  messages.push({ role: 'user', content: wrappedContent })
-                } else {
-                  var cIdx = messages.length
-                  messages.push({ role: cm.role, content: cContent })
-                  if (cm.role === 'assistant') chatAssistantIndices.push(cIdx)
+                var cIdx = messages.length
+                messages.push({ role: cm.role, content: cContent })
+                if (cm.role === 'assistant') chatAssistantIndices.push(cIdx)
+                // Track the last user message for latestUserPrompt
+                if (cm.role === 'user') {
+                  this._lastUserMsgContent = cContent
                 }
               }
             }
@@ -6883,6 +6930,15 @@
                 if (role === 'assistant') chatAssistantIndices.push(idx)
               }
             }
+          }
+          break
+        case 'latestUserPrompt':
+          // Insert the latest user message wrapped with the prompt template
+          var lpTpl = (this._loadSettings().latestUserPrompt || '').trim()
+          if (lpTpl && this._lastUserMsgContent) {
+            var wrappedContent = lpTpl.split('{content}').join(this._lastUserMsgContent)
+            messages.push({ role: 'user', content: wrappedContent })
+            console.log('[PUA] _buildMessages latestUserPrompt: inserted wrapped user msg, len=' + wrappedContent.length)
           }
           break
       }
@@ -12820,7 +12876,7 @@
   window.RochePlugin.register({
     id: 'parallel-universe',
     name: '\u5E73\u884C\u65F6\u7A7A\u6863\u6848\u9986',
-    version: '0.26.0',
+    version: '0.27.0',
     icon: '\u2606',
     apps: [{
       id: 'parallel-universe-home',
