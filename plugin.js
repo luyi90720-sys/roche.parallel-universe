@@ -6826,6 +6826,7 @@
               }
             }
             var cStart = Math.max(0, endIdx - depth)
+            console.log('[PUA] _buildMessages chat: depth=' + depth + ' convMsgs=' + convMsgs.length + ' endIdx=' + endIdx + ' cStart=' + cStart + ' range=' + (endIdx - cStart))
             // Find the last user message index in the range for latestUserPrompt
             var lastUserIdx = -1
             for (var lui = cStart; lui < endIdx; lui++) {
@@ -6892,6 +6893,7 @@
       }
 
       // Apply preset outRegex/inRegex: only on chat assistant messages
+      // First pass: apply all outRegex (blacklist) sequentially
       for (var pri = 0; pri < this.presets.length; pri++) {
         var pr = this.presets[pri]
         if (pr.outRegex && pr.outRegexOn) {
@@ -6903,29 +6905,41 @@
             }
           } catch(e) {}
         }
-        if (pr.inRegex && pr.inRegexOn) {
-          try {
-            var ire = new RegExp(pr.inRegex, 'g')
-            for (var iai = 0; iai < chatAssistantIndices.length; iai++) {
-              var iIdx = chatAssistantIndices[iai]
-              var iMatches = []
-              var im
-              var lastIdx = 0
-              while ((im = ire.exec(messages[iIdx].content)) !== null) {
-                // Prevent infinite loop: if match is empty and lastIndex didn't advance, skip forward
-                if (im[0].length === 0 && ire.lastIndex <= lastIdx) {
-                  ire.lastIndex = lastIdx + 1
+      }
+      // Second pass: apply all inRegex (whitelist) as UNION on each message
+      var hasInRegex2 = false
+      for (var ci2 = 0; ci2 < this.presets.length; ci2++) {
+        if (this.presets[ci2].inRegex && this.presets[ci2].inRegexOn) { hasInRegex2 = true; break }
+      }
+      if (hasInRegex2) {
+        for (var iai2 = 0; iai2 < chatAssistantIndices.length; iai2++) {
+          var iIdx2 = chatAssistantIndices[iai2]
+          var allMatches = []
+          for (var pi3 = 0; pi3 < this.presets.length; pi3++) {
+            var pr3 = this.presets[pi3]
+            if (pr3.inRegex && pr3.inRegexOn) {
+              try {
+                var ire = new RegExp(pr3.inRegex, 'g')
+                var iMatches = []
+                var im
+                var lastIdx = 0
+                while ((im = ire.exec(messages[iIdx2].content)) !== null) {
+                  if (im[0].length === 0 && ire.lastIndex <= lastIdx) {
+                    ire.lastIndex = lastIdx + 1
+                  }
+                  lastIdx = ire.lastIndex
+                  iMatches.push(im[0])
+                  if (iMatches.length > 10000) break
                 }
-                lastIdx = ire.lastIndex
-                iMatches.push(im[0])
-                // Safety: limit matches to prevent runaway
-                if (iMatches.length > 10000) break
-              }
-              if (iMatches.length > 0) {
-                messages[iIdx].content = iMatches.join('')
-              }
+                if (iMatches.length > 0) {
+                  allMatches = allMatches.concat(iMatches)
+                }
+              } catch(e) {}
             }
-          } catch(e) {}
+          }
+          if (allMatches.length > 0) {
+            messages[iIdx2].content = allMatches.join('')
+          }
         }
       }
     }
@@ -9425,6 +9439,7 @@
     }
     // Apply preset outRegex/inRegex for assistant messages
     if (role === 'assistant') {
+      // First pass: apply all outRegex (blacklist) sequentially
       for (var pi = 0; pi < this.presets.length; pi++) {
         var pr = this.presets[pi]
         if (pr.outRegex && pr.outRegexOn) {
@@ -9434,31 +9449,47 @@
             if (text.length !== b2) console.log('[PUA] _applyConvFilterRegex: pr[' + pi + '] outRx len ' + b2 + '->' + text.length + ' t=' + (pr.title||'?'))
           } catch(e) {}
         }
-        if (pr.inRegex && pr.inRegexOn) {
-          try {
-            var b3 = text.length
-            var iRe = new RegExp(pr.inRegex, 'g')
-            var iM = []
-            var im2
-            var lastIdx2 = 0
-            while ((im2 = iRe.exec(text)) !== null) {
-              // Prevent infinite loop: if match is empty and lastIndex didn't advance, skip forward
-              if (im2[0].length === 0 && iRe.lastIndex <= lastIdx2) {
-                iRe.lastIndex = lastIdx2 + 1
+      }
+      // Second pass: apply all inRegex (whitelist) as UNION - collect matches from ORIGINAL text
+      // Multiple inRegex rules should work together: keep content matching ANY of them
+      var hasInRegex = false
+      for (var ci = 0; ci < this.presets.length; ci++) {
+        if (this.presets[ci].inRegex && this.presets[ci].inRegexOn) { hasInRegex = true; break }
+      }
+      if (hasInRegex) {
+        // Apply outRegex first to get the filtered text, then apply inRegex on that
+        var outFilteredText = text
+        var allInMatches = []
+        for (var pi2 = 0; pi2 < this.presets.length; pi2++) {
+          var pr2 = this.presets[pi2]
+          if (pr2.inRegex && pr2.inRegexOn) {
+            try {
+              var iRe = new RegExp(pr2.inRegex, 'g')
+              var iM = []
+              var im2
+              var lastIdx2 = 0
+              while ((im2 = iRe.exec(outFilteredText)) !== null) {
+                if (im2[0].length === 0 && iRe.lastIndex <= lastIdx2) {
+                  iRe.lastIndex = lastIdx2 + 1
+                }
+                lastIdx2 = iRe.lastIndex
+                iM.push(im2[0])
+                if (iM.length > 10000) break
               }
-              lastIdx2 = iRe.lastIndex
-              iM.push(im2[0])
-              // Safety: limit matches to prevent runaway
-              if (iM.length > 10000) break
-            }
-            if (iM.length > 0) {
-              // \u6709\u5339\u914D\uFF1A\u53EA\u4FDD\u7559\u5339\u914D\u5230\u7684\u5185\u5BB9
-              text = iM.join('')
-            }
-            // \u65E0\u5339\u914D\uFF1A\u4FDD\u7559\u539F\u6D88\u606F\u4E0D\u53D8\uFF08\u4E0D\u8FC7\u6EE4\u4E3A\u7A7A\uFF09
-            if (text.length !== b3) console.log('[PUA] _applyConvFilterRegex: pr[' + pi + '] inRx len ' + b3 + '->' + text.length + ' m=' + iM.length + ' t=' + (pr.title||'?'))
-          } catch(e) {}
+              if (iM.length > 0) {
+                console.log('[PUA] _applyConvFilterRegex: pr[' + pi2 + '] inRx matched ' + iM.length + ' t=' + (pr2.title||'?'))
+                allInMatches = allInMatches.concat(iM)
+              }
+            } catch(e) {}
+          }
         }
+        // If any inRegex matched, keep only the union of all matches
+        if (allInMatches.length > 0) {
+          var b4 = text.length
+          text = allInMatches.join('')
+          if (text.length !== b4) console.log('[PUA] _applyConvFilterRegex: inRegex union len ' + b4 + '->' + text.length + ' total=' + allInMatches.length)
+        }
+        // If no inRegex matched at all, keep the outRegex-filtered text as-is
       }
     }
     return text
@@ -12703,7 +12734,7 @@
   window.RochePlugin.register({
     id: 'parallel-universe',
     name: '\u5E73\u884C\u65F6\u7A7A\u6863\u6848\u9986',
-    version: '0.24.1',
+    version: '0.24.2',
     icon: '\u2606',
     apps: [{
       id: 'parallel-universe-home',
