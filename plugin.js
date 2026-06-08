@@ -6280,14 +6280,18 @@
             }
           }
           var charDisplay = charObj ? (charObj.handle || charObj.name) : '\u672A\u52A0\u8F7D'
+          var charTplPreview = (this._loadSettings().charPrompt || '').trim()
           title = '\u89D2\u8272\u5361 \xB7 ' + this._escHtml(charDisplay)
-          body = '\u70B9\u51FB\u67E5\u770B \xB7 \u53EF\u62D6\u62FD'
+          meta = charTplPreview ? '\u2713 \u63D0\u793A\u8BCD' : '\u65E0\u63D0\u793A\u8BCD'
+          body = '\u70B9\u51FB\u7F16\u8F91\u63D0\u793A\u8BCD \xB7 \u53EF\u62D6\u62FD'
           break
         case 'user':
           typeClass = 'asm-type-user'
           var userDisplay = this.asmData.userPersona ? (this.asmData.userPersona.name || 'User') : '\u672A\u52A0\u8F7D'
+          var userTplPreview = (this._loadSettings().userPrompt || '').trim()
           title = 'User\u4EBA\u8BBE \xB7 ' + this._escHtml(userDisplay)
-          body = '\u70B9\u51FB\u67E5\u770B \xB7 \u53EF\u62D6\u62FD'
+          meta = userTplPreview ? '\u2713 \u63D0\u793A\u8BCD' : '\u65E0\u63D0\u793A\u8BCD'
+          body = '\u70B9\u51FB\u7F16\u8F91\u63D0\u793A\u8BCD \xB7 \u53EF\u62D6\u62FD'
           break
         case 'world-pre':
           typeClass = 'asm-type-world'
@@ -6330,9 +6334,10 @@
         case 'chat':
           typeClass = 'asm-type-chat'
           var chatCount = this.asmData.shortTerm ? this.asmData.shortTerm.length : 0
+          var chatTplPreview = (this._loadSettings().chatPrompt || '').trim()
           title = '\u804A\u5929\u8BB0\u5F55'
-          meta = chatCount + ' \u6761'
-          body = '\u53D7\u6DF1\u5EA6\u8FC7\u6EE4 \xB7 \u70B9\u51FB\u67E5\u770B \xB7 \u53EF\u62D6\u62FD'
+          meta = chatCount + ' \u6761' + (chatTplPreview ? ' \xB7 \u2713 \u63D0\u793A\u8BCD' : '')
+          body = '\u53D7\u6DF1\u5EA6\u8FC7\u6EE4 \xB7 \u70B9\u51FB\u7F16\u8F91\u63D0\u793A\u8BCD \xB7 \u53EF\u62D6\u62FD'
           break
         case 'latestUserPrompt':
           typeClass = 'asm-type-chat'
@@ -6511,14 +6516,28 @@
         }
         var charName3 = charObj3 ? (charObj3.handle || charObj3.name || '') : ''
         var charText3 = charObj3 ? (charObj3.persona || charObj3.bio || '') : ''
+        var charSettings = this._loadSettings()
+        var charPromptVal = charSettings.charPrompt || ''
         h += '<div class="pua-field"><div class="pua-field-label">\u89D2\u8272\u8BBE\u5B9A' + (charName3 ? ' \xB7 ' + this._escHtml(charName3) : '') + '</div>'
         h += '<textarea class="pua-detail-textarea" readonly>' + this._escHtml(charText3) + '</textarea></div>'
+        h += '<div class="pua-field" style="margin-top:12px"><div class="pua-field-label">\u63D0\u793A\u8BCD\u6A21\u677F <span style="font-size:9px;opacity:0.6">({content} = \u89D2\u8272\u4EBA\u8BBE\u5185\u5BB9)</span></div>'
+        h += '<textarea class="pua-detail-textarea asm-edit-charprompt" style="min-height:120px">' + this._escHtml(charPromptVal) + '</textarea></div>'
+        h += '<div style="font-size:10px;color:var(--pua-text-dim);margin-bottom:8px">\u6E05\u7A7A\u5219\u4F7F\u7528\u9ED8\u8BA4\u5305\u88C5\u683C\u5F0F\u3002\u4F7F\u7528 {content} \u4F5C\u4E3A\u89D2\u8272\u4EBA\u8BBE\u5185\u5BB9\u7684\u5360\u4F4D\u7B26\u3002</div>'
+        h += '<div style="text-align:right;margin-top:8px">'
+        h += '<button class="pua-btn pua-btn-gold asm-edit-cp-save">\u4FDD\u5B58</button></div>'
         break
       case 'user':
         var userName = this.asmData.userPersona ? (this.asmData.userPersona.name || 'User') : ''
         var userText = this.asmData.userPersona ? (this.asmData.userPersona.persona || this.asmData.userPersona.bio || '') : ''
+        var userSettings = this._loadSettings()
+        var userPromptVal = userSettings.userPrompt || ''
         h += '<div class="pua-field"><div class="pua-field-label">\u7528\u6237\u4EBA\u8BBE' + (userName ? ' \xB7 ' + this._escHtml(userName) : '') + '</div>'
         h += '<textarea class="pua-detail-textarea" readonly>' + this._escHtml(userText) + '</textarea></div>'
+        h += '<div class="pua-field" style="margin-top:12px"><div class="pua-field-label">\u63D0\u793A\u8BCD\u6A21\u677F <span style="font-size:9px;opacity:0.6">({content} = \u7528\u6237\u4EBA\u8BBE\u5185\u5BB9)</span></div>'
+        h += '<textarea class="pua-detail-textarea asm-edit-userprompt" style="min-height:120px">' + this._escHtml(userPromptVal) + '</textarea></div>'
+        h += '<div style="font-size:10px;color:var(--pua-text-dim);margin-bottom:8px">\u6E05\u7A7A\u5219\u4F7F\u7528\u9ED8\u8BA4\u5305\u88C5\u683C\u5F0F\u3002\u4F7F\u7528 {content} \u4F5C\u4E3A\u7528\u6237\u4EBA\u8BBE\u5185\u5BB9\u7684\u5360\u4F4D\u7B26\u3002</div>'
+        h += '<div style="text-align:right;margin-top:8px">'
+        h += '<button class="pua-btn pua-btn-gold asm-edit-up-save">\u4FDD\u5B58</button></div>'
         break
       case 'world-pre':
       case 'world-mid':
@@ -6610,6 +6629,8 @@
         var msgs = this.asmData.shortTerm || []
         var depth = this.asmConfig.contextDepth || 40
         var startIdx = Math.max(0, msgs.length - depth)
+        var chatSettings = this._loadSettings()
+        var chatPromptVal = chatSettings.chatPrompt || ''
         h += '<div class="pua-field"><div class="pua-field-label">\u804A\u5929\u8BB0\u5F55 (' + msgs.length + ' \u6761\uFF0C\u663E\u793A\u6700\u8FD1 ' + (msgs.length - startIdx) + ' \u6761)</div>'
         for (var cmi = startIdx; cmi < msgs.length; cmi++) {
           var msg = msgs[cmi]
@@ -6621,6 +6642,11 @@
           h += '</div>'
         }
         h += '</div>'
+        h += '<div class="pua-field" style="margin-top:12px"><div class="pua-field-label">\u63D0\u793A\u8BCD\u6A21\u677F <span style="font-size:9px;opacity:0.6">(\u4F5C\u4E3A\u804A\u5929\u8BB0\u5F55\u524D\u8A00\u63D2\u5165)</span></div>'
+        h += '<textarea class="pua-detail-textarea asm-edit-chatprompt" style="min-height:120px">' + this._escHtml(chatPromptVal) + '</textarea></div>'
+        h += '<div style="font-size:10px;color:var(--pua-text-dim);margin-bottom:8px">\u6E05\u7A7A\u5219\u4E0D\u63D2\u5165\u804A\u5929\u524D\u8A00\u3002\u8BE5\u6A21\u677F\u4F5C\u4E3A\u804A\u5929\u8BB0\u5F55\u524D\u7684\u7CFB\u7EDF\u63D0\u793A\u6D88\u606F\u63D2\u5165\uFF0C\u4E0D\u9700\u8981 {content} \u5360\u4F4D\u7B26\u3002</div>'
+        h += '<div style="text-align:right;margin-top:8px">'
+        h += '<button class="pua-btn pua-btn-gold asm-edit-chp-save">\u4FDD\u5B58</button></div>'
         break
       case 'latestUserPrompt':
         var lpSettings = this._loadSettings()
@@ -6674,6 +6700,63 @@
             self._saveSettings(s)
             self._closeModal()
             self._toast('\u6700\u65B0\u7528\u6237\u8F93\u5165\u63D0\u793A\u8BCD\u5DF2\u4FDD\u5B58')
+            self._render()
+          }
+        })
+      }
+    }
+
+    // Bind charPrompt edit save button
+    if (type === 'char') {
+      var cpSaveBtn = this._modalOverlay ? this._modalOverlay.querySelector('.asm-edit-cp-save') : null
+      if (cpSaveBtn) {
+        cpSaveBtn.addEventListener('click', function() {
+          var modal = self._modalOverlay
+          var cpTextarea = modal ? modal.querySelector('.asm-edit-charprompt') : null
+          if (cpTextarea) {
+            var s = self._loadSettings()
+            s.charPrompt = cpTextarea.value
+            self._saveSettings(s)
+            self._closeModal()
+            self._toast('\u89D2\u8272\u4EBA\u8BBE\u63D0\u793A\u8BCD\u5DF2\u4FDD\u5B58')
+            self._render()
+          }
+        })
+      }
+    }
+
+    // Bind userPrompt edit save button
+    if (type === 'user') {
+      var upSaveBtn = this._modalOverlay ? this._modalOverlay.querySelector('.asm-edit-up-save') : null
+      if (upSaveBtn) {
+        upSaveBtn.addEventListener('click', function() {
+          var modal = self._modalOverlay
+          var upTextarea = modal ? modal.querySelector('.asm-edit-userprompt') : null
+          if (upTextarea) {
+            var s = self._loadSettings()
+            s.userPrompt = upTextarea.value
+            self._saveSettings(s)
+            self._closeModal()
+            self._toast('\u7528\u6237\u4EBA\u8BBE\u63D0\u793A\u8BCD\u5DF2\u4FDD\u5B58')
+            self._render()
+          }
+        })
+      }
+    }
+
+    // Bind chatPrompt edit save button
+    if (type === 'chat') {
+      var chpSaveBtn = this._modalOverlay ? this._modalOverlay.querySelector('.asm-edit-chp-save') : null
+      if (chpSaveBtn) {
+        chpSaveBtn.addEventListener('click', function() {
+          var modal = self._modalOverlay
+          var chpTextarea = modal ? modal.querySelector('.asm-edit-chatprompt') : null
+          if (chpTextarea) {
+            var s = self._loadSettings()
+            s.chatPrompt = chpTextarea.value
+            self._saveSettings(s)
+            self._closeModal()
+            self._toast('\u804A\u5929\u8BB0\u5F55\u63D0\u793A\u8BCD\u5DF2\u4FDD\u5B58')
             self._render()
           }
         })
@@ -6786,13 +6869,21 @@
           }
           if (charObj2) {
             var charText2 = charObj2.persona || charObj2.bio || ''
-            if (charText2) messages.push({ role: 'system', content: '[\u89D2\u8272\u8BBE\u5B9A \xB7 ' + (charObj2.handle || charObj2.name) + ']\n' + charText2 })
+            if (charText2) {
+              var charTpl = (this._loadSettings().charPrompt || '').trim()
+              var charContent = charTpl ? charTpl.split('{content}').join(charText2) : '[\u89D2\u8272\u8BBE\u5B9A \xB7 ' + (charObj2.handle || charObj2.name) + ']\n' + charText2
+              messages.push({ role: 'system', content: charContent })
+            }
           }
           break
         case 'user':
           if (this.asmData.userPersona) {
             var userText = this.asmData.userPersona.persona || this.asmData.userPersona.bio || ''
-            if (userText) messages.push({ role: 'system', content: '[\u7528\u6237\u4EBA\u8BBE]\n' + userText })
+            if (userText) {
+              var userTpl = (this._loadSettings().userPrompt || '').trim()
+              var userContent = userTpl ? userTpl.split('{content}').join(userText) : '[\u7528\u6237\u4EBA\u8BBE]\n' + userText
+              messages.push({ role: 'system', content: userContent })
+            }
           }
           break
         case 'world-pre':
@@ -6881,6 +6972,8 @@
           break
         case 'chat':
           if (skipChat) break
+          // Insert chat prompt template as a preamble before chat messages
+          var chatTpl = (this._loadSettings().chatPrompt || '').trim()
           // If convMsgs provided (from _buildConvContext), use them with filtering
           if (convMsgs) {
             var depth = this._convContextDepth || 30
@@ -6892,6 +6985,10 @@
             }
             var cStart = Math.max(0, endIdx - depth)
             console.log('[PUA] _buildMessages chat: depth=' + depth + ' convMsgs=' + convMsgs.length + ' endIdx=' + endIdx + ' cStart=' + cStart + ' range=' + (endIdx - cStart))
+            // Insert chat prompt preamble
+            if (chatTpl) {
+              messages.push({ role: 'system', content: chatTpl })
+            }
             // Calculate assistant message depth (0 = most recent assistant msg)
             var assistantDepthMap = {}
             var assistantCount = 0
@@ -6925,6 +7022,10 @@
             var msgs = this.asmData.shortTerm || []
             var depth2 = this.asmConfig.contextDepth || 40
             var start2 = Math.max(0, msgs.length - depth2)
+            // Insert chat prompt preamble
+            if (chatTpl) {
+              messages.push({ role: 'system', content: chatTpl })
+            }
             for (var mi = start2; mi < msgs.length; mi++) {
               var msg = msgs[mi]
               var role = 'user'
@@ -11970,6 +12071,9 @@
       coreCharLimit: 2000, eventsCharLimit: 1000, recallMaxCount: 8, recallMode: 'vector',
       renderLimit: 10, contextDepth: 30, autoScroll: false,
       convFontSize: 14,
+      charPrompt: '这是char的人设[展开/折叠]：\n{content}\n需完整理解并内化角色的所有设定信息，确保在互动中始终保持角色设定的一致性与连贯性。',
+      userPrompt: '这是user的人设[展开/折叠]：\n{content}\n严格遵守用户人设边界，绝对禁止代替用户执行任何操作，所有交互必须尊重用户人设设定的行为模式与偏好。',
+      chatPrompt: '这是user与char之前的经历[展开/折叠]：\n{content}\n必须牢记所有历史交互信息，理解并承认这些为已发生的既定事实，在后续交互中需自然融入历史信息，避免机械重复或生硬引用。',
       latestUserPrompt: '这是user的最新输入: {content}\n请只回复user最新输入，之前的user输入为既定发生过的事实，不需要考虑。请依照格式规范要求输出思维链正文及内联思维链以及状态栏日记和小剧场。'
     }
     return this._settingsCache
@@ -12936,7 +13040,7 @@
   window.RochePlugin.register({
     id: 'parallel-universe',
     name: '\u5E73\u884C\u65F6\u7A7A\u6863\u6848\u9986',
-    version: '0.27.3',
+    version: '0.28.0',
     icon: '\u2606',
     apps: [{
       id: 'parallel-universe-home',
