@@ -3249,6 +3249,13 @@
         }
         // \u91CD\u5EFA asmOrder \u4EE5\u5339\u914D\u65B0\u5DE5\u4F5C\u533A\u7684\u9884\u8BBE ID
         self.asmOrder = self._defaultAsmOrder()
+        console.log('[PUA] workspace switch: new asmOrder length=' + self.asmOrder.length + ' presets length=' + self.presets.length)
+        for (var ai = 0; ai < self.asmOrder.length; ai++) {
+          if (self.asmOrder[ai].type === 'preset') console.log('[PUA] workspace switch asmOrder preset: id=' + self.asmOrder[ai].id)
+        }
+        for (var ap = 0; ap < self.presets.length; ap++) {
+          console.log('[PUA] workspace switch preset[' + ap + ']: id=' + self.presets[ap].id + ' on=' + self.presets[ap].on + ' title=' + (self.presets[ap].title||''))
+        }
         self._saveAsmOrder()
         self._savePromptPresets()
         self._render()
@@ -6418,6 +6425,14 @@
     var order = this.asmOrder
     if (!order || order.length === 0) {
       order = this._defaultAsmOrder()
+    }
+    console.log('[PUA] _buildMessages: asmOrder length=' + order.length + ' presets length=' + this.presets.length)
+    // \u8BCA\u65AD\uFF1A\u6253\u5370 asmOrder \u4E2D\u7684 preset \u6761\u76EE\u548C this.presets \u7684 ID
+    for (var di = 0; di < order.length; di++) {
+      if (order[di].type === 'preset') console.log('[PUA] _buildMessages asmOrder preset: id=' + order[di].id)
+    }
+    for (var dp = 0; dp < this.presets.length; dp++) {
+      console.log('[PUA] _buildMessages this.presets[' + dp + ']: id=' + this.presets[dp].id + ' on=' + this.presets[dp].on + ' title=' + (this.presets[dp].title||''))
     }
 
     // Track chat assistant message indices for regex application
