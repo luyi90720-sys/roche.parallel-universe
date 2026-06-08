@@ -9275,25 +9275,32 @@
     inputEl.classList.remove('expanded')
     this._saveConvMessages()
 
-    // Create placeholder assistant message
+    // Create placeholder assistant message (but don't add to _convMessages yet,
+    // so _buildConvContext won't include the empty assistant message)
     var astMsg = this._createMessage('assistant', '', 'live')
-    astMsg.floorNumber = this._convMessages.length + 1
-    this._convMessages.push(astMsg)
     this._convSending = true
     this._convStreamingMsg = astMsg
 
     // Re-render to show user message + typing indicator (keep scroll position)
     this._renderConvMessages(contentEl, true)
 
-    // Build context
-    var messages = this._buildConvContext()
+    // Build context (only includes messages up to the user message we just added)
+    var messages = this._buildConvContext(userMsg.id)
     console.log('[PUA] _sendMessage: final messages count=' + messages.length)
     for (var di = 0; di < messages.length; di++) {
       console.log('[PUA] _sendMessage msg[' + di + '] role=' + messages[di].role + ' content=' + (messages[di].content||'').substring(0, 80))
     }
 
+    // Now add the assistant message to _convMessages
+    astMsg.floorNumber = this._convMessages.length + 1
+    this._convMessages.push(astMsg)
+
     // Stream chat
     this._streamChat(messages).then(function(fullContent) {
+      console.log('[PUA] _sendMessage: streamChat resolved, contentLen=' + (fullContent || '').length)
+      if (!fullContent) {
+        console.error('[PUA] _sendMessage: empty content returned!')
+      }
       astMsg.content = fullContent
       // Apply render regexes
       astMsg.rendered = self._applyConvRegexRender(fullContent)
@@ -9464,20 +9471,26 @@
 
   P._streamChat = function(messages) {
     var self = this
+    console.log('[PUA] _streamChat called, messages count=' + messages.length)
+    for (var di = 0; di < messages.length; di++) {
+      console.log('[PUA] _streamChat msg[' + di + '] role=' + messages[di].role + ' len=' + (messages[di].content || '').length + ' preview=' + (messages[di].content || '').substring(0, 60))
+    }
 
     // Priority 1: Use roche.ai.chat (Roche's built-in AI API)
     if (this.roche && this.roche.ai && this.roche.ai.chat) {
+      console.log('[PUA] _streamChat: using roche.ai.chat')
       return this._streamChatViaRoche(messages)
     }
 
     // Priority 2: Fallback to user-configured endpoint
     var preset = this._getActivePreset()
-    if (!preset) return Promise.reject(new Error('请先配置 API'))
+    if (!preset) return Promise.reject(new Error('\u8BF7\u5148\u914D\u7F6E API'))
     var endpoint = (preset.mainEndpoint || '').replace(/\/+$/, '')
     var apiKey = preset.mainApiKey || ''
     var model = preset.mainModel || ''
-    if (!endpoint || !apiKey || !model) return Promise.reject(new Error('roche.ai.chat 不可用，请先配置主 API'))
+    if (!endpoint || !apiKey || !model) return Promise.reject(new Error('roche.ai.chat \u4E0D\u53EF\u7528\uFF0C\u8BF7\u5148\u914D\u7F6E\u4E3B API'))
 
+    console.log('[PUA] _streamChat: using fetch fallback, endpoint=' + endpoint + ' model=' + model)
     return this._streamChatViaFetch(messages, endpoint, apiKey, model)
   }
 
@@ -9489,7 +9502,12 @@
       messages: messages,
       stream: true
     }).then(function(result) {
-      console.log('[PUA] _streamChatViaRoche result type=' + typeof result + ' hasGetReader=' + !!(result && typeof result.getReader === 'function') + ' hasBody=' + !!(result && result.body) + ' hasText=' + !!(result && result.text))
+      console.log('[PUA] _streamChatViaRoche result type=' + typeof result)
+      console.log('[PUA] _streamChatViaRoche result keys=' + (result ? Object.keys(result).join(',') : 'null'))
+      console.log('[PUA] _streamChatViaRoche hasGetReader=' + !!(result && typeof result.getReader === 'function') + ' hasBody=' + !!(result && result.body) + ' hasText=' + !!(result && result.text))
+      if (result && result.text) {
+        console.log('[PUA] _streamChatViaRoche result.text length=' + result.text.length + ' preview=' + result.text.substring(0, 100))
+      }
       // Check if result is a ReadableStream (streaming response)
       if (result && typeof result.getReader === 'function') {
         console.log('[PUA] _streamChatViaRoche: using ReadableStream')
@@ -9510,11 +9528,12 @@
       }
       return text
     }).catch(function(e) {
-      console.log('[PUA] _streamChatViaRoche stream failed: ' + (e.message || e) + ', trying non-streaming')
+      console.error('[PUA] _streamChatViaRoche stream failed: ' + (e.message || e) + ', stack=' + (e.stack || '').substring(0, 200))
       // If roche.ai.chat streaming fails, try non-streaming
       return self.roche.ai.chat({
         messages: messages
       }).then(function(result) {
+        console.log('[PUA] _streamChatViaRoche non-stream fallback result, text length=' + ((result && result.text) || '').length)
         var text = (result && result.text) || ''
         if (text && self._convStreamingMsg) {
           self._convStreamingMsg.content = text
@@ -9523,12 +9542,14 @@
         }
         return text
       }).catch(function(e2) {
+        console.error('[PUA] _streamChatViaRoche non-stream also failed: ' + (e2.message || e2))
         // Final fallback: try user-configured endpoint
         var preset = self._getActivePreset()
         if (preset && preset.mainEndpoint && preset.mainApiKey && preset.mainModel) {
+          console.log('[PUA] _streamChatViaRoche: trying user-configured endpoint')
           return self._streamChatViaFetch(messages, preset.mainEndpoint.replace(/\/+$/, ''), preset.mainApiKey, preset.mainModel)
         }
-        return Promise.reject(new Error('AI 调用失败: ' + (e2.message || e2)))
+        return Promise.reject(new Error('AI \u8C03\u7528\u5931\u8D25: ' + (e2.message || e2)))
       })
     })
   }
@@ -9542,10 +9563,13 @@
     var fullContent = ''
     var lastRenderTime = 0
     var renderInterval = 100 // Render at most every 100ms for performance
+    var chunkCount = 0
+    var deltaCount = 0
 
     function processChunk() {
       return reader.read().then(function(result) {
         if (result.done) {
+          console.log('[PUA] _processStream done: chunks=' + chunkCount + ' deltas=' + deltaCount + ' totalLen=' + fullContent.length)
           // Final render with regex applied
           if (self._convStreamingMsg) {
             self._convStreamingMsg.content = fullContent
@@ -9554,7 +9578,9 @@
           self._updateStreamingMessage(contentEl, self._convStreamingMsg ? self._convStreamingMsg.rendered : self._escHtml(fullContent), false)
           return fullContent
         }
-        buffer += decoder.decode(result.value, { stream: true })
+        chunkCount++
+        var rawChunk = decoder.decode(result.value, { stream: true })
+        buffer += rawChunk
         var lines = buffer.split('\n')
         buffer = lines.pop() || ''
         for (var li = 0; li < lines.length; li++) {
@@ -9565,6 +9591,7 @@
             var json = JSON.parse(line.substring(6))
             var delta = json.choices && json.choices[0] && json.choices[0].delta && json.choices[0].delta.content || ''
             if (delta) {
+              deltaCount++
               fullContent += delta
               if (self._convStreamingMsg) self._convStreamingMsg.content = fullContent
               // Throttled render: apply regex and update DOM at intervals
@@ -9578,9 +9605,17 @@
                 self._updateStreamingMessage(contentEl, self._escHtml(fullContent), true)
               }
             }
-          } catch(e) {}
+          } catch(e) {
+            // Log parse errors for debugging
+            console.warn('[PUA] _processStream parse error: ' + e.message + ' line=' + line.substring(0, 80))
+          }
         }
         return processChunk()
+      }).catch(function(e) {
+        console.error('[PUA] _processStream reader error: ' + (e.message || e) + ' chunksSoFar=' + chunkCount + ' contentLen=' + fullContent.length)
+        // Return whatever we have so far instead of throwing
+        if (fullContent.length > 0) return fullContent
+        throw e
       })
     }
 
@@ -9591,6 +9626,7 @@
     var self = this
     var url = endpoint + '/v1/chat/completions'
     var contentEl = self._contentEl
+    console.log('[PUA] _streamChatViaFetch: url=' + url + ' model=' + model + ' msgs=' + messages.length)
 
     return fetch(url, {
       method: 'POST',
@@ -9604,8 +9640,17 @@
         stream: true
       })
     }).then(function(response) {
-      if (!response.ok) throw new Error('HTTP ' + response.status)
+      console.log('[PUA] _streamChatViaFetch: response status=' + response.status + ' ok=' + response.ok)
+      if (!response.ok) {
+        return response.text().then(function(errText) {
+          console.error('[PUA] _streamChatViaFetch: error response body=' + errText.substring(0, 200))
+          throw new Error('HTTP ' + response.status + ': ' + errText.substring(0, 100))
+        })
+      }
       return self._processStream(response.body, contentEl)
+    }).catch(function(e) {
+      console.error('[PUA] _streamChatViaFetch failed: ' + (e.message || e))
+      throw e
     })
   }
 
@@ -9763,6 +9808,10 @@
     this._renderConvMessages(contentEl, true)
 
     this._streamChat(messages).then(function(fullContent) {
+      console.log('[PUA] _regenerateFromLastUser: streamChat resolved, contentLen=' + (fullContent || '').length)
+      if (!fullContent) {
+        console.error('[PUA] _regenerateFromLastUser: empty content returned!')
+      }
       astMsg.content = fullContent
       astMsg.activeAltIndex = astMsg.alternatives ? astMsg.alternatives.length : 0
       astMsg.rendered = self._applyConvRegexRender(fullContent)
@@ -9825,6 +9874,10 @@
     console.log('[PUA] _regenerateMessage: upToMsgId=' + upToMsgId + ' contextLen=' + messages.length)
 
     this._streamChat(messages).then(function(fullContent) {
+      console.log('[PUA] _regenerateMessage: streamChat resolved, contentLen=' + (fullContent || '').length)
+      if (!fullContent) {
+        console.error('[PUA] _regenerateMessage: empty content returned!')
+      }
       msg.content = fullContent
       msg.activeAltIndex = msg.alternatives.length
       msg.rendered = self._applyConvRegexRender(fullContent)
