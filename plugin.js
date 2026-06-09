@@ -11407,32 +11407,40 @@
     }
 
     // Load messages for the target branch
-    var convMessages = this._convMessages
-    if (overrideBranchId && overrideBranchId !== this._convBranchId) {
-      var branchKey = 'pua_conv_' + overrideBranchId
-      try {
-        var rawMsgs = localStorage.getItem(branchKey)
-        if (rawMsgs) {
-          convMessages = JSON.parse(rawMsgs)
-        } else {
-          var branch = null
-          for (var tbi = 0; tbi < this.branches.length; tbi++) {
-            if (this.branches[tbi].id === overrideBranchId) { branch = this.branches[tbi]; break }
-          }
-          if (branch && branch.messages && branch.messages.length > 0) {
-            convMessages = []
-            for (var mi = 0; mi < branch.messages.length; mi++) {
-              var m = branch.messages[mi]
-              var role = 'user'
-              if (m.type === 'assistant' || m.type === 'model') role = 'assistant'
-              else if (m.type === 'system') role = 'system'
-              convMessages.push({ role: role, content: m.text || m.content || '' })
-            }
-          }
-        }
-      } catch(e) {
-        console.log('[PUA] _triggerConvSummary: failed to load messages for branch ' + overrideBranchId)
+    // Always try localStorage first, then branch.messages, then _convMessages
+    var convMessages = null
+    var branchKey = 'pua_conv_' + branchId
+    try {
+      var rawMsgs = localStorage.getItem(branchKey)
+      if (rawMsgs) {
+        convMessages = JSON.parse(rawMsgs)
+        console.log('[PUA] _triggerConvSummary: loaded ' + convMessages.length + ' messages from localStorage for branch ' + branchId)
       }
+    } catch(e) {}
+
+    if (!convMessages || convMessages.length === 0) {
+      // Try branch.messages
+      var branch = null
+      for (var tbi = 0; tbi < this.branches.length; tbi++) {
+        if (this.branches[tbi].id === branchId) { branch = this.branches[tbi]; break }
+      }
+      if (branch && branch.messages && branch.messages.length > 0) {
+        convMessages = []
+        for (var mi = 0; mi < branch.messages.length; mi++) {
+          var m = branch.messages[mi]
+          var role = 'user'
+          if (m.type === 'assistant' || m.type === 'model') role = 'assistant'
+          else if (m.type === 'system') role = 'system'
+          convMessages.push({ role: role, content: m.text || m.content || '' })
+        }
+        console.log('[PUA] _triggerConvSummary: loaded ' + convMessages.length + ' messages from branch data')
+      }
+    }
+
+    if (!convMessages || convMessages.length === 0) {
+      // Fallback to _convMessages
+      convMessages = this._convMessages
+      console.log('[PUA] _triggerConvSummary: using _convMessages, length=' + (convMessages ? convMessages.length : 0))
     }
 
     if (!convMessages || convMessages.length === 0) {
@@ -13510,28 +13518,32 @@
     if (convSummaryBtn) {
       convSummaryBtn.addEventListener('click', function() {
         if (!currentBranchId) { self._toast('\u8BF7\u5148\u9009\u62E9\u5206\u652F'); return }
-        // 从分支数据获取实际消息数量，而非依赖 _convMessages
-        var maxFloor = 1
-        var branch = null
-        for (var mbi = 0; mbi < self.branches.length; mbi++) {
-          if (self.branches[mbi].id === currentBranchId) { branch = self.branches[mbi]; break }
+        // 从多级数据源获取实际消息数量
+        var maxFloor = 0
+        // 1. 尝试 localStorage
+        var branchKey = 'pua_conv_' + currentBranchId
+        try {
+          var rawMsgs = localStorage.getItem(branchKey)
+          if (rawMsgs) {
+            var msgs = JSON.parse(rawMsgs)
+            if (Array.isArray(msgs) && msgs.length > 0) maxFloor = msgs.length
+          }
+        } catch(e) {}
+        // 2. 尝试 branch.messages
+        if (maxFloor === 0) {
+          var branch = null
+          for (var mbi = 0; mbi < self.branches.length; mbi++) {
+            if (self.branches[mbi].id === currentBranchId) { branch = self.branches[mbi]; break }
+          }
+          if (branch && branch.messages && branch.messages.length > 0) {
+            maxFloor = branch.messages.length
+          }
         }
-        if (branch && branch.messages && branch.messages.length > 0) {
-          maxFloor = branch.messages.length
-        } else {
-          // 尝试从 localStorage 加载
-          var branchKey = 'pua_conv_' + currentBranchId
-          try {
-            var rawMsgs = localStorage.getItem(branchKey)
-            if (rawMsgs) {
-              var msgs = JSON.parse(rawMsgs)
-              if (Array.isArray(msgs) && msgs.length > 0) maxFloor = msgs.length
-            }
-          } catch(e) {}
-        }
-        if (self._convMessages && self._convMessages.length > maxFloor) {
+        // 3. 尝试 _convMessages
+        if (maxFloor === 0 && self._convMessages && self._convMessages.length > 0) {
           maxFloor = self._convMessages.length
         }
+        if (maxFloor < 1) maxFloor = 1
         self._showManualSummaryModal(currentBranchId, maxFloor)
       })
     }
@@ -14445,7 +14457,7 @@
   window.RochePlugin.register({
     id: 'parallel-universe',
     name: '\u5E73\u884C\u65F6\u7A7A\u6863\u6848\u9986',
-    version: '0.42.2',
+    version: '0.42.3',
     icon: '\u2606',
     apps: [{
       id: 'parallel-universe-home',
