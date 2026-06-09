@@ -6157,9 +6157,10 @@
       }
       // Sync char entries in asmOrder with current asmData.chars
       // Build set of valid char IDs: 'char' (main) + all extra char IDs from asmData.chars
+      var mainCharRealId = (self.asmData.char && self.asmData.char.id) ? self.asmData.char.id : null
       var validCharIds = { 'char': true }
-      if (self.asmData.char && self.asmData.char.id) {
-        validCharIds[self.asmData.char.id] = true // main char by actual ID too
+      if (mainCharRealId) {
+        validCharIds[mainCharRealId] = true // main char by actual ID too
       }
       if (self.asmData.chars) {
         for (var vci = 0; vci < self.asmData.chars.length; vci++) {
@@ -6168,17 +6169,42 @@
         }
       }
       // Remove stale char entries not in current branch's char list
+      // Also deduplicate: if mainCharRealId exists, remove entries with id=mainCharRealId
+      // because the main char is already represented by id='char'
       var newOrder = []
+      var hasMainCharGeneric = false // track if { type:'char', id:'char' } exists
       for (var oi2 = 0; oi2 < self.asmOrder.length; oi2++) {
         if (self.asmOrder[oi2].type === 'char') {
-          if (validCharIds[self.asmOrder[oi2].id]) {
+          var entryId = self.asmOrder[oi2].id
+          if (entryId === 'char') {
+            hasMainCharGeneric = true
+          }
+          // Skip if this entry's id is the same as mainCharRealId AND a 'char' generic entry exists
+          // This prevents duplicate: { type:'char', id:'char' } and { type:'char', id:'char_123' } pointing to same char
+          if (mainCharRealId && entryId === mainCharRealId && hasMainCharGeneric) {
+            console.log('[PUA] _fetchAsmData: removed duplicate char entry (same as main char), id=' + entryId)
+            continue
+          }
+          if (validCharIds[entryId]) {
             newOrder.push(self.asmOrder[oi2])
           } else {
-            console.log('[PUA] _fetchAsmData: removed stale char from asmOrder, id=' + self.asmOrder[oi2].id)
+            console.log('[PUA] _fetchAsmData: removed stale char from asmOrder, id=' + entryId)
           }
         } else {
           newOrder.push(self.asmOrder[oi2])
         }
+      }
+      // Second pass: if we found 'char' generic entry AND mainCharRealId entry, remove the realId one
+      if (mainCharRealId && hasMainCharGeneric) {
+        var deduped = []
+        for (var di = 0; di < newOrder.length; di++) {
+          if (newOrder[di].type === 'char' && newOrder[di].id === mainCharRealId) {
+            console.log('[PUA] _fetchAsmData: removed duplicate char entry (realId same as main), id=' + mainCharRealId)
+            continue
+          }
+          deduped.push(newOrder[di])
+        }
+        newOrder = deduped
       }
       // Add missing char entries (extra chars not yet in asmOrder)
       for (var aci2 = 0; aci2 < (self.asmData.chars || []).length; aci2++) {
@@ -11373,14 +11399,48 @@
       return
     }
 
+    // Load messages for the target branch (not necessarily the current conv branch)
+    var convMessages = this._convMessages
+    if (overrideBranchId && overrideBranchId !== this._convBranchId) {
+      // Load messages from the specified branch
+      var branchKey = 'pua_conv_' + overrideBranchId
+      try {
+        var rawMsgs = localStorage.getItem(branchKey)
+        if (rawMsgs) {
+          convMessages = JSON.parse(rawMsgs)
+        } else {
+          // Try loading from branch data
+          var branch = this._getBranch(overrideBranchId)
+          if (branch && branch.messages && branch.messages.length > 0) {
+            convMessages = []
+            for (var mi = 0; mi < branch.messages.length; mi++) {
+              var m = branch.messages[mi]
+              var role = 'user'
+              if (m.type === 'assistant' || m.type === 'model') role = 'assistant'
+              else if (m.type === 'system') role = 'system'
+              convMessages.push({ role: role, content: m.text || m.content || '' })
+            }
+          }
+        }
+      } catch(e) {
+        console.log('[PUA] _triggerConvSummary: failed to load messages for branch ' + overrideBranchId + ', err=' + e.message)
+      }
+    }
+
     // Build a summary of recent conversation
-    var recentMsgs = this._convMessages.slice(-10)
+    var recentMsgs = (convMessages || []).slice(-10)
     var convText = ''
     for (var i = 0; i < recentMsgs.length; i++) {
       convText += recentMsgs[i].role + ': ' + (recentMsgs[i].content || '').substring(0, 200) + '\n'
     }
 
-    console.log('[PUA] _triggerConvSummary: triggering, msgSinceLastSummary=' + this._msgSinceLastSummary + ' convTextLen=' + convText.length)
+    if (!convText.trim()) {
+      console.log('[PUA] _triggerConvSummary: no conversation text to summarize')
+      self._toast('没有对话内容可总结')
+      return
+    }
+
+    console.log('[PUA] _triggerConvSummary: triggering, branchId=' + branchId + ' convTextLen=' + convText.length + ' msgCount=' + recentMsgs.length)
     var prompt = '\u8BF7\u4ECE\u4EE5\u4E0B\u5BF9\u8BDD\u4E2D\u63D0\u53D6\u5173\u952E\u4E8B\u5B9E\u4FE1\u606F\uFF0C\u7528\u4E00\u53E5\u8BDD\u6982\u62EC\uFF1A\n\n' + convText
 
     var url = preset.subEndpoint.replace(/\/+$/, '') + '/chat/completions'
@@ -11410,15 +11470,23 @@
               keywords: '',
               needsSummary: true,
               timestamp: new Date().toISOString(),
-              source: 'auto-summary'
+              source: 'manual-summary'
             })
             self._saveMemData(memData, branchId)
             console.log('[PUA] _triggerConvSummary: fact saved, id=' + memData.facts[memData.facts.length - 1].id)
+            self._toast('对话总结已生成并保存')
           }
+        } else {
+          console.log('[PUA] _triggerConvSummary: API returned empty summary')
+          self._toast('总结内容为空')
         }
+      } else {
+        console.log('[PUA] _triggerConvSummary: API response has no choices, data=' + JSON.stringify(data).substring(0, 200))
+        self._toast('总结生成失败：API 无有效响应')
       }
     }).catch(function(err) {
       console.error('[PUA] _triggerConvSummary failed: ' + (err.message || err))
+      self._toast('总结生成失败: ' + (err.message || '未知错误'))
     })
   }
 
@@ -13900,7 +13968,7 @@
   window.RochePlugin.register({
     id: 'parallel-universe',
     name: '\u5E73\u884C\u65F6\u7A7A\u6863\u6848\u9986',
-    version: '0.39.0',
+    version: '0.40.0',
     icon: '\u2606',
     apps: [{
       id: 'parallel-universe-home',
