@@ -1,7 +1,8 @@
 /**
- * 平行时空档案馆 v0.8.0
+ * 平行时空档案馆 v0.42.0
  * Parallel Universe Archive — 让Roche拥有平行时空
  *
+ * v0.42.0: 记忆系统核心重写 — 数据结构升级/批次总结JSON/对话总结JSON/关系进展总结/手动总结确认对话框/提示词自定义/聊天记录过滤
  * v0.8.0: 预设系统/刷新模型列表/测试调用/BM25本地实现/向量召回/副API召回/分支记忆联动
  * v0.7.0: 美化分支存档配置 + 设置页面 + 记忆系统页面 + 自定义Checkbox
  * v0.1.9: 预设编辑器正式完成 — 增删排序/详情编辑/正则深度/持久化存储/导入导出/ES5修复
@@ -11385,28 +11386,35 @@
 
   /* ── Memory summarization trigger ── */
 
-  P._triggerConvSummary = function(overrideBranchId) {
+  P._triggerConvSummary = function(overrideBranchId, options) {
     var self = this
     var preset = this._getActivePreset()
     var branchId = overrideBranchId || this._convBranchId
+    var isManual = options && options.manual
+    var startFloor = options && options.startFloor
+    var endFloor = options && options.endFloor
+    var summaryType = isManual ? '\u624B\u52A8' : '\u81EA\u52A8'
+
     if (!branchId) {
-      console.log('[PUA] _triggerConvSummary: skipped, no branchId (convBranchId=' + this._convBranchId + ' overrideBranchId=' + overrideBranchId + ')')
-      self._toast('无法总结：未选择分支')
+      console.log('[PUA] _triggerConvSummary: skipped, no branchId')
+      self._toast('\u65E0\u6CD5\u603B\u7ED3\uFF1A\u672A\u9009\u62E9\u5206\u652F')
       return
     }
 
-    // Load messages for the target branch (not necessarily the current conv branch)
+    if (!preset || !preset.subEndpoint || !preset.subApiKey || !preset.subModel) {
+      self._toast('\u8BF7\u5148\u914D\u7F6E\u526F API')
+      return
+    }
+
+    // Load messages for the target branch
     var convMessages = this._convMessages
     if (overrideBranchId && overrideBranchId !== this._convBranchId) {
-      // Load messages from the specified branch
       var branchKey = 'pua_conv_' + overrideBranchId
       try {
         var rawMsgs = localStorage.getItem(branchKey)
         if (rawMsgs) {
           convMessages = JSON.parse(rawMsgs)
-          console.log('[PUA] _triggerConvSummary: loaded ' + convMessages.length + ' messages from localStorage for branch ' + overrideBranchId)
         } else {
-          // Try loading from branch data
           var branch = this._getBranch(overrideBranchId)
           if (branch && branch.messages && branch.messages.length > 0) {
             convMessages = []
@@ -11417,139 +11425,286 @@
               else if (m.type === 'system') role = 'system'
               convMessages.push({ role: role, content: m.text || m.content || '' })
             }
-            console.log('[PUA] _triggerConvSummary: loaded ' + convMessages.length + ' messages from branch data for branch ' + overrideBranchId)
-          } else {
-            console.log('[PUA] _triggerConvSummary: no messages found for branch ' + overrideBranchId)
           }
         }
       } catch(e) {
-        console.log('[PUA] _triggerConvSummary: failed to load messages for branch ' + overrideBranchId + ', err=' + e.message)
+        console.log('[PUA] _triggerConvSummary: failed to load messages for branch ' + overrideBranchId)
       }
     }
 
-    // Build a summary of recent conversation
-    var recentMsgs = (convMessages || []).slice(-10)
-    var convText = ''
-    for (var i = 0; i < recentMsgs.length; i++) {
-      convText += recentMsgs[i].role + ': ' + (recentMsgs[i].content || '').substring(0, 200) + '\n'
-    }
-
-    if (!convText.trim()) {
-      console.log('[PUA] _triggerConvSummary: no conversation text to summarize')
-      self._toast('没有对话内容可总结')
+    if (!convMessages || convMessages.length === 0) {
+      self._toast('\u6CA1\u6709\u5BF9\u8BDD\u5185\u5BB9\u53EF\u603B\u7ED3')
       return
     }
 
-    console.log('[PUA] _triggerConvSummary: triggering, branchId=' + branchId + ' convTextLen=' + convText.length + ' msgCount=' + recentMsgs.length)
-    var prompt = '\u8BF7\u4ECE\u4EE5\u4E0B\u5BF9\u8BDD\u4E2D\u63D0\u53D6\u5173\u952E\u4E8B\u5B9E\u4FE1\u606F\uFF0C\u7528\u4E00\u53E5\u8BDD\u6982\u62EC\uFF1A\n\n' + convText
+    // 确定楼层范围
+    var settings = this._loadSettings()
+    var summarizeInterval = settings.summarizeInterval || 30
+    var msgs = convMessages
 
-    // Try sub API first, then fall back to roche.ai.chat
-    var useSubApi = preset && preset.subEndpoint && preset.subApiKey && preset.subModel
-    var useRocheAi = this.roche && this.roche.ai && this.roche.ai.chat
-
-    if (useSubApi) {
-      console.log('[PUA] _triggerConvSummary: using sub API, endpoint=' + preset.subEndpoint.substring(0, 30) + ' model=' + preset.subModel)
-      var url = preset.subEndpoint.replace(/\/+$/, '') + '/chat/completions'
-      fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + preset.subApiKey },
-        body: JSON.stringify({
-          model: preset.subModel,
-          messages: [{ role: 'user', content: prompt }],
-          temperature: 0.1,
-          max_tokens: 200
-        })
-      }).then(function(r) {
-        console.log('[PUA] _triggerConvSummary: sub API HTTP status=' + r.status)
-        return r.json()
-      }).then(function(data) {
-        console.log('[PUA] _triggerConvSummary: sub API response, hasChoices=' + !!(data && data.choices) + ' keys=' + (data ? Object.keys(data).join(',') : 'null'))
-        if (data.error) {
-          console.log('[PUA] _triggerConvSummary: sub API error: ' + JSON.stringify(data.error).substring(0, 200))
-          // Fall back to roche.ai.chat
-          if (useRocheAi) {
-            self._triggerConvSummaryViaRocheAi(branchId, prompt)
-          } else {
-            self._toast('总结失败: ' + (data.error.message || 'API 错误'))
-          }
-          return
-        }
-        if (data.choices && data.choices[0]) {
-          var summary = (data.choices[0].message || {}).content || ''
-          if (summary) {
-            self._saveSummaryToMemory(branchId, summary, 'manual-summary')
-          } else {
-            console.log('[PUA] _triggerConvSummary: sub API returned empty summary')
-            self._toast('总结内容为空')
-          }
-        } else {
-          console.log('[PUA] _triggerConvSummary: sub API response has no choices')
-          if (useRocheAi) {
-            self._triggerConvSummaryViaRocheAi(branchId, prompt)
-          } else {
-            self._toast('总结生成失败：API 无有效响应')
-          }
-        }
-      }).catch(function(err) {
-        console.error('[PUA] _triggerConvSummary: sub API fetch failed: ' + (err.message || err))
-        // Fall back to roche.ai.chat
-        if (useRocheAi) {
-          self._triggerConvSummaryViaRocheAi(branchId, prompt)
-        } else {
-          self._toast('总结生成失败: ' + (err.message || '网络错误'))
-        }
-      })
-    } else if (useRocheAi) {
-      console.log('[PUA] _triggerConvSummary: no sub API config, using roche.ai.chat')
-      self._triggerConvSummaryViaRocheAi(branchId, prompt)
+    if (isManual && startFloor != null && endFloor != null) {
+      // 手动总结：使用用户指定的楼层范围
+      var sf = Math.max(1, parseInt(startFloor) || 1)
+      var ef = Math.min(msgs.length, parseInt(endFloor) || msgs.length)
+      msgs = msgs.slice(sf - 1, ef)
     } else {
-      console.log('[PUA] _triggerConvSummary: no API available (sub API not configured, roche.ai.chat not available)')
-      self._toast('无法总结：请先配置副 API 或确保 Roche AI 可用')
+      // 自动总结：取最近N层消息
+      msgs = msgs.slice(-summarizeInterval)
     }
-  }
 
-  P._triggerConvSummaryViaRocheAi = function(branchId, prompt) {
-    var self = this
-    console.log('[PUA] _triggerConvSummaryViaRocheAi: calling roche.ai.chat')
-    this.roche.ai.chat({
-      messages: [{ role: 'user', content: prompt }],
-      temperature: 0.1
-    }).then(function(result) {
-      console.log('[PUA] _triggerConvSummaryViaRocheAi: response received, hasText=' + !!(result && result.text))
-      var summary = result && result.text ? result.text : ''
-      if (summary) {
-        self._saveSummaryToMemory(branchId, summary, 'manual-summary')
-      } else {
-        console.log('[PUA] _triggerConvSummaryViaRocheAi: empty response')
-        self._toast('总结内容为空')
+    // 构建上下文：char人设 + user人设 + 过滤后的聊天记录
+    var charText = ''
+    if (this.asmData && this.asmData.char) {
+      var ch = this.asmData.char
+      charText = (ch.persona || ch.bio || ch.description || '')
+    }
+    var userText = ''
+    if (this.asmData && this.asmData.userPersona) {
+      var up = this.asmData.userPersona
+      userText = (up.persona || up.bio || up.description || '')
+    }
+
+    // 过滤聊天记录
+    var filterMode = settings.summaryFilterMode || 'none'
+    var filteredMsgs = []
+    for (var fi = 0; fi < msgs.length; fi++) {
+      var msgContent = msgs[fi].content || ''
+      if (filterMode === 'preset') {
+        // 使用预设正则过滤
+        msgContent = self._applyConvFilterRegex(msgContent, msgs[fi].role, 0)
+      } else if (filterMode === 'custom') {
+        var customRegex = settings.summaryCustomRegex || ''
+        if (customRegex) {
+          try {
+            var rx = new RegExp(customRegex, 'g')
+            msgContent = msgContent.replace(rx, '')
+          } catch(re) {}
+        }
       }
+      filteredMsgs.push({ role: msgs[fi].role, content: msgContent })
+    }
+
+    // 构建聊天文本
+    var convText = ''
+    if (charText) {
+      convText += 'char\u4EBA\u8BBE\uFF1A' + charText + '\n\n'
+    }
+    if (userText) {
+      convText += 'user\u4EBA\u8BBE\uFF1A' + userText + '\n\n'
+    }
+    for (var ci = 0; ci < filteredMsgs.length; ci++) {
+      convText += filteredMsgs[ci].role + ': ' + filteredMsgs[ci].content.substring(0, 500) + '\n'
+    }
+
+    if (!convText.trim()) {
+      self._toast('\u6CA1\u6709\u5BF9\u8BDD\u5185\u5BB9\u53EF\u603B\u7ED3')
+      return
+    }
+
+    self._toast('\u6B63\u5728\u89E6\u53D1' + summaryType + '\u603B\u7ED3...')
+
+    // 构建提示词
+    var oneSentencePrompt = settings.oneSentencePrompt || '\u8BF7\u4ECE\u4EE5\u4E0B\u5BF9\u8BDD\u4E2D\u63D0\u53D6\u5173\u952E\u4E8B\u5B9E\uFF0C\u7528\u4E00\u53E5\u8BDD\u6982\u62EC\u6700\u91CD\u8981\u7684\u4E8B\u4EF6\u6216\u4FE1\u606F\u3002'
+    var keywordsPrompt = settings.keywordsPrompt || '\u8BF7\u4ECE\u4EE5\u4E0B\u5BF9\u8BDD\u4E2D\u63D0\u53D63-5\u4E2A\u5173\u952E\u8BCD\uFF0C\u7528\u9017\u53F7\u5206\u9694\u3002'
+    var summaryContentPrompt = settings.summaryContentPrompt || '\u8BF7\u4ECE\u4EE5\u4E0B\u5BF9\u8BDD\u4E2D\u63D0\u53D6\u5173\u952E\u4E8B\u5B9E\u4FE1\u606F\uFF0C\u8BE6\u7EC6\u603B\u7ED3\u53D1\u751F\u4E86\u4EC0\u4E48\u3002'
+
+    var prompt = oneSentencePrompt + '\n' + keywordsPrompt + '\n' + summaryContentPrompt + '\n\n' +
+      '\u8BF7\u6309\u4EE5\u4E0BJSON\u683C\u5F0F\u8F93\u51FA\uFF1A\n' +
+      '{"oneSentence": "\u4E00\u53E5\u8BDD\u6458\u8981", "keywords": "\u5173\u952E\u8BCD1,\u5173\u952E\u8BCD2", "summary": "\u8BE6\u7EC6\u603B\u7ED3\u5185\u5BB9"}\n\n' +
+      '\u5BF9\u8BDD\u5185\u5BB9\uFF1A\n' + convText
+
+    var url = preset.subEndpoint.replace(/\/+$/, '') + '/chat/completions'
+    fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + preset.subApiKey },
+      body: JSON.stringify({
+        model: preset.subModel,
+        messages: [{ role: 'user', content: prompt }],
+        temperature: 0.1,
+        max_tokens: 2000
+      })
+    }).then(function(r) {
+      return r.json()
+    }).then(function(data) {
+      if (data.error) {
+        self._toast(summaryType + '\u603B\u7ED3\u5931\u8D25: ' + (data.error.message || 'API \u9519\u8BEF'))
+        return
+      }
+      if (!data.choices || !data.choices[0]) {
+        self._toast(summaryType + '\u603B\u7ED3\u5931\u8D25\uFF1AAPI \u65E0\u6709\u6548\u54CD\u5E94')
+        return
+      }
+      var content = (data.choices[0].message || {}).content || ''
+      if (!content) {
+        self._toast(summaryType + '\u603B\u7ED3\u5185\u5BB9\u4E3A\u7A7A')
+        return
+      }
+
+      // 解析JSON结果
+      var oneSentence = ''
+      var keywords = ''
+      var summary = content
+
+      var jsonMatch = content.match(/\{[\s\S]*\}/)
+      if (jsonMatch) {
+        try {
+          var parsed = JSON.parse(jsonMatch[0])
+          oneSentence = parsed.oneSentence || ''
+          keywords = parsed.keywords || ''
+          summary = parsed.summary || content
+        } catch(parseErr) {
+          // JSON解析失败，使用原始内容
+        }
+      }
+
+      var source = isManual ? 'manual-summary' : 'auto-summary'
+      self._saveSummaryToMemory(branchId, summary, source, oneSentence, keywords)
+
+      // 重置计数器
+      self._msgSinceLastSummary = 0
+
+      self._toast(summaryType + '\u603B\u7ED3\u5B8C\u6210')
     }).catch(function(err) {
-      console.error('[PUA] _triggerConvSummaryViaRocheAi failed: ' + (err.message || err))
-      self._toast('总结生成失败: ' + (err.message || '未知错误'))
+      self._toast(summaryType + '\u603B\u7ED3\u5931\u8D25: ' + (err.message || '\u7F51\u7EDC\u9519\u8BEF'))
     })
   }
 
-  P._saveSummaryToMemory = function(branchId, summary, source) {
+  P._saveSummaryToMemory = function(branchId, summary, source, oneSentence, keywords) {
     var memData = this._loadMemData(branchId)
     if (memData) {
       if (!memData.facts) memData.facts = []
-      memData.facts.push({
-        id: 'f' + Date.now() + '-' + Math.random().toString(36).substr(2, 6),
+      var factId = 'f' + Date.now() + '-' + Math.random().toString(36).substr(2, 6)
+      var factObj = {
+        id: factId,
         text: summary,
-        summary: summary,
         summaryText: summary,
-        keywords: '',
-        needsSummary: true,
+        oneSentence: oneSentence || summary.substring(0, 50),
+        keywords: keywords || '',
+        summary: oneSentence || summary.substring(0, 50),
         timestamp: new Date().toISOString(),
-        source: source || 'manual-summary'
-      })
+        source: source || 'auto-summary',
+        needsSummary: false
+      }
+      memData.facts.push(factObj)
+
+      // oneSentence 同时写入核心记忆的 events 数组
+      if (factObj.oneSentence && memData.core && Array.isArray(memData.core.events)) {
+        memData.core.events.push({
+          id: 'evt_' + Date.now() + '-' + Math.random().toString(36).substr(2, 6),
+          text: factObj.oneSentence,
+          timestamp: new Date().toISOString()
+        })
+      }
+
       this._saveMemData(memData, branchId)
-      console.log('[PUA] _saveSummaryToMemory: saved, id=' + memData.facts[memData.facts.length - 1].id + ' branchId=' + branchId)
-      this._toast('对话总结已生成并保存')
+      console.log('[PUA] _saveSummaryToMemory: saved, id=' + factId + ' branchId=' + branchId)
     } else {
       console.log('[PUA] _saveSummaryToMemory: no memData for branchId=' + branchId)
-      this._toast('保存失败：未找到记忆数据')
+      this._toast('\u4FDD\u5B58\u5931\u8D25\uFF1A\u672A\u627E\u5230\u8BB0\u5FC6\u6570\u636E')
     }
+  }
+
+  P._triggerRelationshipSummary = function(branchId) {
+    var self = this
+    var preset = this._getActivePreset()
+    if (!preset || !preset.subEndpoint || !preset.subApiKey || !preset.subModel) {
+      self._toast('\u8BF7\u5148\u914D\u7F6E\u526F API')
+      return
+    }
+
+    var memData = this._loadMemData(branchId)
+    if (!memData || !memData.facts || memData.facts.length === 0) {
+      self._toast('\u65E0\u4E8B\u5B9E\u8BB0\u5FC6\u53EF\u603B\u7ED3\u5173\u7CFB\u8FDB\u5C55')
+      return
+    }
+
+    var settings = this._loadSettings()
+
+    // 收集当前所有事实记忆的 oneSentence 或 summaryText
+    var factsSummary = ''
+    for (var i = 0; i < memData.facts.length; i++) {
+      var f = memData.facts[i]
+      factsSummary += (i + 1) + '. ' + (f.oneSentence || f.summaryText || f.text || '') + '\n'
+    }
+
+    // 加上char人设和user人设
+    var charText = ''
+    if (this.asmData && this.asmData.char) {
+      var ch = this.asmData.char
+      charText = (ch.persona || ch.bio || ch.description || '')
+    }
+    var userText = ''
+    if (this.asmData && this.asmData.userPersona) {
+      var up = this.asmData.userPersona
+      userText = (up.persona || up.bio || up.description || '')
+    }
+
+    var contextText = ''
+    if (charText) {
+      contextText += 'char\u4EBA\u8BBE\uFF1A' + charText + '\n\n'
+    }
+    if (userText) {
+      contextText += 'user\u4EBA\u8BBE\uFF1A' + userText + '\n\n'
+    }
+    contextText += '\u4E8B\u5B9E\u8BB0\u5FC6\u5217\u8868\uFF1A\n' + factsSummary
+
+    var relationshipPrompt = settings.relationshipPrompt || '\u8BF7\u6839\u636E\u4EE5\u4E0B\u4E8B\u5B9E\u8BB0\u5FC6\uFF0C\u603B\u7ED3char\u4E0Euser\u4E4B\u95F4\u7684\u5173\u7CFB\u8FDB\u5C55\u548C\u5267\u60C5\u8FDB\u5C55\u3002\u8FD9\u662F\u6A21\u578B\u5FC5\u987B\u957F\u4E45\u8BB0\u4F4F\u7684\u5185\u5BB9\u3002'
+
+    var prompt = relationshipPrompt + '\n\n' +
+      '\u8BF7\u6309\u4EE5\u4E0BJSON\u683C\u5F0F\u8F93\u51FA\uFF1A\n' +
+      '{"relationship": "\u5173\u7CFB\u8FDB\u5C55\u603B\u7ED3\u5185\u5BB9"}\n\n' +
+      contextText
+
+    self._toast('\u6B63\u5728\u89E6\u53D1\u5173\u7CFB\u8FDB\u5C55\u603B\u7ED3...')
+
+    var url = preset.subEndpoint.replace(/\/+$/, '') + '/chat/completions'
+    fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + preset.subApiKey },
+      body: JSON.stringify({
+        model: preset.subModel,
+        messages: [{ role: 'user', content: prompt }],
+        temperature: 0.1,
+        max_tokens: 2000
+      })
+    }).then(function(r) {
+      return r.json()
+    }).then(function(data) {
+      if (data.error) {
+        self._toast('\u5173\u7CFB\u8FDB\u5C55\u603B\u7ED3\u5931\u8D25: ' + (data.error.message || 'API \u9519\u8BEF'))
+        return
+      }
+      if (!data.choices || !data.choices[0]) {
+        self._toast('\u5173\u7CFB\u8FDB\u5C55\u603B\u7ED3\u5931\u8D25\uFF1AAPI \u65E0\u6709\u6548\u54CD\u5E94')
+        return
+      }
+      var content = (data.choices[0].message || {}).content || ''
+      if (!content) {
+        self._toast('\u5173\u7CFB\u8FDB\u5C55\u603B\u7ED3\u5185\u5BB9\u4E3A\u7A7A')
+        return
+      }
+
+      // 解析JSON结果
+      var relationship = content
+      var jsonMatch = content.match(/\{[\s\S]*\}/)
+      if (jsonMatch) {
+        try {
+          var parsed = JSON.parse(jsonMatch[0])
+          relationship = parsed.relationship || content
+        } catch(parseErr) {
+          // JSON解析失败，使用原始内容
+        }
+      }
+
+      // 写入核心记忆的 relationship 字段（覆盖更新）
+      if (!memData.core) memData.core = { relationship: '', events: [] }
+      memData.core.relationship = relationship
+      self._saveMemData(memData, branchId)
+      self._toast('\u5173\u7CFB\u8FDB\u5C55\u603B\u7ED3\u5B8C\u6210')
+      self._render()
+    }).catch(function(err) {
+      self._toast('\u5173\u7CFB\u8FDB\u5C55\u603B\u7ED3\u5931\u8D25: ' + (err.message || '\u7F51\u7EDC\u9519\u8BEF'))
+    })
   }
 
   /* ════════════════════════════════════════════════════════════
@@ -12638,15 +12793,6 @@
     h += '<div class="pua-settings-row"><span class="pua-settings-label">\u6BCF\u8F6E\u53D1\u9001\u4E8B\u5B9E\u8BB0\u5FC6</span>'
     h += '<input class="pua-settings-input" id="set-mem-fact-send" type="number" min="1" max="100" value="' + (settings.factSendCount || 10) + '" style="width:80px;flex:none">'
     h += '<span style="font-size:10px;color:var(--pua-text-dim)">\u6761</span></div>'
-    h += '<div class="pua-settings-row"><span class="pua-settings-label">\u603B\u7ED3\u95F4\u9694</span>'
-    h += '<input class="pua-settings-input" id="set-mem-summarize-interval" type="number" min="1" max="200" value="' + (settings.summarizeInterval || 30) + '" style="width:80px;flex:none">'
-    h += '<span style="font-size:10px;color:var(--pua-text-dim)">\u8F6E</span></div>'
-    h += '<div class="pua-settings-row"><span class="pua-settings-label">\u6838\u5FC3\u8BB0\u5FC6\u5B57\u6570\u4E0A\u9650</span>'
-    h += '<input class="pua-settings-input" id="set-mem-core-limit" type="number" min="100" max="10000" value="' + (settings.coreCharLimit || 2000) + '" style="width:80px;flex:none">'
-    h += '<span style="font-size:10px;color:var(--pua-text-dim)">\u5B57</span></div>'
-    h += '<div class="pua-settings-row"><span class="pua-settings-label">\u4E8B\u4EF6\u6458\u8981\u5B57\u6570\u4E0A\u9650</span>'
-    h += '<input class="pua-settings-input" id="set-mem-events-limit" type="number" min="100" max="10000" value="' + (settings.eventsCharLimit || 1000) + '" style="width:80px;flex:none">'
-    h += '<span style="font-size:10px;color:var(--pua-text-dim)">\u5B57</span></div>'
     h += '<div class="pua-settings-row"><span class="pua-settings-label">\u53EC\u56DE\u8BB0\u5FC6\u4E0A\u9650</span>'
     h += '<input class="pua-settings-input" id="set-mem-recall-max" type="number" min="1" max="20" value="' + (settings.recallMaxCount || 8) + '" style="width:80px;flex:none">'
     h += '<span style="font-size:10px;color:var(--pua-text-dim)">\u6761</span></div>'
@@ -12655,6 +12801,40 @@
     h += '<option value="vector"' + (settings.recallMode === 'vector' ? ' selected' : '') + '>\u5411\u91CF\u68C0\u7D22\uFF08\u4FBF\u5B9C\uFF09</option>'
     h += '<option value="subapi"' + (settings.recallMode === 'subapi' ? ' selected' : '') + '>\u526F API \u53EC\u56DE\uFF08\u7CBE\u51C6\u4F46\u66F4\u8D35\uFF09</option>'
     h += '</select></div>'
+    h += '</div>'
+
+    // 记忆总结设置
+    h += '<div class="pua-settings-group">'
+    h += '<div class="pua-settings-title">\u2726 \u8BB0\u5FC6\u603B\u7ED3\u8BBE\u7F6E</div>'
+    h += '<div class="pua-settings-row"><span class="pua-settings-label">\u81EA\u52A8\u603B\u7ED3\u95F4\u9694\u697C\u5C42</span>'
+    h += '<input class="pua-settings-input" id="set-mem-summarize-interval" type="number" min="1" max="200" value="' + (settings.summarizeInterval || 30) + '" style="width:80px;flex:none">'
+    h += '<span style="font-size:10px;color:var(--pua-text-dim)">\u5C42</span></div>'
+    h += '<div class="pua-settings-row"><span class="pua-settings-label">\u4E00\u53E5\u8BDD\u6458\u8981\u63D0\u793A\u8BCD</span>'
+    h += '<input class="pua-settings-input" id="set-one-sentence-prompt" placeholder="\u4E00\u53E5\u8BDD\u6458\u8981\u63D0\u793A\u8BCD" value="' + self._escHtml(settings.oneSentencePrompt || '') + '"></div>'
+    h += '<div class="pua-settings-row"><span class="pua-settings-label">\u5173\u952E\u8BCD\u63D0\u793A\u8BCD</span>'
+    h += '<input class="pua-settings-input" id="set-keywords-prompt" placeholder="\u5173\u952E\u8BCD\u63D0\u793A\u8BCD" value="' + self._escHtml(settings.keywordsPrompt || '') + '"></div>'
+    h += '<div class="pua-settings-row"><span class="pua-settings-label">\u603B\u7ED3\u5185\u5BB9\u63D0\u793A\u8BCD</span>'
+    h += '<input class="pua-settings-input" id="set-summary-content-prompt" placeholder="\u603B\u7ED3\u5185\u5BB9\u63D0\u793A\u8BCD" value="' + self._escHtml(settings.summaryContentPrompt || '') + '"></div>'
+    h += '<div class="pua-settings-row"><span class="pua-settings-label">\u6279\u6B21\u4E00\u53E5\u8BDD\u6458\u8981\u63D0\u793A\u8BCD</span>'
+    h += '<input class="pua-settings-input" id="set-batch-one-sentence-prompt" placeholder="\u6279\u6B21\u4E00\u53E5\u8BDD\u6458\u8981\u63D0\u793A\u8BCD" value="' + self._escHtml(settings.batchOneSentencePrompt || '') + '"></div>'
+    h += '<div class="pua-settings-row"><span class="pua-settings-label">\u6279\u6B21\u5173\u952E\u8BCD\u63D0\u793A\u8BCD</span>'
+    h += '<input class="pua-settings-input" id="set-batch-keywords-prompt" placeholder="\u6279\u6B21\u5173\u952E\u8BCD\u63D0\u793A\u8BCD" value="' + self._escHtml(settings.batchKeywordsPrompt || '') + '"></div>'
+    h += '<div class="pua-settings-row"><span class="pua-settings-label">\u5173\u7CFB\u8FDB\u5C55\u63D0\u793A\u8BCD</span>'
+    h += '<input class="pua-settings-input" id="set-relationship-prompt" placeholder="\u5173\u7CFB\u8FDB\u5C55\u63D0\u793A\u8BCD" value="' + self._escHtml(settings.relationshipPrompt || '') + '"></div>'
+    h += '<div class="pua-settings-toggle-row"><span class="pua-settings-toggle-label">\u804A\u5929\u8BB0\u5F55\u8FC7\u6EE4\u65B9\u5F0F</span>'
+    h += '<select class="pua-settings-select" id="set-summary-filter-mode">'
+    h += '<option value="none"' + (settings.summaryFilterMode === 'none' ? ' selected' : '') + '>\u4E0D\u8FC7\u6EE4</option>'
+    h += '<option value="preset"' + (settings.summaryFilterMode === 'preset' ? ' selected' : '') + '>\u9884\u8BBE\u6B63\u5219\u8FC7\u6EE4</option>'
+    h += '<option value="custom"' + (settings.summaryFilterMode === 'custom' ? ' selected' : '') + '>\u81EA\u5B9A\u4E49\u6B63\u5219\u8FC7\u6EE4</option>'
+    h += '</select></div>'
+    h += '<div class="pua-settings-row"><span class="pua-settings-label">\u81EA\u5B9A\u4E49\u6B63\u5219\u6355\u6349\u5F0F</span>'
+    h += '<input class="pua-settings-input" id="set-summary-custom-regex" placeholder="\u81EA\u5B9A\u4E49\u6B63\u5219\u8868\u8FBE\u5F0F" value="' + self._escHtml(settings.summaryCustomRegex || '') + '"></div>'
+    h += '<div class="pua-settings-row"><span class="pua-settings-label">\u6838\u5FC3\u8BB0\u5FC6\u5173\u7CFB\u8FDB\u5C55\u5B57\u6570\u9650\u5236</span>'
+    h += '<input class="pua-settings-input" id="set-mem-core-limit" type="number" min="100" max="10000" value="' + (settings.coreCharLimit || 2000) + '" style="width:80px;flex:none">'
+    h += '<span style="font-size:10px;color:var(--pua-text-dim)">\u5B57</span></div>'
+    h += '<div class="pua-settings-row"><span class="pua-settings-label">\u4E8B\u4EF6\u6458\u8981\u5B57\u6570\u9650\u5236</span>'
+    h += '<input class="pua-settings-input" id="set-mem-events-limit" type="number" min="100" max="10000" value="' + (settings.eventsCharLimit || 1000) + '" style="width:80px;flex:none">'
+    h += '<span style="font-size:10px;color:var(--pua-text-dim)">\u5B57</span></div>'
     h += '</div>'
 
     // 悬浮球设置
@@ -13002,6 +13182,15 @@
         settings.eventsCharLimit = parseInt((contentEl.querySelector('#set-mem-events-limit') || {}).value) || 1000
         settings.recallMaxCount = parseInt((contentEl.querySelector('#set-mem-recall-max') || {}).value) || 8
         settings.recallMode = (contentEl.querySelector('#set-mem-recall-mode') || {}).value || 'vector'
+        // 记忆总结设置
+        settings.oneSentencePrompt = (contentEl.querySelector('#set-one-sentence-prompt') || {}).value || ''
+        settings.keywordsPrompt = (contentEl.querySelector('#set-keywords-prompt') || {}).value || ''
+        settings.summaryContentPrompt = (contentEl.querySelector('#set-summary-content-prompt') || {}).value || ''
+        settings.batchOneSentencePrompt = (contentEl.querySelector('#set-batch-one-sentence-prompt') || {}).value || ''
+        settings.batchKeywordsPrompt = (contentEl.querySelector('#set-batch-keywords-prompt') || {}).value || ''
+        settings.relationshipPrompt = (contentEl.querySelector('#set-relationship-prompt') || {}).value || ''
+        settings.summaryFilterMode = (contentEl.querySelector('#set-summary-filter-mode') || {}).value || 'none'
+        settings.summaryCustomRegex = (contentEl.querySelector('#set-summary-custom-regex') || {}).value || ''
         self._saveSettings(settings)
         self._toast('\u8BBE\u7F6E\u5DF2\u4FDD\u5B58')
       })
@@ -13057,10 +13246,18 @@
       coreCharLimit: 2000, eventsCharLimit: 1000, recallMaxCount: 8, recallMode: 'vector',
       renderLimit: 10, contextDepth: 30, autoScroll: false,
       convFontSize: 14,
-      charPrompt: '这是char的人设[展开/折叠]：\n{content}\n需完整理解并内化角色的所有设定信息，确保在互动中始终保持角色设定的一致性与连贯性。',
-      userPrompt: '这是user的人设[展开/折叠]：\n{content}\n严格遵守用户人设边界，绝对禁止代替用户执行任何操作，所有交互必须尊重用户人设设定的行为模式与偏好。',
-      chatPrompt: '这是user与char之前的经历[展开/折叠]：\n{content}\n必须牢记所有历史交互信息，理解并承认这些为已发生的既定事实，在后续交互中需自然融入历史信息，避免机械重复或生硬引用。',
-      latestUserPrompt: '这是user的最新输入: {content}\n请只回复user最新输入，之前的user输入为既定发生过的事实，不需要考虑。请依照格式规范要求输出思维链正文及内联思维链以及状态栏日记和小剧场。'
+      oneSentencePrompt: '\u8BF7\u4ECE\u4EE5\u4E0B\u5BF9\u8BDD\u4E2D\u63D0\u53D6\u5173\u952E\u4E8B\u5B9E\uFF0C\u7528\u4E00\u53E5\u8BDD\u6982\u62EC\u6700\u91CD\u8981\u7684\u4E8B\u4EF6\u6216\u4FE1\u606F\u3002',
+      keywordsPrompt: '\u8BF7\u4ECE\u4EE5\u4E0B\u5BF9\u8BDD\u4E2D\u63D0\u53D63-5\u4E2A\u5173\u952E\u8BCD\uFF0C\u7528\u9017\u53F7\u5206\u9694\u3002',
+      summaryContentPrompt: '\u8BF7\u4ECE\u4EE5\u4E0B\u5BF9\u8BDD\u4E2D\u63D0\u53D6\u5173\u952E\u4E8B\u5B9E\u4FE1\u606F\uFF0C\u8BE6\u7EC6\u603B\u7ED3\u53D1\u751F\u4E86\u4EC0\u4E48\u3002',
+      batchOneSentencePrompt: '\u8BF7\u4E3A\u4EE5\u4E0B\u6BCF\u6761\u4E8B\u5B9E\u8BB0\u5FC6\u751F\u6210\u4E00\u53E5\u8BDD\u6458\u8981\uFF0C\u7B80\u660E\u627C\u8981\u5730\u6982\u62EC\u6838\u5FC3\u5185\u5BB9\u3002',
+      batchKeywordsPrompt: '\u8BF7\u4E3A\u4EE5\u4E0B\u6BCF\u6761\u4E8B\u5B9E\u8BB0\u5FC6\u63D0\u53D63-5\u4E2A\u5173\u952E\u8BCD\uFF0C\u7528\u9017\u53F7\u5206\u9694\u3002',
+      relationshipPrompt: '\u8BF7\u6839\u636E\u4EE5\u4E0B\u4E8B\u5B9E\u8BB0\u5FC6\uFF0C\u603B\u7ED3char\u4E0Euser\u4E4B\u95F4\u7684\u5173\u7CFB\u8FDB\u5C55\u548C\u5267\u60C5\u8FDB\u5C55\u3002\u8FD9\u662F\u6A21\u578B\u5FC5\u987B\u957F\u4E45\u8BB0\u4F4F\u7684\u5185\u5BB9\u3002',
+      summaryFilterMode: 'none',
+      summaryCustomRegex: '',
+      charPrompt: '\u8FD9\u662Fchar\u7684\u4EBA\u8BBE[\u5C55\u5F00/\u6298\u53E0]\uFF1A\n{content}\n\u9700\u5B8C\u6574\u7406\u89E3\u5E76\u5185\u5316\u89D2\u8272\u7684\u6240\u6709\u8BBE\u5B9A\u4FE1\u606F\uFF0C\u786E\u4FDD\u5728\u4E92\u52A8\u4E2D\u59CB\u7EC8\u4FDD\u6301\u89D2\u8272\u8BBE\u5B9A\u7684\u4E00\u81F4\u6027\u4E0E\u8FDE\u8D2F\u6027\u3002',
+      userPrompt: '\u8FD9\u662Fuser\u7684\u4EBA\u8BBE[\u5C55\u5F00/\u6298\u53E0]\uFF1A\n{content}\n\u4E25\u683C\u9075\u5B88\u7528\u6237\u4EBA\u8BBE\u8FB9\u754C\uFF0C\u7EDD\u5BF9\u7981\u6B62\u4EE3\u66FF\u7528\u6237\u6267\u884C\u4EFB\u4F55\u64CD\u4F5C\uFF0C\u6240\u6709\u4EA4\u4E92\u5FC5\u987B\u5C0A\u91CD\u7528\u6237\u4EBA\u8BBE\u8BBE\u5B9A\u7684\u884C\u4E3A\u6A21\u5F0F\u4E0E\u504F\u597D\u3002',
+      chatPrompt: '\u8FD9\u662Fuser\u4E0Echar\u4E4B\u524D\u7684\u7ECF\u5386[\u5C55\u5F00/\u6298\u53E0]\uFF1A\n{content}\n\u5FC5\u987B\u7262\u8BB0\u6240\u6709\u5386\u53F2\u4EA4\u4E92\u4FE1\u606F\uFF0C\u7406\u89E3\u5E76\u627F\u8BA4\u8FD9\u4E9B\u4E3A\u5DF2\u53D1\u751F\u7684\u65E2\u5B9A\u4E8B\u5B9E\uFF0C\u5728\u540E\u7EED\u4EA4\u4E92\u4E2D\u9700\u81EA\u7136\u878D\u5165\u5386\u53F2\u4FE1\u606F\uFF0C\u907F\u514D\u673A\u68B0\u91CD\u590D\u6216\u751F\u786C\u5F15\u7528\u3002',
+      latestUserPrompt: '\u8FD9\u662Fuser\u7684\u6700\u65B0\u8F93\u5165: {content}\n\u8BF7\u53EA\u56DE\u590Duser\u6700\u65B0\u8F93\u5165\uFF0C\u4E4B\u524D\u7684user\u8F93\u5165\u4E3A\u65E2\u5B9A\u53D1\u751F\u8FC7\u7684\u4E8B\u5B9E\uFF0C\u4E0D\u9700\u8981\u8003\u8651\u3002\u8BF7\u4F9D\u7167\u683C\u5F0F\u89C4\u8303\u8981\u6C42\u8F93\u51FA\u601D\u7EF4\u94FE\u6B63\u6587\u53CA\u5185\u8054\u601D\u7EF4\u94FE\u4EE5\u53CA\u72B6\u6001\u680F\u65E5\u8BB0\u548C\u5C0F\u5267\u573A\u3002'
     }
     return this._settingsCache
   }
@@ -13099,17 +13296,20 @@
     var currentBranchId = this._currentMemBranchId || ''
 
     // 加载当前分支的记忆数据
-    var memData = currentBranchId ? this._loadMemData(currentBranchId) : { core: { relationship: '', events: '' }, facts: [] }
+    var memData = currentBranchId ? this._loadMemData(currentBranchId) : { core: { relationship: '', events: [] }, facts: [] }
     // 最终安全兜底
-    if (!memData) memData = { core: { relationship: '', events: '' }, facts: [] }
-    if (!memData.core) memData.core = { relationship: '', events: '' }
+    if (!memData) memData = { core: { relationship: '', events: [] }, facts: [] }
+    if (!memData.core) memData.core = { relationship: '', events: [] }
     if (!memData.core.relationship) memData.core.relationship = ''
-    if (!memData.core.events) memData.core.events = ''
+    if (!memData.core.events || !Array.isArray(memData.core.events)) memData.core.events = []
     if (!memData.facts || !Array.isArray(memData.facts)) memData.facts = []
 
     // 统计
     var coreRelLen = (memData.core.relationship || '').length || 0
-    var coreEvtLen = (memData.core.events || '').length || 0
+    var coreEvtLen = 0
+    for (var evi = 0; evi < memData.core.events.length; evi++) {
+      coreEvtLen += (memData.core.events[evi].text || '').length
+    }
     var factCount = memData.facts ? memData.facts.length : 0
     var totalFactChars = 0
     if (memData.facts) {
@@ -13144,11 +13344,26 @@
     h += '<div class="pua-mem-card-title">\u2726 \u6838\u5FC3\u8BB0\u5FC6</div>'
     h += '<div style="margin-bottom:8px"><div style="font-size:10px;color:var(--pua-accent);font-weight:600;margin-bottom:4px">\u5173\u7CFB\u4E0E\u5267\u60C5\u8FDB\u5C55</div>'
     h += '<textarea class="pua-mem-detail-textarea" id="mem-core-rel">' + this._escHtml(memData.core && memData.core.relationship || '') + '</textarea></div>'
-    h += '<div style="margin-bottom:8px"><div style="font-size:10px;color:var(--pua-accent);font-weight:600;margin-bottom:4px">\u4E8B\u4EF6\u6458\u8981</div>'
-    h += '<textarea class="pua-mem-detail-textarea" id="mem-core-evt">' + this._escHtml(memData.core && memData.core.events || '') + '</textarea></div>'
+    h += '<div style="margin-bottom:8px"><div style="font-size:10px;color:var(--pua-accent);font-weight:600;margin-bottom:4px">\u4E8B\u4EF6\u6458\u8981 (' + (memData.core.events ? memData.core.events.length : 0) + ' \u6761)</div>'
+    // 显示事件摘要列表
+    if (memData.core.events && memData.core.events.length > 0) {
+      for (var evti = 0; evti < memData.core.events.length; evti++) {
+        var evt = memData.core.events[evti]
+        h += '<div style="font-size:10px;padding:3px 6px;margin:2px 0;background:var(--pua-bg-input);border-radius:4px;display:flex;align-items:center;gap:4px" data-evt-id="' + (evt.id || evti) + '">'
+        h += '<span style="flex:1;color:var(--pua-text-sub)">' + self._escHtml(evt.text || '') + '</span>'
+        h += '<button class="pua-btn pua-btn-sm pua-btn-danger evt-del-btn" data-evt-idx="' + evti + '" style="padding:1px 4px;font-size:8px">\u00D7</button>'
+        h += '</div>'
+      }
+    } else {
+      h += '<div style="font-size:10px;color:var(--pua-text-dim);padding:4px">\u6682\u65E0\u4E8B\u4EF6\u6458\u8981</div>'
+    }
+    h += '</div>'
     h += '<div class="pua-mem-card-meta"><span>\u5173\u7CFB\u8FDB\u5C55 \u9650\u5236: ' + (settings.coreCharLimit || 2000) + ' \u5B57 / \u5F53\u524D: ' + coreRelLen + ' \u5B57</span>'
     h += '<span>\u4E8B\u4EF6\u6458\u8981 \u9650\u5236: ' + (settings.eventsCharLimit || 1000) + ' \u5B57 / \u5F53\u524D: ' + coreEvtLen + ' \u5B57</span></div>'
-    h += '<button class="pua-btn pua-btn-sm" id="mem-core-save" style="margin-top:6px">\u4FDD\u5B58\u6838\u5FC3\u8BB0\u5FC6</button>'
+    h += '<div style="display:flex;gap:6px;margin-top:6px;flex-wrap:wrap">'
+    h += '<button class="pua-btn pua-btn-sm" id="mem-core-save">\u4FDD\u5B58\u6838\u5FC3\u8BB0\u5FC6</button>'
+    h += '<button class="pua-btn pua-btn-sm pua-btn-gold" id="mem-relationship-summary">\u5173\u7CFB\u8FDB\u5C55\u603B\u7ED3</button>'
+    h += '</div>'
     h += '</div>'
 
     // 事实记忆列表
@@ -13159,9 +13374,12 @@
         var fact = memData.facts[mi]
         h += '<div class="pua-mem-fact-item" data-fact-id="' + (fact.id || mi) + '">'
         var needsMark = fact.needsSummary ? ' <span style="color:var(--pua-accent);font-size:8px">[\u5F85\u603B\u7ED3]</span>' : ''
-        h += '<div class="pua-mem-fact-summary">' + this._escHtml(fact.summary || fact.text || '') + needsMark + '</div>'
+        h += '<div class="pua-mem-fact-summary">' + this._escHtml(fact.oneSentence || fact.summary || fact.text || '') + needsMark + '</div>'
         if (fact.keywords) {
           h += '<div class="pua-mem-fact-kw">\u5173\u952E\u8BCD: ' + this._escHtml(fact.keywords) + '</div>'
+        }
+        if (fact.source) {
+          h += '<span style="font-size:8px;color:var(--pua-text-dim);margin-right:6px">\u6765\u6E90: ' + this._escHtml(fact.source) + '</span>'
         }
         h += '<span class="pua-mem-fact-time">' + (fact.timestamp || '') + '</span>'
         h += '</div>'
@@ -13176,7 +13394,7 @@
     h += '<input type="number" id="mem-batch-size" value="10" min="1" max="50" style="width:48px;background:var(--pua-bg-input);border:1px solid var(--pua-border);border-radius:4px;padding:3px 5px;color:var(--pua-text);font-size:10px;text-align:center;outline:none" title="\u6BCF\u6279\u603B\u7ED3\u6570\u91CF">'
     h += '<button class="pua-btn pua-btn-sm pua-btn-gold" id="mem-fact-summarize-all">\u5168\u90E8\u603B\u7ED3</button>'
     h += '<button class="pua-btn pua-btn-sm" id="mem-fact-conv-summary" style="background:var(--pua-accent);color:#fff">\u624B\u52A8\u603B\u7ED3\u5BF9\u8BDD</button>'
-    h += '<button class="pua-btn pua-btn-sm pua-btn-danger" id="mem-fact-clear">\u6E05\u7A7A\u5168\u90E8</button>'
+    h += '<button class="pua-btn pua-btn-sm" id="mem-fact-clear">\u6E05\u7A7A\u5168\u90E8</button>'
     h += '</div>'
     h += '</div>'
 
@@ -13210,13 +13428,38 @@
     if (coreSaveBtn) {
       coreSaveBtn.addEventListener('click', function() {
         var relEl = contentEl.querySelector('#mem-core-rel')
-        var evtEl = contentEl.querySelector('#mem-core-evt')
-        if (!memData.core) memData.core = { relationship: '', events: '' }
+        if (!memData.core) memData.core = { relationship: '', events: [] }
         memData.core.relationship = relEl ? relEl.value : ''
-        memData.core.events = evtEl ? evtEl.value : ''
         self._saveMemData(memData, currentBranchId)
         self._toast('\u6838\u5FC3\u8BB0\u5FC6\u5DF2\u4FDD\u5B58')
       })
+    }
+
+    // 关系进展总结按钮
+    var relSummaryBtn = contentEl.querySelector('#mem-relationship-summary')
+    if (relSummaryBtn) {
+      relSummaryBtn.addEventListener('click', function() {
+        if (!currentBranchId) { self._toast('\u8BF7\u5148\u9009\u62E9\u5206\u652F'); return }
+        relSummaryBtn.disabled = true
+        relSummaryBtn.textContent = '\u603B\u7ED3\u4E2D...'
+        self._triggerRelationshipSummary(currentBranchId)
+      })
+    }
+
+    // 删除事件摘要
+    var evtDelBtns = contentEl.querySelectorAll('.evt-del-btn')
+    for (var edi = 0; edi < evtDelBtns.length; edi++) {
+      (function(btn) {
+        btn.addEventListener('click', function(e) {
+          e.stopPropagation()
+          var idx = parseInt(btn.getAttribute('data-evt-idx'))
+          if (!isNaN(idx) && memData.core.events && idx >= 0 && idx < memData.core.events.length) {
+            memData.core.events.splice(idx, 1)
+            self._saveMemData(memData, currentBranchId)
+            self._render()
+          }
+        })
+      })(evtDelBtns[edi])
     }
 
     // 添加事实记忆
@@ -13259,12 +13502,13 @@
       })
     }
 
-    // 手动总结对话
+    // 手动总结对话 - 弹出确认对话框
     var convSummaryBtn = contentEl.querySelector('#mem-fact-conv-summary')
     if (convSummaryBtn) {
       convSummaryBtn.addEventListener('click', function() {
-        self._triggerConvSummary(currentBranchId)
-        self._toast('\u5DF2\u89E6\u53D1\u5BF9\u8BDD\u603B\u7ED3')
+        if (!currentBranchId) { self._toast('\u8BF7\u5148\u9009\u62E9\u5206\u652F'); return }
+        var maxFloor = self._convMessages ? self._convMessages.length : 1
+        self._showManualSummaryModal(currentBranchId, maxFloor)
       })
     }
 
@@ -13302,14 +13546,40 @@
         var parsed = JSON.parse(raw)
         // 兼容旧格式：core 可能是字符串
         if (parsed && typeof parsed.core === 'string') {
-          parsed.core = { relationship: parsed.core, events: '' }
+          parsed.core = { relationship: parsed.core, events: [] }
         }
         if (!parsed.core || typeof parsed.core !== 'object') {
-          parsed.core = { relationship: '', events: '' }
+          parsed.core = { relationship: '', events: [] }
         }
         if (!parsed.core.relationship) parsed.core.relationship = ''
-        if (!parsed.core.events) parsed.core.events = ''
+        // 兼容迁移：core.events 如果是字符串，转为数组格式
+        if (typeof parsed.core.events === 'string') {
+          var evtStr = parsed.core.events
+          parsed.core.events = []
+          if (evtStr.trim()) {
+            var evtLines = evtStr.split('\n')
+            for (var ei = 0; ei < evtLines.length; ei++) {
+              var evtLine = evtLines[ei].trim()
+              if (evtLine) {
+                parsed.core.events.push({ id: 'evt_' + Date.now() + '-' + Math.random().toString(36).substr(2, 6), text: evtLine, timestamp: new Date().toISOString() })
+              }
+            }
+          }
+        }
+        if (!parsed.core.events || !Array.isArray(parsed.core.events)) {
+          parsed.core.events = []
+        }
         if (!parsed.facts || !Array.isArray(parsed.facts)) parsed.facts = []
+        // 兼容迁移：facts 条目没有 oneSentence 字段，从 summary 字段复制
+        for (var fi = 0; fi < parsed.facts.length; fi++) {
+          var f = parsed.facts[fi]
+          if (!f.oneSentence) {
+            f.oneSentence = f.summary || (f.text ? f.text.substring(0, 50) : '')
+          }
+          if (!f.summaryText) {
+            f.summaryText = f.text || ''
+          }
+        }
         this._memDataCache = parsed
         this._memDataCacheKey = key
         return this._memDataCache
@@ -13318,7 +13588,7 @@
       // 损坏的数据，清除并返回默认
       try { localStorage.removeItem(key) } catch(e2) {}
     }
-    this._memDataCache = { core: { relationship: '', events: '' }, facts: [] }
+    this._memDataCache = { core: { relationship: '', events: [] }, facts: [] }
     this._memDataCacheKey = key
     return this._memDataCache
   }
@@ -13369,10 +13639,13 @@
       var keywords = (modal.querySelector('#fact-keywords') || {}).value || ''
       if (!text) { self._toast('\u8BF7\u8F93\u5165\u4E8B\u5B9E\u5185\u5BB9'); return }
       if (!memData.facts) memData.facts = []
+      var oneSentence = summary || text.substring(0, 50)
       memData.facts.push({
         id: 'f' + Date.now() + '-' + Math.random().toString(36).substr(2, 6),
         text: text,
-        summary: summary || text.substring(0, 50),
+        summaryText: text,
+        oneSentence: oneSentence,
+        summary: oneSentence,
         keywords: keywords,
         embedding: null,
         timestamp: new Date().toLocaleString('zh-CN'),
@@ -13380,6 +13653,14 @@
         source: 'manual',
         needsSummary: false
       })
+      // oneSentence 同时写入核心记忆的 events 数组
+      if (oneSentence && memData.core && Array.isArray(memData.core.events)) {
+        memData.core.events.push({
+          id: 'evt_' + Date.now() + '-' + Math.random().toString(36).substr(2, 6),
+          text: oneSentence,
+          timestamp: new Date().toISOString()
+        })
+      }
       self._saveMemData(memData, branchId)
       self._closeModal()
       self._toast('\u4E8B\u5B9E\u8BB0\u5FC6\u5DF2\u6DFB\u52A0')
@@ -13391,6 +13672,66 @@
 
     var modalInner = modal.querySelector('.pua-modal')
     if (modalInner) modalInner.appendChild(footer)
+
+    modal.classList.add('show')
+  }
+
+  P._showManualSummaryModal = function(branchId, maxFloor) {
+    var self = this
+    var modal = this._modalOverlay
+    if (!modal) return
+
+    var body = ''
+    body += '<div style="font-size:11px;color:var(--pua-text-sub);margin-bottom:8px">\u5C06\u603B\u7ED3\u4EE5\u4E0B\u697C\u5C42\u7684\u5BF9\u8BDD\u5185\u5BB9\uFF1A</div>'
+    body += '<div style="display:flex;gap:8px;align-items:center">'
+    body += '<span style="font-size:11px;color:var(--pua-text-sub)">\u8D77\u59CB\u697C\u5C42</span>'
+    body += '<input type="number" id="summary-start-floor" value="1" min="1" style="width:60px;background:var(--pua-bg-input);border:1px solid var(--pua-border);border-radius:4px;padding:4px 6px;color:var(--pua-text);font-size:11px;outline:none">'
+    body += '<span style="font-size:11px;color:var(--pua-text-sub)">\u7ED3\u675F\u697C\u5C42</span>'
+    body += '<input type="number" id="summary-end-floor" value="' + maxFloor + '" min="1" style="width:60px;background:var(--pua-bg-input);border:1px solid var(--pua-border);border-radius:4px;padding:4px 6px;color:var(--pua-text);font-size:11px;outline:none">'
+    body += '</div>'
+    body += '<div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px">'
+    body += '<button class="pua-btn" id="summary-cancel">\u53D6\u6D88</button>'
+    body += '<button class="pua-btn pua-btn-gold" id="summary-confirm">\u786E\u8BA4\u603B\u7ED3</button>'
+    body += '</div>'
+
+    var modalBody = modal.querySelector('.pua-modal-body')
+    if (modalBody) modalBody.innerHTML = body
+
+    var modalTitle = modal.querySelector('.pua-modal-title')
+    if (modalTitle) modalTitle.textContent = '\u624B\u52A8\u603B\u7ED3\u5BF9\u8BDD'
+
+    // Footer
+    var footer = modal.querySelector('.pua-modal-footer')
+    if (footer) footer.style.display = 'none'
+
+    // Cancel button
+    var cancelBtn = modal.querySelector('#summary-cancel')
+    if (cancelBtn) {
+      cancelBtn.addEventListener('click', function() {
+        self._closeModal()
+        if (footer) footer.style.display = ''
+      })
+    }
+
+    // Confirm button
+    var confirmBtn = modal.querySelector('#summary-confirm')
+    if (confirmBtn) {
+      confirmBtn.addEventListener('click', function() {
+        var startFloor = parseInt((modal.querySelector('#summary-start-floor') || {}).value) || 1
+        var endFloor = parseInt((modal.querySelector('#summary-end-floor') || {}).value) || maxFloor
+        if (startFloor < 1) startFloor = 1
+        if (endFloor > maxFloor) endFloor = maxFloor
+        if (startFloor > endFloor) {
+          self._toast('\u8D77\u59CB\u697C\u5C42\u4E0D\u80FD\u5927\u4E8E\u7ED3\u675F\u697C\u5C42')
+          return
+        }
+        confirmBtn.disabled = true
+        confirmBtn.textContent = '\u603B\u7ED3\u4E2D...'
+        self._closeModal()
+        if (footer) footer.style.display = ''
+        self._triggerConvSummary(branchId, { manual: true, startFloor: startFloor, endFloor: endFloor })
+      })
+    }
 
     modal.classList.add('show')
   }
@@ -13412,10 +13753,10 @@
     body += '<div class="pua-field"><div class="pua-field-label">\u4E8B\u5B9E\u5185\u5BB9</div>'
     body += '<textarea class="pua-detail-textarea" id="fact-detail-text" style="min-height:100px">' + this._escHtml(fact.text || '') + '</textarea></div>'
     body += '<div class="pua-field"><div class="pua-field-label">\u4E00\u53E5\u8BDD\u6458\u8981</div>'
-    body += '<input class="pua-field-input" id="fact-detail-summary" value="' + this._escHtml(fact.summary || '') + '"></div>'
+    body += '<input class="pua-field-input" id="fact-detail-one-sentence" value="' + this._escHtml(fact.oneSentence || '') + '"></div>'
     body += '<div class="pua-field"><div class="pua-field-label">\u5173\u952E\u8BCD</div>'
     body += '<input class="pua-field-input" id="fact-detail-keywords" value="' + this._escHtml(fact.keywords || '') + '"></div>'
-    body += '<div style="font-size:9px;color:var(--pua-text-dim)">\u65F6\u95F4: ' + (fact.timestamp || '-') + ' | \u4F1A\u8BDD: ' + (fact.conversationId || '-') + '</div>'
+    body += '<div style="font-size:9px;color:var(--pua-text-dim)">\u65F6\u95F4: ' + (fact.timestamp || '-') + ' | \u6765\u6E90: ' + (fact.source || '-') + '</div>'
 
     var modalBody = modal.querySelector('.pua-modal-body')
     if (modalBody) modalBody.innerHTML = body
@@ -13449,7 +13790,9 @@
     saveBtn.textContent = '\u4FDD\u5B58'
     saveBtn.addEventListener('click', function() {
       fact.text = (modal.querySelector('#fact-detail-text') || {}).value || fact.text
-      fact.summary = (modal.querySelector('#fact-detail-summary') || {}).value || fact.summary
+      fact.oneSentence = (modal.querySelector('#fact-detail-one-sentence') || {}).value || fact.oneSentence
+      fact.summary = fact.oneSentence || fact.summary
+      fact.summaryText = fact.text
       fact.keywords = (modal.querySelector('#fact-detail-keywords') || {}).value || fact.keywords
       self._saveMemData(memData, branchId)
       self._closeModal()
@@ -13496,7 +13839,7 @@
           if (data.core) {
             var coreText = data.core.summary || data.core.text || String(data.core)
             if (coreText) {
-              if (!memData.core) memData.core = { relationship: '', events: '' }
+              if (!memData.core) memData.core = { relationship: '', events: [] }
               if (memData.core.relationship && memData.core.relationship.indexOf(coreText) === -1) {
                 memData.core.relationship += '\n' + coreText
               } else if (!memData.core.relationship) {
@@ -13520,12 +13863,14 @@
                 memData.facts.push({
                   id: 'f' + Date.now() + '-' + Math.random().toString(36).substr(2, 6),
                   text: factText,
+                  summaryText: factText,
+                  oneSentence: '',
                   summary: '',
                   keywords: '',
                   embedding: null,
                   timestamp: new Date().toLocaleString('zh-CN'),
                   conversationId: convId,
-                  source: 'roche',
+                  source: 'roche-import',
                   needsSummary: true
                 })
               }
@@ -13562,10 +13907,12 @@
       return
     }
 
-    // 找出需要总结的事实记忆
+    var settings = this._loadSettings()
+
+    // 找出 needsSummary=true 的条目
     var toSummarize = []
     for (var i = 0; i < memData.facts.length; i++) {
-      if (memData.facts[i].needsSummary || !memData.facts[i].summary || !memData.facts[i].keywords) {
+      if (memData.facts[i].needsSummary) {
         toSummarize.push(i)
       }
     }
@@ -13584,7 +13931,7 @@
     }
 
     var total = toSummarize.length
-    this._toast('\u5F00\u59CB\u603B\u7ED3 ' + total + ' \u6761\u8BB0\u5FC6...')
+    this._toast('\u6B63\u5728\u89E6\u53D1\u6279\u6B21\u603B\u7ED3...')
 
     var actualBatchSize = batchSize || 10
     if (actualBatchSize < 1) actualBatchSize = 1
@@ -13595,7 +13942,7 @@
     function processBatch() {
       if (batchIdx >= toSummarize.length) {
         self._saveMemData(memData, branchId)
-        self._toast('\u8BB0\u5FC6\u603B\u7ED3\u5B8C\u6210')
+        self._toast('\u6279\u6B21\u603B\u7ED3\u5B8C\u6210')
         self._render()
         return
       }
@@ -13607,7 +13954,13 @@
         factsText += (bi + 1) + '. ' + memData.facts[fi].text + '\n'
       }
 
-      var prompt = '\u8BF7\u4E3A\u4EE5\u4E0B\u4E8B\u5B9E\u8BB0\u5FC6\u751F\u6210\u4E00\u53E5\u8BDD\u6458\u8981\u548C\u5173\u952E\u8BCD\u3002\u6BCF\u6761\u8BB0\u5FC6\u9700\u8981\u8F93\u51FA\uFF1A\u7F16\u53F7|\u6458\u8981|\u5173\u952E\u8BCD\uFF08\u9017\u53F7\u5206\u9694\uFF09\n\n' + factsText
+      var batchOneSentencePrompt = settings.batchOneSentencePrompt || '\u8BF7\u4E3A\u4EE5\u4E0B\u6BCF\u6761\u4E8B\u5B9E\u8BB0\u5FC6\u751F\u6210\u4E00\u53E5\u8BDD\u6458\u8981\uFF0C\u7B80\u660E\u627C\u8981\u5730\u6982\u62EC\u6838\u5FC3\u5185\u5BB9\u3002'
+      var batchKeywordsPrompt = settings.batchKeywordsPrompt || '\u8BF7\u4E3A\u4EE5\u4E0B\u6BCF\u6761\u4E8B\u5B9E\u8BB0\u5FC6\u63D0\u53D63-5\u4E2A\u5173\u952E\u8BCD\uFF0C\u7528\u9017\u53F7\u5206\u9694\u3002'
+
+      var prompt = batchOneSentencePrompt + '\n' + batchKeywordsPrompt + '\n\n' +
+        '\u8BF7\u6309\u4EE5\u4E0BJSON\u683C\u5F0F\u8F93\u51FA\uFF0C\u6BCF\u6761\u8BB0\u5FC6\u4E00\u4E2A\u5BF9\u8C61\uFF1A\n' +
+        '[{"index": \u7F16\u53F7, "oneSentence": "\u4E00\u53E5\u8BDD\u6458\u8981", "keywords": "\u5173\u952E\u8BCD1,\u5173\u952E\u8BCD2"}]\n\n' +
+        '\u4E8B\u5B9E\u8BB0\u5FC6\u5217\u8868\uFF1A\n' + factsText
 
       self._toast('\u6B63\u5728\u603B\u7ED3 ' + (processed + 1) + '/' + total + '...')
 
@@ -13625,22 +13978,60 @@
         if (!data.choices || !data.choices[0]) { batchIdx += actualBatchSize; processed += batchIndices.length; processBatch(); return }
         var content = (data.choices[0].message || {}).content || ''
 
-        // 解析结果
-        var lines = content.split('\n')
-        for (var li = 0; li < lines.length; li++) {
-          var line = lines[li].trim()
-          if (!line) continue
-          // 尝试匹配 "编号|摘要|关键词" 格式
-          var match = line.match(/^(\d+)\s*[|｜]\s*(.+?)\s*[|｜]\s*(.+)$/)
-          if (match) {
-            var num = parseInt(match[1])
-            var summary = match[2].trim()
-            var keywords = match[3].trim()
-            if (num >= 1 && num <= batchIndices.length) {
-              var fIdx = batchIndices[num - 1]
-              memData.facts[fIdx].summary = summary
-              memData.facts[fIdx].keywords = keywords
-              memData.facts[fIdx].needsSummary = false
+        // 解析JSON结果
+        var jsonMatch = content.match(/\[[\s\S]*\]/)
+        if (jsonMatch) {
+          try {
+            var results = JSON.parse(jsonMatch[0])
+            for (var ri = 0; ri < results.length; ri++) {
+              var item = results[ri]
+              var num = item.index
+              if (num >= 1 && num <= batchIndices.length) {
+                var fIdx = batchIndices[num - 1]
+                if (item.oneSentence) {
+                  memData.facts[fIdx].oneSentence = item.oneSentence
+                  memData.facts[fIdx].summary = item.oneSentence
+                }
+                if (item.keywords) {
+                  memData.facts[fIdx].keywords = item.keywords
+                }
+                memData.facts[fIdx].needsSummary = false
+                // oneSentence 同时写入核心记忆的 events 数组
+                if (item.oneSentence && memData.core && Array.isArray(memData.core.events)) {
+                  memData.core.events.push({
+                    id: 'evt_' + Date.now() + '-' + Math.random().toString(36).substr(2, 6),
+                    text: item.oneSentence,
+                    timestamp: new Date().toISOString()
+                  })
+                }
+              }
+            }
+          } catch(parseErr) {
+            // JSON解析失败，尝试旧的行格式解析
+            var lines = content.split('\n')
+            for (var li = 0; li < lines.length; li++) {
+              var line = lines[li].trim()
+              if (!line) continue
+              var match = line.match(/^(\d+)\s*[|｜]\s*(.+?)\s*[|｜]\s*(.+)$/)
+              if (match) {
+                var lineNum = parseInt(match[1])
+                var lineSummary = match[2].trim()
+                var lineKeywords = match[3].trim()
+                if (lineNum >= 1 && lineNum <= batchIndices.length) {
+                  var lineFIdx = batchIndices[lineNum - 1]
+                  memData.facts[lineFIdx].oneSentence = lineSummary
+                  memData.facts[lineFIdx].summary = lineSummary
+                  memData.facts[lineFIdx].keywords = lineKeywords
+                  memData.facts[lineFIdx].needsSummary = false
+                  if (memData.core && Array.isArray(memData.core.events)) {
+                    memData.core.events.push({
+                      id: 'evt_' + Date.now() + '-' + Math.random().toString(36).substr(2, 6),
+                      text: lineSummary,
+                      timestamp: new Date().toISOString()
+                    })
+                  }
+                }
+              }
             }
           }
         }
@@ -13649,7 +14040,7 @@
         processed += batchIndices.length
         processBatch()
       }).catch(function(e) {
-        self._toast('\u603B\u7ED3\u5931\u8D25: ' + (e.message || e))
+        self._toast('\u6279\u6B21\u603B\u7ED3\u5931\u8D25: ' + (e.message || e))
         self._saveMemData(memData, branchId)
       })
     }
@@ -14030,7 +14421,7 @@
   window.RochePlugin.register({
     id: 'parallel-universe',
     name: '\u5E73\u884C\u65F6\u7A7A\u6863\u6848\u9986',
-    version: '0.41.0',
+    version: '0.42.0',
     icon: '\u2606',
     apps: [{
       id: 'parallel-universe-home',
