@@ -919,7 +919,7 @@
     // 捕获控制台日志
     this._captureConsole()
 
-    // 诊断 roche.memory 可用性
+    // 诊断 roche API 可用性
     if (this.roche) {
       var memDiag = {
         hasMemory: !!this.roche.memory,
@@ -929,9 +929,20 @@
         search: !!(this.roche.memory && this.roche.memory.search),
         write: !!(this.roche.memory && this.roche.memory.write),
         update: !!(this.roche.memory && this.roche.memory.update),
-        delete: !!(this.roche.memory && this.roche.memory.delete)
+        delete: !!(this.roche.memory && this.roche.memory.delete),
+        hasConversation: !!this.roche.conversation,
+        conversationKeys: this.roche.conversation ? Object.keys(this.roche.conversation) : [],
+        hasCharacter: !!this.roche.character,
+        characterKeys: this.roche.character ? Object.keys(this.roche.character) : [],
+        hasPersona: !!this.roche.persona,
+        personaKeys: this.roche.persona ? Object.keys(this.roche.persona) : [],
+        hasWorldbook: !!this.roche.worldbook,
+        worldbookKeys: this.roche.worldbook ? Object.keys(this.roche.worldbook) : [],
+        hasAi: !!this.roche.ai,
+        hasStorage: !!this.roche.storage,
+        hasUi: !!this.roche.ui
       }
-      console.log('[PUA] roche.memory diagnostic: ' + JSON.stringify(memDiag))
+      console.log('[PUA] roche API diagnostic: ' + JSON.stringify(memDiag))
       // 测试调用
       if (this.roche.memory && this.roche.memory.getLongTerm) {
         this.roche.memory.getLongTerm({ conversationId: 'test', limit: 1 }).then(function(d) {
@@ -2482,13 +2493,49 @@
             this.classList.toggle('checked')
           })
         }
-      }).catch(function() {
+      }).catch(function(e) {
+        console.warn('[PUA] conversation.list failed: ' + (e.message || e))
+        var memList = modal.querySelector('#branch-mem-list')
+        if (memList) memList.innerHTML = '<div style="font-size:10px;color:var(--pua-text-dim);text-align:center;padding:8px">\u52A0\u8F7D\u5931\u8D25: ' + self._escHtml(e.message || '') + '</div>'
+      })
+    } else if (this.roche.character && this.roche.character.list) {
+      // conversation.list 不可用，用 character.list 替代
+      this.roche.character.list().then(function(chars) {
+        var memList = modal.querySelector('#branch-mem-list')
+        if (!memList) return
+        var h = ''
+        for (var i = 0; i < (chars || []).length; i++) {
+          var ch = chars[i]
+          var cvId = ch.conversationId || ''
+          if (!cvId) continue
+          var chName = ch.handle || ch.name || '?'
+          var isBound = false
+          for (var bi = 0; bi < (branch.memoryConvIds || []).length; bi++) {
+            if (branch.memoryConvIds[bi] === cvId) { isBound = true; break }
+          }
+          if (branch.sourceConvId === cvId) isBound = true
+          h += '<div class="pua-check-item' + (isBound ? ' checked' : '') + '" data-conv-id="' + cvId + '">'
+          h += '<div class="pua-check-box">\u2713</div>'
+          h += '<span class="pua-check-icon">\uD83D\uDC64</span>'
+          h += '<span class="pua-check-label">' + self._escHtml(chName) + '</span>'
+          h += '</div>'
+        }
+        if (!h) h = '<div style="font-size:10px;color:var(--pua-text-dim);text-align:center;padding:8px">\u65E0\u89D2\u8272\u4F1A\u8BDD</div>'
+        memList.innerHTML = h
+        var items = memList.querySelectorAll('.pua-check-item')
+        for (var ii = 0; ii < items.length; ii++) {
+          items[ii].addEventListener('click', function() {
+            this.classList.toggle('checked')
+          })
+        }
+      }).catch(function(e) {
+        console.warn('[PUA] character.list failed: ' + (e.message || e))
         var memList = modal.querySelector('#branch-mem-list')
         if (memList) memList.innerHTML = '<div style="font-size:10px;color:var(--pua-text-dim);text-align:center;padding:8px">\u52A0\u8F7D\u5931\u8D25</div>'
       })
     } else {
       var memListEl = modal.querySelector('#branch-mem-list')
-      if (memListEl) memListEl.innerHTML = '<div style="font-size:10px;color:var(--pua-text-dim);text-align:center;padding:8px">\u4E0D\u53EF\u7528</div>'
+      if (memListEl) memListEl.innerHTML = '<div style="font-size:10px;color:var(--pua-text-dim);text-align:center;padding:8px">\u8BB0\u5FC6\u7ED1\u5B9A\u9700\u8981 conversation \u6216 character API</div>'
     }
 
     // ===== 异步加载世界书 =====
@@ -14738,7 +14785,7 @@
   window.RochePlugin.register({
     id: 'parallel-universe',
     name: '\u5E73\u884C\u65F6\u7A7A\u6863\u6848\u9986',
-    version: '0.44.0',
+    version: '0.44.1',
     icon: '\u2606',
     apps: [{
       id: 'parallel-universe-home',
