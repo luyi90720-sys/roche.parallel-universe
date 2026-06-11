@@ -2498,44 +2498,9 @@
         var memList = modal.querySelector('#branch-mem-list')
         if (memList) memList.innerHTML = '<div style="font-size:10px;color:var(--pua-text-dim);text-align:center;padding:8px">\u52A0\u8F7D\u5931\u8D25: ' + self._escHtml(e.message || '') + '</div>'
       })
-    } else if (this.roche.character && this.roche.character.list) {
-      // conversation.list 不可用，用 character.list 替代
-      this.roche.character.list().then(function(chars) {
-        var memList = modal.querySelector('#branch-mem-list')
-        if (!memList) return
-        var h = ''
-        for (var i = 0; i < (chars || []).length; i++) {
-          var ch = chars[i]
-          var cvId = ch.conversationId || ''
-          if (!cvId) continue
-          var chName = ch.handle || ch.name || '?'
-          var isBound = false
-          for (var bi = 0; bi < (branch.memoryConvIds || []).length; bi++) {
-            if (branch.memoryConvIds[bi] === cvId) { isBound = true; break }
-          }
-          if (branch.sourceConvId === cvId) isBound = true
-          h += '<div class="pua-check-item' + (isBound ? ' checked' : '') + '" data-conv-id="' + cvId + '">'
-          h += '<div class="pua-check-box">\u2713</div>'
-          h += '<span class="pua-check-icon">\uD83D\uDC64</span>'
-          h += '<span class="pua-check-label">' + self._escHtml(chName) + '</span>'
-          h += '</div>'
-        }
-        if (!h) h = '<div style="font-size:10px;color:var(--pua-text-dim);text-align:center;padding:8px">\u65E0\u89D2\u8272\u4F1A\u8BDD</div>'
-        memList.innerHTML = h
-        var items = memList.querySelectorAll('.pua-check-item')
-        for (var ii = 0; ii < items.length; ii++) {
-          items[ii].addEventListener('click', function() {
-            this.classList.toggle('checked')
-          })
-        }
-      }).catch(function(e) {
-        console.warn('[PUA] character.list failed: ' + (e.message || e))
-        var memList = modal.querySelector('#branch-mem-list')
-        if (memList) memList.innerHTML = '<div style="font-size:10px;color:var(--pua-text-dim);text-align:center;padding:8px">\u52A0\u8F7D\u5931\u8D25</div>'
-      })
     } else {
       var memListEl = modal.querySelector('#branch-mem-list')
-      if (memListEl) memListEl.innerHTML = '<div style="font-size:10px;color:var(--pua-text-dim);text-align:center;padding:8px">\u8BB0\u5FC6\u7ED1\u5B9A\u9700\u8981 conversation \u6216 character API</div>'
+      if (memListEl) memListEl.innerHTML = '<div style="font-size:10px;color:var(--pua-text-dim);text-align:center;padding:8px">\u8BB0\u5FC6\u7ED1\u5B9A\u9700\u8981 conversation API</div>'
     }
 
     // ===== 异步加载世界书 =====
@@ -6145,33 +6110,25 @@
       // 离线分支：直接使用分支中的数据
       this.asmData.shortTerm = branch.messages || []
       this.asmData.longTerm = branch.longTermMemory || null
-      console.log('[PUA] _fetchAsmData: offline branch, shortTerm=' + this.asmData.shortTerm.length + ' longTerm=' + (this.asmData.longTerm ? 'yes' : 'no'))
-      // 尝试从角色的conversationId获取在线记忆
-      if (!this.asmData.longTerm && branch.charId && this.roche && this.roche.character && this.roche.memory) {
-        var offlineCharId = branch.charId
-        promises.push(
-          this.roche.character.get(offlineCharId).then(function(charObj) {
-            if (charObj && charObj.conversationId) {
-              console.log('[PUA] _fetchAsmData: offline branch, fetching memory from char conversationId=' + charObj.conversationId)
-              // 更新分支的memoryConvIds
-              if (!branch.memoryConvIds || branch.memoryConvIds.length === 0) {
-                branch.memoryConvIds = [charObj.conversationId]
-                if (!branch.sourceConvId) branch.sourceConvId = charObj.conversationId
-                self._saveBranches()
-              }
-              return self.roche.memory.getLongTerm({ conversationId: charObj.conversationId, limit: 100 }).then(function(data) {
+      console.log('[PUA] _fetchAsmData: offline branch, shortTerm=' + this.asmData.shortTerm.length + ' longTerm=' + (this.asmData.longTerm ? 'yes' : 'no') + ' memoryConvIds=' + JSON.stringify(branch.memoryConvIds || []))
+      // 如果分支有绑定的记忆会话，从roche.memory获取
+      if (!this.asmData.longTerm && branch.memoryConvIds && branch.memoryConvIds.length > 0 && this.roche && this.roche.memory && this.roche.memory.getLongTerm) {
+        for (var omci = 0; omci < branch.memoryConvIds.length; omci++) {
+          (function(memConvId2) {
+            promises.push(
+              self.roche.memory.getLongTerm({ conversationId: memConvId2, limit: 100 }).then(function(data) {
                 if (data) {
                   self.asmData.longTerm = data
                   var factCount = (data.facts && data.facts.length) || 0
                   var hasCore = !!(data.core)
-                  console.log('[PUA] _fetchAsmData: got longTerm for offline branch, facts=' + factCount + ' core=' + hasCore)
+                  console.log('[PUA] _fetchAsmData: got longTerm for offline branch via memoryConvId, facts=' + factCount + ' core=' + hasCore)
                 }
+              }).catch(function(e) {
+                console.warn('[PUA] _fetchAsmData: getLongTerm FAILED for memoryConvId=' + memConvId2 + ', err=' + (e.message || e))
               })
-            }
-          }).catch(function(e) {
-            console.warn('[PUA] _fetchAsmData: failed to get char for offline branch, err=' + (e.message || e))
-          })
-        )
+            )
+          })(branch.memoryConvIds[omci])
+        }
       }
     }
 
@@ -13701,25 +13658,6 @@
           }
           if (selBranch && selBranch.memoryConvIds && selBranch.memoryConvIds.length > 0) {
             self._loadMemFromBranches(selBranch.memoryConvIds, selBranch.id)
-          } else if (selBranch && selBranch.charId && self.roche && self.roche.character) {
-            // 没有绑定的记忆会话，但有角色ID，尝试从角色获取conversationId
-            self.roche.character.get(selBranch.charId).then(function(charObj) {
-              if (charObj && charObj.conversationId) {
-                console.log('[PUA] mem-branch-select: got conversationId=' + charObj.conversationId + ' from char ' + selBranch.charId)
-                selBranch.memoryConvIds = [charObj.conversationId]
-                if (selBranch.sourceConvId !== charObj.conversationId) {
-                  selBranch.sourceConvId = charObj.conversationId
-                }
-                self._saveBranches()
-                self._loadMemFromBranches([charObj.conversationId], selBranch.id)
-              } else {
-                console.log('[PUA] mem-branch-select: char has no conversationId, charId=' + selBranch.charId)
-                self._render()
-              }
-            }).catch(function(e) {
-              console.warn('[PUA] mem-branch-select: failed to get char, err=' + (e.message || e))
-              self._render()
-            })
           } else {
             self._render()
           }
@@ -14785,7 +14723,7 @@
   window.RochePlugin.register({
     id: 'parallel-universe',
     name: '\u5E73\u884C\u65F6\u7A7A\u6863\u6848\u9986',
-    version: '0.44.1',
+    version: '0.44.2',
     icon: '\u2606',
     apps: [{
       id: 'parallel-universe-home',
